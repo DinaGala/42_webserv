@@ -1,0 +1,18 @@
+GENERAL:
+https://www.youtube.com/watch?v=9J1nJOivdyw
+https://dev.to/jeffreythecoder/how-i-built-a-simple-http-server-from-scratch-using-c-739
+
+CONFIG beginners guide:
+http://nginx.org/en/docs/beginners_guide.html
+
+SOCKETS (acticulo encontrado por Nuria):
+https://www.naukri.com/code360/library/learning-socket-programming-in-c 
+
+SOCKETS (de Marti):
+https://wiki.netbsd.org/examples/socket_programming/
+
+RFC el ultimo que decia ayer Romain:
+https://datatracker.ietf.org/doc/rfc9112/
+
+HTTP - documentacion de los protocolos HTTP: 
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Resources_and_specifications
