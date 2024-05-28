@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/05/28 18:03:30 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/05/28 20:43:19 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,16 +29,16 @@ struct CgiConfig
 class LocationConfig
 {
 	private:
-		std::string _uri;
-		std::string _root;
-		std::string _alias;
+		std::string _uri; 
+		std::string _root; // Define a directory or a file from where the file should be searched (for example, if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet).
+		std::string _alias; 
 		std::map<int, std::string> _error_pages;
-		std::vector<std::string> _allowed_methods;
+		std::vector<std::string> _allowed_methods; // Define a list of accepted HTTP methods for the route.
 		std::string _index;
 		bool _autoIndex;
 		bool _allowUpload;
 		std::string _uploadDir;
-		std::vector<CgiConfig> _cgiConfigs;
+		std::vector<CgiConfig> _cgiConfigs; // Execute CGI based on certain file extension (for example .php).
 
 	public:
 		LocationConfig();
