@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/05/28 20:40:05 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/05/29 18:25:01 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <vector>
 # include <map>
 # include "LocationConfig.hpp"
+# include <algorithm>
 
 # define MAX_BODY_SIZE 10000000000 //10GB
 # define DEFAULT_BODY_SIZE 10000000 //10MB
@@ -35,11 +36,14 @@ class ServerConfig
 		std::vector<CgiConfig> cgiConf;
 		bool autoindex;
 
-	public:
 		ServerConfig();
+
+	public:
+
 		ServerConfig& operator=(const ServerConfig& src);
 		ServerConfig(const ServerConfig& src);
-		ServerConfig(const std::string& host, int port, const std::string& serverName, const std::string& rootDir, const std::vector<LocationConfig>& locations, const std::map<int, std::string>& error_pages, size_t client_max_body_size, const std::vector<CgiConfig>& cgiConf, bool autoindex);
+	//	ServerConfig(const std::string& host, int port, const std::string& serverName, const std::string& rootDir, const std::vector<LocationConfig>& locations, const std::map<int, std::string>& error_pages, size_t client_max_body_size, const std::vector<CgiConfig>& cgiConf, bool autoindex);
+		ServerConfig(char *file);
 		~ServerConfig();
 
 		void _initConfig();
@@ -66,5 +70,7 @@ class ServerConfig
 		void setHostName(const std::string& hostName);
 		std::string getHostName() const;
 };
+
+std::vector<ServerConfig>	configParse(void *file);
 
 #endif
