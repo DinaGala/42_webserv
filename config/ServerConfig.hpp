@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nzhuzhle <nzhuzhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/05/29 22:45:28 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:47:52 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,17 @@
 class ServerConfig
 {
 	private:
-		std::string 				_host; // Choose the port and host of each ’server’.
-		std::string 				_hostName;
-		int 						_port; // Choose the port and host of each ’server’.
-		std::string 				_serverName; // Setup the server_names or not.
-		std::string 				_rootDir;
-		std::vector<LocationConfig> _locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
-		std::map<int, std::string> 	error_pages; // What's in the string? Setup default error pages.
-		size_t 						_max_body_size; // Limit client body size.
-		std::vector<CgiConfig> 		cgiConf;
-		bool 						autoindex;
 
+		int 						_port; // Choose the port and host of each ’server’.		
+		std::string 				_host; // Choose the port and host of each ’server’.
+	//	std::string 				_hostName; // don't think we need it
+		std::string 				_serverName; // Setup the server_names or not.
+		std::string 				_rootDir; // If empty it setups to default
+		size_t 						_max_body_size; // Limit client body size
+		bool 						_autoindex;
+		std::vector<CgiConfig> 		_cgiConf;
+		std::map<int, std::string> 	_error_pages; // The string is the path. Setup default error pages.
+		std::vector<LocationConfig> _locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
 		ServerConfig();
 
 	public:
@@ -73,7 +73,6 @@ class ServerConfig
 		
 		void 		addLocationConfig(const LocationConfig& locations);
 		void 		addErrorPage(int code, const std::string& page);
-
 		bool		empty;
 };
 

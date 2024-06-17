@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nzhuzhle <nzhuzhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/05/28 20:43:19 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:33:18 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,23 +22,22 @@ struct CgiConfig
 {
     std::string extension;
     std::string handlerPath;
-	CgiConfig(const std::string& ext, const std::string& handler)
-    : extension(ext), handlerPath(handler) {}
+	CgiConfig(const std::string& ext, const std::string& handler): extension(ext), handlerPath(handler) {}
 };
 
 class LocationConfig
 {
 	private:
-		std::string _uri; 
-		std::string _root; // Define a directory or a file from where the file should be searched (for example, if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet).
-		std::string _alias; 
-		std::map<int, std::string> _error_pages;
-		std::vector<std::string> _allowed_methods; // Define a list of accepted HTTP methods for the route.
-		std::string _index;
-		bool _autoIndex;
-		bool _allowUpload;
-		std::string _uploadDir;
-		std::vector<CgiConfig> _cgiConfigs; // Execute CGI based on certain file extension (for example .php).
+		std::string 				_uri; 
+		std::string 				_root; // Define a directory or a file from where the file should be searched (for example, if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet).
+		std::string 				_alias;
+		std::string 				_index;
+		bool 						_autoIndex;
+		bool 						_allowUpload;
+		std::string 				_uploadDir;
+		std::vector<CgiConfig> 		_cgiConfigs; // Execute CGI based on certain file extension (for example .php).
+		std::vector<std::string> 	_allowed_methods; // Define a list of accepted HTTP methods for the route.
+		std::map<int, std::string> 	_error_pages;
 
 	public:
 		LocationConfig();
@@ -57,17 +56,16 @@ class LocationConfig
 		void setAllowUpload(bool allowUpload);
 		void setUploadDir(const std::string& uploadDir);
 
-		const std::string& getUri() const;
-		const std::string& getRoot() const;
-		const std::string& getAlias() const;
-		const std::map<int, std::string>& getErrorPages() const;
-		const std::vector<std::string>& getAllowedMethods() const;
-		const std::vector<CgiConfig>& getCgiConfigs() const;
-		const std::string& getIndex() const;
 		bool getAutoIndex() const;
 		bool getAllowUpload() const;
-		const std::string& getUploadDir() const;
-	
+		const std::string& 					getUri() const;
+		const std::string& 					getRoot() const;
+		const std::string& 					getAlias() const;
+		const std::string& 					getIndex() const;
+		const std::string& 					getUploadDir() const;
+		const std::vector<CgiConfig>& 		getCgiConfigs() const;
+		const std::vector<std::string>& 	getAllowedMethods() const;
+		const std::map<int, std::string>& 	getErrorPages() const;
 };
 #endif
 
