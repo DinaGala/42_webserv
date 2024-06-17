@@ -33,9 +33,8 @@ class Server {
 		void	setPort(const int port);
 
 
-		long		getSockfd() const;
+		long				getSockfd() const;
 		struct sockaddr_in	getSockaddr() const;
-
 };
 
 #endif

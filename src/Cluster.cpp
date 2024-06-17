@@ -1,14 +1,13 @@
 #include "Cluster.hpp"
 
-Cluster::Cluster() {
-	
+Cluster::Cluster() {	
 }
 
 Cluster::~Cluster() {
 }
 
 void	Cluster::setUpCluster(){
-    this->_nServers = 1; 
+    this->_nServers = 1;
 	for (unsigned int i=0; i < _nServers; i++) {
         Server server;
 		server.setUpServer();
@@ -17,7 +16,8 @@ void	Cluster::setUpCluster(){
 }
 
 void	Cluster::runCluster(){
-    while (1){
+    Server server = this->_servers[0];
+	while (1){
 		/*ACCEPT
 		int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
 		addrlen is now a value-result argument. 
@@ -25,7 +25,7 @@ void	Cluster::runCluster(){
 		After the function is executed, the int refered by addrlen will be set to the size of the peer address.
 		*/
 		// Grab a connection from the queue
-		Server server = this->_servers[0];
+
 		struct sockaddr_in sockAddress = server.getSockaddr();
 		long unsigned int addrlen = sizeof(server.getSockaddr());
 		int connection = accept(server.getSockfd(), (struct sockaddr*)&sockAddress, (socklen_t*)&addrlen);
@@ -35,8 +35,9 @@ void	Cluster::runCluster(){
 		}
 
 		// Read from the connection
-		char buffer[100];
+		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
+		
 		std::cout << "Request: " << buffer;
 
 		/*SEND 
@@ -48,9 +49,9 @@ void	Cluster::runCluster(){
     
 		// Close the connections
 		close(connection);
-		close(server.getSockfd());
+		
 	}
-
+	close(server.getSockfd());
 }
 
 /*	/*ACCEPT
