@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/17 18:47:52 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/18 17:36:32 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,9 @@ class ServerConfig
 {
 	private:
 
-		int 						_port; // Choose the port and host of each ’server’.		
+		std::vector<int> 			_port; // Choose the port and host of each ’server’.		
 		std::string 				_host; // Choose the port and host of each ’server’.
-	//	std::string 				_hostName; // don't think we need it
-		std::string 				_serverName; // Setup the server_names or not.
+		std::vector<std::string> 	_serverName; // Setup the server_names or not.
 		std::string 				_rootDir; // If empty it setups to default
 		size_t 						_max_body_size; // Limit client body size
 		bool 						_autoindex;
