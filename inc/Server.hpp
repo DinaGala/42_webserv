@@ -10,7 +10,7 @@
 # include <cstring>
 # include <sys/types.h>
 # include <arpa/inet.h>
-
+#include <sys/wait.h>
 
 class Server {
 	private:
@@ -22,7 +22,7 @@ class Server {
 	public:
 		Server();
 		~Server();
-		//ADD CANONICHAL FORM
+		//ADD CANONICAL FORM
 
 		void	setUpServer();
 		void	initSocket();
@@ -32,6 +32,7 @@ class Server {
 		void	setIpAddress(const char* ipAddress);
 		void	setPort(const int port);
 
+		int		executeCgi(void);
 
 		long				getSockfd() const;
 		struct sockaddr_in	getSockaddr() const;

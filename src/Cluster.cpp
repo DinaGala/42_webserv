@@ -33,19 +33,25 @@ void	Cluster::runCluster(){
 			std::cout << "Failed to grab connection. errno: " << errno << std::endl;
 			exit(EXIT_FAILURE);
 		}
-
+		std::string response = "HTTP/1.1 200 OK\n"
+                           "Content-Type: text/html\n"
+                           "Content-Length: 38\n\n"
+                           "<html><body>This is my response</body></html>";
 		// Read from the connection
 		char buffer[1000];
-		int bytesRead = read(connection, buffer, 100);
+		int bytesRead = recv(connection, buffer, 100, 0);
 		
 		std::cout << "Request: " << buffer;
 
+		////////////////////////////
+		int cgi = server.executeCgi();
+		std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
+		//////////////////////////
 		/*SEND 
 		send a message to the connection
 		int send(int sockfd, const void *msg, int len, int flags); 
 		*/
-		std::string response = "Good talking to you\n";
-		send(connection, response.c_str(), response.size(), 0);
+		//send(connection, response.c_str(), response.size(), 0);
     
 		// Close the connections
 		close(connection);
