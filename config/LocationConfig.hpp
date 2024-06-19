@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 17:35:33 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/19 22:23:03 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,14 @@ class LocationConfig
 		bool 						_autoIndex;
 		bool 						_allowUpload;
 		std::string 				_uploadDir;
-		std::map<std::string, std::string> 		_cgiConfigs; // Execute CGI based on certain file extension (for example .php).
-		std::vector<std::string> 	_allowed_methods; // Define a list of accepted HTTP methods for the route.
-		std::map<int, std::string> 	_error_pages;
+		std::vector<std::string> 	_allowedMethods; // Define a list of accepted HTTP methods for the route.
+		std::map<int, std::string> 	_errorPages;
+		std::map<std::string, std::string> 	_cgiConf; // Execute CGI based on certain file extension (for example .php).
+
+		LocationConfig();
 
 	public:
-		LocationConfig();
+		LocationConfig(std::stringstream &file);
 		LocationConfig(const LocationConfig& src);
 		LocationConfig& operator=(const LocationConfig& src);
 		~LocationConfig();
@@ -48,9 +50,10 @@ class LocationConfig
 		void setUri(const std::string& uri);
 		void setRoot(const std::string& root);
 		void setAlias(const std::string& alias);
-		void setErrorPages(const std::map<int, std::string>& error_pages);
-		void setAllowedMethods(const std::vector<std::string>& allowed_methods);
-		void addCgiConfig(const std::map<std::string, std::string>& cgiConfig);
+		void setErrorPage(int code, const std::string& page);
+		void setAllowedMethod(const std::string& method);
+//		void addCgiConfig(const std::map<std::string, std::string>& cgiConfig);
+		void LocationConfig::setCgiConf(const std::string &ext, const std::string &path);
 		void setIndex(const std::string& index);
 		void setAutoIndex(bool autoIndex);
 		void setAllowUpload(bool allowUpload);
@@ -63,7 +66,7 @@ class LocationConfig
 		const std::string& 					getAlias() const;
 		const std::string& 					getIndex() const;
 		const std::string& 					getUploadDir() const;
-		const std::map<std::string, std::string>& 		getCgiConfigs() const;
+		const std::map<std::string, std::string>& 		getCgiConf() const;
 		const std::vector<std::string>& 	getAllowedMethods() const;
 		const std::map<int, std::string>& 	getErrorPages() const;
 };

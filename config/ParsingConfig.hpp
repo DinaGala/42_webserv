@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 18:34:47 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/19 21:50:22 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class ServerConfig;
 class LocationConfig;
 
 template <typename T>
-void  error_parse(T &obj, std::vector<int> &err, std::string &path);
+void  errorPagesParse(T &obj, std::vector<int> &err, std::string &path);
 
 
 
