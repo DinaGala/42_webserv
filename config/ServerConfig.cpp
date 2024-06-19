@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nzhuzhle <nzhuzhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/05/29 22:44:24 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/19 18:22:35 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ ServerConfig::ServerConfig() {}
 
 
 
-ServerConfig::ServerConfig(std::ifstream &file)
+ServerConfig::ServerConfig(std::stringstream &file)
 {
 	
 }
@@ -24,15 +24,15 @@ ServerConfig::ServerConfig(std::ifstream &file)
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 {
 	_host = src._host;
-	_hostName = src._hostName;
+//	_hostName = src._hostName;
 	_port = src._port; 
 	_serverName = src._serverName;
 	_rootDir = src._rootDir;
 	_locations = src._locations;
-	error_pages = src.error_pages;
+	_error_pages = src._error_pages;
 	_max_body_size = src._max_body_size;
-	cgiConf = src.cgiConf;
-	autoindex = src.autoindex;
+	_cgiConf = src._cgiConf;
+	_autoindex = src._autoindex;
 	empty = src.empty;
 	return (*this);
 }
@@ -45,8 +45,8 @@ ServerConfig::ServerConfig(const ServerConfig& src)
 ServerConfig::~ServerConfig()
 {
 	_locations.clear();
-	error_pages.clear();
-	cgiConf.clear();
+	_error_pages.clear();
+	_cgiConf.clear();
 }
 
 std::string ServerConfig::getHost() const
@@ -54,17 +54,17 @@ std::string ServerConfig::getHost() const
 	return (_host);
 }
 
-std::string ServerConfig::getHostName() const
-{
-	return (_hostName);
-}
+// std::string ServerConfig::getHostName() const
+// {
+// 	return (_hostName);
+// }
 
-int ServerConfig::getPort() const
+std::vector<int> ServerConfig::getPort() const
 {
 	return (_port);
 }
 
-std::string ServerConfig::getServerName() const
+std::vector<std::string> ServerConfig::getServerName() const
 {
 	return (_serverName);
 }
@@ -81,7 +81,7 @@ std::vector<LocationConfig> ServerConfig::getLocationConf() const
 
 std::map<int, std::string> ServerConfig::getErrorPages() const
 {
-	return (error_pages);
+	return (_error_pages);
 }
 
 size_t ServerConfig::getMaxBodySize() const
@@ -89,14 +89,19 @@ size_t ServerConfig::getMaxBodySize() const
 	return (_max_body_size);
 }
 
-std::vector<CgiConfig> ServerConfig::getCgiConf() const
+std::map<std::string, std::string>  ServerConfig::getCgiConf() const
 {
-	return (cgiConf);
+	return (_cgiConf);
 }
 
 bool ServerConfig::getAutoIndex() const
 {
-	return (autoindex);
+	return (_autoindex);
+}
+
+std::vector<ServerConfig>	configParse(void *file)
+{
+
 }
 
 // void ServerConfig::_initConfig();
