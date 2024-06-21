@@ -6,23 +6,18 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 22:18:00 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/21 21:05:14 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVERCONFIG_HPP
 # define SERVERCONFIG_HPP
 
-# include <string>
-# include <fstream>
-# include <iostream>
-# include <vector>
-# include <map>
-# include "LocationConfig.hpp"
-# include <algorithm>
+# include "Utils.hpp"
 
 # define MAX_BODY_SIZE 2000000000 //2GB
 # define DEFAULT_BODY_SIZE 10000000 //10MB
+# define N_SERV_DIR 9
 
 class ServerConfig
 {
@@ -39,14 +34,29 @@ class ServerConfig
 		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<std::string, std::string> 	_cgiConf;
-		std::map<std::string, bool>			_vars; // each variable if is set or not
+//		std::map<std::string, bool>			_vars; // each variable if is set or not
+		std::map<std::string, funcs *>	_keys;
+		std::string							_keys[N_SERV_DIR] = 
+		{
+			"listen",
+    		"server_name",
+    		"root",
+   		 	"max_body_size",
+    		"autoindex",
+    		"error_pages",
+    		"location",
+    		"allow_methods",
+    		"cgi"
+		};
+		
+
 		ServerConfig();
 
 	public:
 
 		ServerConfig& operator=(const ServerConfig& src);
 		ServerConfig(const ServerConfig& src);
-		ServerConfig(std::stringstream &file);
+		ServerConfig(std::string file);
 		~ServerConfig();
 
 		void 						_initConfig();

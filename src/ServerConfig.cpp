@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 22:17:57 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/21 19:50:13 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,17 @@ ServerConfig::ServerConfig() {}
 
 
 
-ServerConfig::ServerConfig(std::stringstream &file)
+ServerConfig::ServerConfig(std::string file)
 {
-	
+	_initKeys();
+	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 }
 
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 {
 	_host = src._host;
 	_hostName = src._hostName;
-	_port = src._port; 
+	_port = src._port;
 	_serverName = src._serverName;
 	_root = src._root;
 	_locations = src._locations;

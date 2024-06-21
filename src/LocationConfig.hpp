@@ -6,24 +6,16 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 22:23:03 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/21 20:20:26 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LOCATIONCONFIG_HPP
 # define LOCATIONCONFIG_HPP
 
-# include <string>
-# include <iostream>
-# include <vector>
-# include <map>
+# include "Utils.hpp"
 
-// struct CgiConfig 
-// {
-//     std::string extension;
-//     std::string handlerPath;
-// 	CgiConfig(const std::string& ext, const std::string& handler): extension(ext), handlerPath(handler) {}
-// };
+# define N_LOC_DIR 9
 
 class LocationConfig
 {
@@ -38,11 +30,25 @@ class LocationConfig
 		std::vector<std::string> 	_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<int, std::string> 	_errorPages;
 		std::map<std::string, std::string> 	_cgiConf; // Execute CGI based on certain file extension (for example .php).
+		std::map<std::string, funcs *>	_keys;
+		std::string							_keys[N_LOC_DIR] = 
+		{
+    		"root",
+    		"autoindex",
+    		"error_pages",
+			"upload_dir",
+			"allow_upload",
+			"index",
+    		"allow_methods",
+			"return",
+    		"cgi"
+		};
 
+		void	_initKeys();
 		LocationConfig();
 
 	public:
-		LocationConfig(std::stringstream &file);
+		LocationConfig(std::string &file);
 		LocationConfig(const LocationConfig& src);
 		LocationConfig& operator=(const LocationConfig& src);
 		~LocationConfig();
@@ -53,7 +59,7 @@ class LocationConfig
 		void setErrorPage(int code, const std::string& page);
 		void setAllowedMethod(const std::string& method);
 //		void addCgiConfig(const std::map<std::string, std::string>& cgiConfig);
-		void LocationConfig::setCgiConf(const std::string &ext, const std::string &path);
+		void setCgiConf(const std::string &ext, const std::string &path);
 		void setIndex(const std::string& index);
 		void setAutoIndex(bool autoIndex);
 		void setAllowUpload(bool allowUpload);
@@ -71,10 +77,3 @@ class LocationConfig
 		const std::map<int, std::string>& 	getErrorPages() const;
 };
 #endif
-
-
-
-
-
-
-

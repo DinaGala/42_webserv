@@ -6,19 +6,19 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/19 22:22:59 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/21 20:04:50 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "LocationConfig.hpp"
 
+// _____________  CONSTRUCTORS ______________________________________
+
 LocationConfig::LocationConfig() {}
 
-
-
-LocationConfig::LocationConfig(std::stringstream &file)
+LocationConfig::LocationConfig(std::string &file)
 {
-	
+	_initKeys();
 }
 
 LocationConfig& LocationConfig::operator=(const LocationConfig& src)
@@ -46,6 +46,12 @@ LocationConfig::~LocationConfig()
 	_cgiConf.clear();
 }
 
+void    LocationConfig::_initKeys()
+{
+    _keys
+}
+
+// _____________  GETTERS ______________________________________
 
 bool LocationConfig::getAutoIndex() const
 {
@@ -95,6 +101,9 @@ const std::map<int, std::string>& 	LocationConfig::getErrorPages() const
 {
     return (_errorPages);
 }
+
+
+// _____________  SETTERS ______________________________________
 
 void LocationConfig::setRoot(const std::string& root)
 {
