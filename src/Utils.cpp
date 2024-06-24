@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/21 20:17:17 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/24 21:25:17 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,4 +32,20 @@ std::string rtrim(const std::string& s)
 std::string trim(const std::string& s) 
 {
     return (ltrim(rtrim(s)));
+}
+
+template <typename T>
+T   ft_split(std::string str, char c)
+{
+    T   res;
+    size_t  start = 0;
+    size_t  pos = str.find(c);
+    while (end != std::string::npos)
+    {
+        res.push_back(str.substr(start, end - start));
+        start = end + 1;
+        end = std.find(c, start);
+    }
+    res.push_back(str.substr(start));
+    return (res);
 }

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/21 19:50:13 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/24 23:18:22 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,13 @@
 
 ServerConfig::ServerConfig() {}
 
-
+std::map<std::string, funcs *> ServerConfig::_keys = 
+{
+	{"listen", }
+};
 
 ServerConfig::ServerConfig(std::string file)
 {
-	_initKeys();
 	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 }
 
@@ -51,7 +53,6 @@ ServerConfig::~ServerConfig()
 	_allowedMethods.clear();
 	_errorPages.clear();
 	_cgiConf.clear();
-	_vars.clear();
 }
 
 std::string ServerConfig::getHost() const

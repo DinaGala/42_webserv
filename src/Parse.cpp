@@ -1,19 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ParsingConfig.cpp                                  :+:      :+:    :+:   */
+/*   Parse.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/21 20:59:11 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/24 21:40:20 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ParsingConfig.hpp"
+#include "Parse.hpp"
 
 
-std::vector<ServerConfig>	configParse(char *filename)
+std::vector<ServerConfig>	Parse::configParse(char *filename)
 {
     std::ifstream				file(filename);
 	std::vector<ServerConfig>	sconf;
@@ -40,7 +40,7 @@ std::vector<ServerConfig>	configParse(char *filename)
 	return (sconf);
 }
 
-std::string checkBrackets(std::ifstream &filename)
+std::string Parse::checkBrackets(std::ifstream &filename)
 {
 	std::string	file;
     int         op = 0;
@@ -71,7 +71,7 @@ std::string checkBrackets(std::ifstream &filename)
 
 // Function to crop the config in the brackets (location or server)
 // Returns the cropped part without brackets and trims this part from the buf
-std::string   cropComplexDir(std::string &buf)
+std::string   Parse::cropComplexDir(std::string &buf)
 {
     size_t pos = buf.find('{');
 //    std::cout << pos << "\n";
@@ -99,3 +99,26 @@ std::string   cropComplexDir(std::string &buf)
     return (complexDir);
 }
 
+// template <typename T>
+//     static void  errorParse(T &obj, std::string &line);
+
+//     template <typename T>
+//     static void  rootParse(T &obj, std::string &line);
+
+//     template <typename T>
+//     static void  allowMethodsParse(T &obj, std::string &line);
+
+//     template <typename T>
+//     static void  cgiParse(T &obj, std::string &line);
+
+//     template <typename T>
+//     static void  boolParse(T &obj, std::string &line, int flag); // switch: 0 - autoindex, 1 - upload
+
+//     static void  hostParse(ServerConfig &serv, std::string &line);
+//     static void  servNameParse(ServerConfig &serv, std::string &line);
+//     static void  bodySizeParse(ServerConfig &serv, std::string &line);
+//     static void  locationParse(ServerConfig &serv, std::string &line);
+
+//     static void  uriParse(LocationConfig &serv, std::string &line);
+//     static void  indexParse(LocationConfig &serv, std::string &line);
+//     static void  aliasParse(LocationConfig &serv, std::string &line);
