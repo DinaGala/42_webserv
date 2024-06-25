@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/24 21:48:07 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/25 21:50:24 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class ServerConfig
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<std::string, std::string> 	_cgiConf;
 //		std::map<std::string, bool>			_vars; // each variable if is set or not
-		static std::map<std::string, funcs *>	_keys;
+		static std::map<std::string, funcS>	_keys;
 		std::string							_key[N_SERV_DIR] = 
 		{
 			"listen",
@@ -49,7 +49,6 @@ class ServerConfig
     		"cgi"
 		};
 		
-
 		ServerConfig();
 
 	public:
@@ -58,8 +57,6 @@ class ServerConfig
 		ServerConfig(const ServerConfig& src);
 		ServerConfig(std::string file);
 		~ServerConfig();
-
-		void 						_initConfig();
 
 		std::string 				getHost() const;
 		std::vector<int>			getPort() const;
@@ -85,7 +82,8 @@ class ServerConfig
 		void 		setLocationConfig(const LocationConfig& location);
 		void 		setErrorPage(int code, const std::string& page);
 		void 		setAllowedMethod(const std::string& method);
-		bool		empty;
+		const bool	loc = true;
+//		bool		empty;
 };
 
 

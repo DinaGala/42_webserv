@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/24 23:18:22 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/25 21:48:54 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,24 @@
 
 ServerConfig::ServerConfig() {}
 
-std::map<std::string, funcs *> ServerConfig::_keys = 
-{
-	{"listen", }
+
+std::map<std::string, funcS> ServerConfig::_keys = {
+
+	{"listen", &Parse::hostParse},
+	{"server_name", &Parse::servNameParse},
+    {"root", &Parse::rootParse},
+   	{"max_body_size", &Parse::bodySizeParse},
+   	{"autoindex", &Parse::autoIndexParse},
+    {"error_pages", &Parse::errorParse},
+    {"allow_methods", &Parse::allowMethodsParse},
+ 	{"cgi", &Parse::cgiParse}
+	 //   {"location", 
 };
 
 ServerConfig::ServerConfig(std::string file)
 {
 	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
+	Parse::complexParse(*this, file);
 }
 
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
@@ -36,7 +46,7 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_maxBodySize = src._maxBodySize;
 	_cgiConf = src._cgiConf;
 	_autoIndex = src._autoIndex;
-	empty = src.empty;
+//	empty = src.empty;
 	return (*this);
 }
 

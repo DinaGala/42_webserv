@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/24 21:38:27 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/25 19:46:44 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 # include <algorithm>
 # include <exception>
 # include <cctype>
+# include <functional>
 
 
 # include "LocationConfig.hpp"
@@ -35,8 +36,8 @@ std::string ltrim(const std::string& s);
 std::string rtrim(const std::string& s);
 std::string trim(const std::string& s);
 
-template <typename T>
-T   ft_split(std::string str, char c); 
+template <typename Container>
+Container&   ft_split(std::string str, char c); 
 
 
 

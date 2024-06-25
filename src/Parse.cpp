@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/24 21:40:20 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/25 22:03:16 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,7 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
         // std::stringstream   directive;
         // directive << 
  //       std::cout << "Printing directive: " << directive.str() << "\n" << " ----------------------------------------------" << std::endl;
-        ServerConfig	newserv(cropComplexDir(buf));
-		if (newserv.empty)
-			break ;
-		sconf.push_back(newserv);
+		sconf.push_back( ServerConfig(blockCrop(buf)));
         std::cout << buf << "\n";
         buf = ltrim(buf);
 	}
@@ -67,11 +64,9 @@ std::string Parse::checkBrackets(std::ifstream &filename)
     return (file);
 }
 
-
-
 // Function to crop the config in the brackets (location or server)
 // Returns the cropped part without brackets and trims this part from the buf
-std::string   Parse::cropComplexDir(std::string &buf)
+std::string   Parse::blockCrop(std::string &buf)
 {
     size_t pos = buf.find('{');
 //    std::cout << pos << "\n";
@@ -99,6 +94,85 @@ std::string   Parse::cropComplexDir(std::string &buf)
     return (complexDir);
 }
 
+template <typename T>
+void Parse::complexParse(T &serv, std::string &block)
+{
+    std::string line;
+    switch (ft_getline(block, line, ";{"))
+    {
+        case 1: lineParse(serv, ft_split<std::vector<std::string>>(line, ' ')); break ;
+        case 2: blockParse(serv, line); break ;
+        default: std::cout << "The server block is parsed" << std::endl; return ;
+    }
+    complexParse(serv, block);
+}
+
+template <typename T>
+void Parse::lineParse(T &obj, std::vector<std::string> &args)
+{
+    if (args.empty())
+        return ;
+    for (std::map::iterator it = obj.getKeys(); it != obj.getKeys().end(); it++)
+    {
+        if ((*it)->first == args[0])
+        {
+            (*it)->second(obj, args); // change everywhere strings to vectors
+            return ;
+        }
+    }
+    throw std::invalid_argument("Configuration file error: no such keyword recognized: " + args[0]);
+}
+
+template <typename T>
+void Parse::blockParse(T &serv, std::string &line)
+{
+    if (line.substr(0, 8) != "location")
+        throw std::invalid_argument("Configuration file error: no location keyword: " + line.substr(0, line.find('\n')));
+    if (!serv.loc)
+        throw std::invalid_argument("Configuration file error: location inside of a location not permitted: " + line.substr(0, line.find('\n')));
+    line.erase(0, 8);
+    if (ft_getword(line).empty())
+        throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
+    serv.setLocationConfig(LocationConfig(ft_getword(line), blockCrop(line)));
+}
+
+int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
+{
+    buf = trim(buf);
+    if (buf.empty())
+        return (0);
+
+    size_t  pos = buf.find_first_of(del);
+    int res = 1;
+    if (pos == std::string::npos)
+    {
+        line = buf.substr(0, buf.length());
+        buf.clear();
+    }
+    else 
+    {
+        if (buf[pos] == '{')
+        {
+            pos = buf.find(pos, '}') + 1;
+            res = 2;
+        }
+        line = buf.substr(0, pos);
+        buf.erase(0, line.length());
+    }
+    return (res);
+}
+
+std::string Parse::ft_getword(std::string &buf)
+{
+    std::string str = trim(buf);
+    size_t pos = str.find_first_of(" \v\t\n\r");
+    if (pos != std::string::npos)
+        str = str.substr(0, pos);
+    return (str);
+}
+
+
+
 // template <typename T>
 //     static void  errorParse(T &obj, std::string &line);
 
@@ -114,7 +188,10 @@ std::string   Parse::cropComplexDir(std::string &buf)
 //     template <typename T>
 //     static void  boolParse(T &obj, std::string &line, int flag); // switch: 0 - autoindex, 1 - upload
 
-//     static void  hostParse(ServerConfig &serv, std::string &line);
+void  Parse::hostParse(ServerConfig &serv, std::string &line)
+{
+    
+}
 //     static void  servNameParse(ServerConfig &serv, std::string &line);
 //     static void  bodySizeParse(ServerConfig &serv, std::string &line);
 //     static void  locationParse(ServerConfig &serv, std::string &line);

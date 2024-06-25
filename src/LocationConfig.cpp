@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/21 20:04:50 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/25 21:54:45 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,16 @@
 
 LocationConfig::LocationConfig() {}
 
-LocationConfig::LocationConfig(std::string &file)
+LocationConfig::LocationConfig(std::string url, std::string file): _uri(url)
 {
-	_initKeys();
+	Parse::complexParse(*this, file);
 }
 
 LocationConfig& LocationConfig::operator=(const LocationConfig& src)
 {
     _uri = src._uri;
 	_root = src._root;
-    _alias = src._alias;
+    _return = src._return;
     _index = src._index;
     _autoIndex = src._autoIndex;
     _allowUpload = src._allowUpload;
@@ -46,10 +46,19 @@ LocationConfig::~LocationConfig()
 	_cgiConf.clear();
 }
 
-void    LocationConfig::_initKeys()
-{
-    _keys
-}
+std::map<std::string, funcL> LocationConfig::_keys = {
+
+	{"upload_dir", &Parse::uploadDirParse},
+	{"return", &Parse::returnParse},
+    {"root", &Parse::rootParse},
+   	{"allow_upload", &Parse::allowUploadParse},
+   	{"autoindex", &Parse::autoIndexParse},
+    {"error_pages", &Parse::errorParse},
+    {"index", &Parse::indexParse},
+    {"allow_methods", &Parse::allowMethodsParse},
+ 	{"cgi", &Parse::cgiParse}
+    
+};
 
 // _____________  GETTERS ______________________________________
 
@@ -72,9 +81,9 @@ const std::string& 	LocationConfig::getRoot() const
     return (_root);
 }
 
-const std::string& 	LocationConfig::getAlias() const
+const std::string& 	LocationConfig::getReturn() const
 {
-    return (_alias);
+    return (_return);
 }
 
 const std::string& 	LocationConfig::getIndex() const
@@ -102,6 +111,10 @@ const std::map<int, std::string>& 	LocationConfig::getErrorPages() const
     return (_errorPages);
 }
 
+const std::map<std::string, funcL>& 	LocationConfig::getKeys() const
+{
+    return (_keys);
+}
 
 // _____________  SETTERS ______________________________________
 
@@ -135,9 +148,9 @@ void LocationConfig::setUri(const std::string& uri)
     _uri = uri;
 }
 
-void LocationConfig::setAlias(const std::string& alias)
+void LocationConfig::setReturn(const std::string& alias)
 {
-    _alias = alias;
+    _return = alias;
 }
 
 void LocationConfig::setIndex(const std::string& index)
