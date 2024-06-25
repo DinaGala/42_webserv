@@ -2,18 +2,21 @@
 # define CLUSTER_HPP
 # include <vector>
 # include "Server.hpp"
+# include "Request.hpp"
 
 class Server;
+class Request;
 
 class Cluster {
 	private:
 		std::vector<Server> _servers;
-		int	_nServers;
+		std::vector<long>	_sockfd; //TODO
+		Request				_request;
+		int					_nServers;
 
 	public:
 		Cluster();
 		~Cluster();
-
 
 		void	setUpCluster();
 		void 	runCluster();
