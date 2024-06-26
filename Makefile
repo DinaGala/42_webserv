@@ -3,7 +3,7 @@ NAME		:= webserv
 HEADER		:= ./inc/
 
 SRC_PATH	:= ./src/
-SRC_FILES	:= main.cpp Cluster.cpp Server.cpp
+SRC_FILES	:= main.cpp Cluster.cpp Server.cpp Cgi.cpp
 SRC			:= $(addprefix $(SRC_PATH),$(SRC_FILES))
 
 OBJ_PATH	:= objs/

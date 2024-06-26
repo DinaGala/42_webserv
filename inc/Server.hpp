@@ -10,7 +10,8 @@
 # include <cstring>
 # include <sys/types.h>
 # include <arpa/inet.h>
-#include <sys/wait.h>
+# include <sys/wait.h>
+# include "Cgi.hpp"
 
 class Server {
 	private:
