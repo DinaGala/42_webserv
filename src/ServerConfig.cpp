@@ -6,32 +6,21 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/25 21:48:54 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/26 21:39:37 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerConfig.hpp"
 
-ServerConfig::ServerConfig() {}
+// _____________  CONSTRUCTORS ______________________________________
 
+ServerConfig::ServerConfig(): loc(true) {}
 
-std::map<std::string, funcS> ServerConfig::_keys = {
-
-	{"listen", &Parse::hostParse},
-	{"server_name", &Parse::servNameParse},
-    {"root", &Parse::rootParse},
-   	{"max_body_size", &Parse::bodySizeParse},
-   	{"autoindex", &Parse::autoIndexParse},
-    {"error_pages", &Parse::errorParse},
-    {"allow_methods", &Parse::allowMethodsParse},
- 	{"cgi", &Parse::cgiParse}
-	 //   {"location", 
-};
-
-ServerConfig::ServerConfig(std::string file)
+ServerConfig::ServerConfig(std::string file): loc(true)
 {
-	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
-	Parse::complexParse(*this, file);
+//	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
+	_initKeys();
+	Parse::complexParse<ServerConfig>(*this, file);
 }
 
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
@@ -50,7 +39,7 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	return (*this);
 }
 
-ServerConfig::ServerConfig(const ServerConfig& src)
+ServerConfig::ServerConfig(const ServerConfig& src): loc(true)
 {
 	*this = src;
 }
@@ -65,37 +54,51 @@ ServerConfig::~ServerConfig()
 	_cgiConf.clear();
 }
 
-std::string ServerConfig::getHost() const
+void ServerConfig::_initKeys()
+{
+	_keys["listen"] = &Parse::hostParse;
+	_keys["server_name"] = &Parse::servNameParse;
+    _keys["root"] = &Parse::rootParse<ServerConfig>;
+   	_keys["max_body_size"] = &Parse::bodySizeParse;
+   	_keys["autoindex"] = &Parse::autoIndexParse<ServerConfig>;
+    _keys["error_page"] = &Parse::errorParse<ServerConfig>;
+    _keys["allow_methods"] = &Parse::allowMethodsParse<ServerConfig>;
+ 	_keys["cgi"] = &Parse::cgiParse<ServerConfig>;
+}
+
+// _____________  GETTERS ______________________________________
+
+const std::string ServerConfig::getHost() const
 {
 	return (_host);
 }
 
-std::string ServerConfig::getHostName() const
+const std::string ServerConfig::getHostName() const
 {
 	return (_hostName);
 }
 
-std::vector<int> ServerConfig::getPort() const
+const std::vector<int> ServerConfig::getPort() const
 {
 	return (_port);
 }
 
-std::vector<std::string> ServerConfig::getServerName() const
+const std::vector<std::string> ServerConfig::getServerName() const
 {
 	return (_serverName);
 }
 
-std::string ServerConfig::getRoot() const
+const std::string ServerConfig::getRoot() const
 {
 	return (_root);
 }
 
-std::vector<LocationConfig> ServerConfig::getLocationConfig() const
+const std::vector<LocationConfig> ServerConfig::getLocationConfig() const
 {
 	return (_locations);
 }
 
-std::map<int, std::string> ServerConfig::getErrorPages() const
+const std::map<int, std::string> ServerConfig::getErrorPages() const
 {
 	return (_errorPages);
 }
@@ -105,7 +108,7 @@ size_t ServerConfig::getMaxBodySize() const
 	return (_maxBodySize);
 }
 
-std::map<std::string, std::string>  ServerConfig::getCgiConf() const
+const std::map<std::string, std::string>  ServerConfig::getCgiConf() const
 {
 	return (_cgiConf);
 }
@@ -114,6 +117,18 @@ bool ServerConfig::getAutoIndex() const
 {
 	return (_autoIndex);
 }
+
+const std::vector<std::string> 		ServerConfig::getAllowedMethods() const
+{
+	return (_allowedMethods);
+}
+
+const std::map<std::string, ServerConfig::func>& 	ServerConfig::getKeys()
+{
+    return (_keys);
+}
+
+// _____________  SETTERS ______________________________________
 
 void ServerConfig::setHost(const std::string& host)
 {

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/25 21:50:24 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/26 21:29:26 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,38 +19,11 @@
 # define DEFAULT_BODY_SIZE 10000000 //10MB
 # define N_SERV_DIR 9
 
+class Parse;
+class LocationConfig;
+
 class ServerConfig
 {
-	private:
-
-		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
-		std::string 						_host; // Choose the port and host of each ’server’.
-		std::string 						_hostName; // Choose the port and host of each ’server’.
-		std::vector<std::string> 			_serverName; // Setup the server_names or not.
-		std::string 						_root; // If empty it setups to default
-		size_t 								_maxBodySize; // Limit client body size
-		bool 								_autoIndex;
-		std::map<int, std::string> 			_errorPages; // The string is the path. Setup default error pages.
-		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
-		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
-		std::map<std::string, std::string> 	_cgiConf;
-//		std::map<std::string, bool>			_vars; // each variable if is set or not
-		static std::map<std::string, funcS>	_keys;
-		std::string							_key[N_SERV_DIR] = 
-		{
-			"listen",
-    		"server_name",
-    		"root",
-   		 	"max_body_size",
-    		"autoindex",
-    		"error_pages",
-    		"location",
-    		"allow_methods",
-    		"cgi"
-		};
-		
-		ServerConfig();
-
 	public:
 
 		ServerConfig& operator=(const ServerConfig& src);
@@ -58,16 +31,19 @@ class ServerConfig
 		ServerConfig(std::string file);
 		~ServerConfig();
 
-		std::string 				getHost() const;
-		std::vector<int>			getPort() const;
-		std::vector<std::string>	getServerName() const;
-		std::string			 		getRoot() const;
-		std::vector<LocationConfig> getLocationConfig() const;
-		std::map<int, std::string> 	getErrorPages() const;
+		typedef void (*func)(ServerConfig &, std::vector<std::string> &);
+		const std::string 				getHost() const;
+		const std::vector<int>			getPort() const;
+		const std::vector<std::string>	getServerName() const;
+		const std::string			 		getRoot() const;
+		const std::vector<LocationConfig> getLocationConfig() const;
+		const std::map<int, std::string> 	getErrorPages() const;
 		size_t 						getMaxBodySize() const;
 		bool 						getAutoIndex() const;
-		std::string 				getHostName() const;
-		std::map<std::string, std::string> 	getCgiConf() const;
+		const std::string 				getHostName() const;
+		const std::map<std::string, std::string> 	getCgiConf() const;
+		const std::vector<std::string> 		getAllowedMethods() const;
+		const std::map<std::string, func>& 	getKeys();
 
 		void 		setHost(const std::string& host);
 		void 		setPort(int port);
@@ -82,10 +58,41 @@ class ServerConfig
 		void 		setLocationConfig(const LocationConfig& location);
 		void 		setErrorPage(int code, const std::string& page);
 		void 		setAllowedMethod(const std::string& method);
-		const bool	loc = true;
+		const bool	loc;
 //		bool		empty;
-};
 
+	private:
+
+		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
+		std::string 						_host; // Choose the port and host of each ’server’.
+		std::string 						_hostName; // Choose the port and host of each ’server’.
+		std::vector<std::string> 			_serverName; // Setup the server_names or not.
+		std::string 						_root; // If empty it setups to default
+		size_t 								_maxBodySize; // Limit client body size
+		bool 								_autoIndex;
+		std::map<int, std::string> 			_errorPages; // The string is the path. Setup default error pages.
+		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
+		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
+		std::map<std::string, std::string> 	_cgiConf;
+//		std::map<std::string, bool>			_vars; // each variable if is set or not
+		std::map<std::string, func>			_keys;
+		void								_initKeys();
+		// std::string							_key[N_SERV_DIR] = 
+		// {
+		// 	"listen",
+    	// 	"server_name",
+    	// 	"root",
+   		//  	"max_body_size",
+    	// 	"autoindex",
+    	// 	"error_pages",
+    	// 	"location",
+    	// 	"allow_methods",
+    	// 	"cgi"
+		// };
+		
+		ServerConfig();
+
+};
 
 
 #endif

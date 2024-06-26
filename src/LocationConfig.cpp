@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/25 21:54:45 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/26 20:56:51 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 
 // _____________  CONSTRUCTORS ______________________________________
 
-LocationConfig::LocationConfig() {}
+LocationConfig::LocationConfig(): loc(false) {}
 
-LocationConfig::LocationConfig(std::string url, std::string file): _uri(url)
+LocationConfig::LocationConfig(std::string url, std::string file): loc(false), _uri(url)
 {
-	Parse::complexParse(*this, file);
+	_initKeys();
+    Parse::complexParse<LocationConfig>(*this, file);
 }
 
 LocationConfig& LocationConfig::operator=(const LocationConfig& src)
@@ -34,7 +35,7 @@ LocationConfig& LocationConfig::operator=(const LocationConfig& src)
 	return (*this);
 }
 
-LocationConfig::LocationConfig(const LocationConfig& src)
+LocationConfig::LocationConfig(const LocationConfig& src): loc(false)
 {
 	*this = src;
 }
@@ -46,19 +47,18 @@ LocationConfig::~LocationConfig()
 	_cgiConf.clear();
 }
 
-std::map<std::string, funcL> LocationConfig::_keys = {
-
-	{"upload_dir", &Parse::uploadDirParse},
-	{"return", &Parse::returnParse},
-    {"root", &Parse::rootParse},
-   	{"allow_upload", &Parse::allowUploadParse},
-   	{"autoindex", &Parse::autoIndexParse},
-    {"error_pages", &Parse::errorParse},
-    {"index", &Parse::indexParse},
-    {"allow_methods", &Parse::allowMethodsParse},
- 	{"cgi", &Parse::cgiParse}
-    
-};
+void LocationConfig::_initKeys()
+{
+	_keys["upload_dir"] = &Parse::uploadDirParse;
+	_keys["return"] = &Parse::returnParse;
+    _keys["root"] = &Parse::rootParse<LocationConfig>;
+   	_keys["allow_upload"] = &Parse::allowUploadParse;
+   	_keys["autoindex"] = &Parse::autoIndexParse<LocationConfig>;
+    _keys["index"] = &Parse::indexParse;
+    _keys["error_page"] = &Parse::errorParse<LocationConfig>;
+    _keys["allow_methods"] = &Parse::allowMethodsParse<LocationConfig>;
+ 	_keys["cgi"] = &Parse::cgiParse<LocationConfig>;
+}
 
 // _____________  GETTERS ______________________________________
 
@@ -111,7 +111,7 @@ const std::map<int, std::string>& 	LocationConfig::getErrorPages() const
     return (_errorPages);
 }
 
-const std::map<std::string, funcL>& 	LocationConfig::getKeys() const
+const std::map<std::string, LocationConfig::func>& 	LocationConfig::getKeys() const
 {
     return (_keys);
 }

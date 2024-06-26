@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/25 21:07:54 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/06/26 19:07:23 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,17 +35,21 @@ std::string trim(const std::string& s)
     return (ltrim(rtrim(s)));
 }
 
-template <typename Container>
-Container&   ft_split(std::string str, char c)
+
+std::vector<std::string>   ft_split(std::string s, std::string del)
 {
-    Container  res;
+    std::vector<std::string>  res;
+    std::string str = trim(s);
+
+    if (str.empty())
+        return (res);
     size_t  start = 0;
-    size_t  pos = str.find(c);
+    size_t  end = str.find_first_of(del);
     while (end != std::string::npos)
     {
         res.push_back(str.substr(start, end - start));
         start = end + 1;
-        end = std.find(c, start);
+        end = str.find_first_of(del, start);
     }
     res.push_back(str.substr(start));
     return (res);
