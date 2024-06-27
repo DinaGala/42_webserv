@@ -1,10 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "Server.hpp"
-# include <iostream>
-# include <map>
-# include <vector>
+# include "Cluster.hpp"
 
 class Server;
 

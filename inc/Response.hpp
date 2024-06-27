@@ -1,11 +1,7 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-# include "Server.hpp"
-# include "Request.hpp"
-# include <iostream>
-# include <map>
-# include <vector>
+# include "Cluster.hpp"
 
 class Server;
 class Request;
@@ -21,6 +17,8 @@ class Response {
 		Response();
         Response(Request request);
 		~Response();
+
+		void    manageResponse();
 };
 
 #endif
