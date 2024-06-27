@@ -1,7 +1,7 @@
 #include "Socket.hpp"
 
 Socket::Socket() {
-	//Socket CONFIG
+	//TODO: configFile
 	setIpAddress("127.0.0.1");
 	setPort(8080);
 }
@@ -16,9 +16,9 @@ void	Socket::setUpSocket(){
 }
 
 /*SOCKET
-int socket(int domain, int type, int protocol);
-DOMAIN: communication domain - protocolos family  that socket will belong to. 
-AF_INET - IPv4 Internet protocols */
+	int socket(int domain, int type, int protocol);
+	DOMAIN: communication domain - protocolos family  that socket will belong to. 
+	AF_INET - IPv4 Internet protocols */
 void	Socket::initSocket() {
 	this->_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_sockfd == -1) {
@@ -39,8 +39,8 @@ void	Socket::initSocket() {
 	};
 */
 /*BIND
-int bind(int sockfd, const sockaddr *addr, socklen_t addrlen);
-bind - assign an IP address and port to the socket.
+	int bind(int sockfd, const sockaddr *addr, socklen_t addrlen);
+	bind - assign an IP address and port to the socket.
 */
 
 void	Socket::bindSocket(){
@@ -65,6 +65,8 @@ void	Socket::listenConnection(){
 		exit(EXIT_FAILURE);
 	}
 }
+
+
 
 //SETTERS
 void	Socket::setIpAddress(const char* ipAddress){

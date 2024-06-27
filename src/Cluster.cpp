@@ -37,21 +37,9 @@ void	Cluster::runCluster(){
 	Socket socket = _sockets[0]; //TODO: identify socket
 
 	while (1){ //manage signals
-	/*ACCEPT
-	int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
-	addrlen is now a value-result argument. 
-	It expects a pointer to an int that will be the size of addr. 
-	After the function is executed, the int refered by addrlen will be set to the size of the peer address.
-	*/
-	// Grab a connection from the queue
 
-		struct sockaddr_in sockAddress = socket.getSockaddr();
-		long unsigned int addrlen = sizeof(socket.getSockaddr());
-		int connection = accept(socket.getSockfd(), (struct sockaddr*)&sockAddress, (socklen_t*)&addrlen);
-		if (connection < 0) {
-			std::cerr << "Failed to grab connection. errno: " << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		int	connection = acceptConnection(socket);
+
 		// Read from the connection
 		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
@@ -59,8 +47,8 @@ void	Cluster::runCluster(){
 		Request request;
 		request.parseRequest(buffer);
 		/*SEND 
-		send a message to the connection
-		int send(int sockfd, const void *msg, int len, int flags); 
+			send a message to the connection
+			int send(int sockfd, const void *msg, int len, int flags); 
 		*/
 		//Response response;
 		//response.manageResponse(request);
@@ -75,4 +63,23 @@ void	Cluster::runCluster(){
 		close(connection);
 	}
 	close(socket.getSockfd());
+}
+
+int	Cluster::acceptConnection(Socket socket){
+	/*ACCEPT
+	**int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
+	**addrlen is now a value-result argument. 
+	**It expects a pointer to an int that will be the size of addr. 
+	**After the function is executed, the int refered by addrlen will be set to the size of the peer address.
+	*/
+	// Grab a connection from the queue
+
+	struct sockaddr_in sockAddress = socket.getSockaddr();
+	long unsigned int addrlen = sizeof(socket.getSockaddr());
+	int connection = accept(socket.getSockfd(), (struct sockaddr*)&sockAddress, (socklen_t*)&addrlen);
+	if (connection < 0) {
+		std::cerr << "Failed to grab connection. errno: " << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	return connection;
 }

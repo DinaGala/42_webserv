@@ -41,6 +41,8 @@ class Cluster {
 
 		void	createServers();
 		void	createSockets();
+
+		int		acceptConnection(Socket socket);
 };
 
 #endif

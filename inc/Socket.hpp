@@ -5,10 +5,11 @@
 
 class Socket {
 	private:
-		long					_sockfd;
-		const char*				_ipAddress;
-		int						_port;
-		struct sockaddr_in		_sockaddr;
+		long				_sockfd;
+		const char*			_ipAddress;
+		int					_port;
+		struct sockaddr_in	_sockaddr;
+		std::vector<int>	_nClients; //TODO: pending multiplexing
 	
 	public:
 		Socket();
