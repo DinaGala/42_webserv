@@ -1,9 +1,5 @@
 #include "Request.hpp"
-#include <sstream>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <algorithm>
+
 
 Request::Request() {	
 }
@@ -17,63 +13,46 @@ Request::~Request() {
 	Body: Optional, depending on the type of request (e.g., present in POST requests).*/
 
 
-bool	Request::parseRequest(const std::string & buffer) {
+void	Request::parseRequest(const std::string & buffer) {
 
-	std::cout << "buffer:\n" << buffer << std:: endl << std::endl;
-	size_t endRequestLine = buffer.find('\n');
-	if (endRequestLine == std::string::npos) {
-		std::cout << "no \n in request line" << std:: endl;
-		return (false); // TODO: manage exceptions
-	}
-	if (!this->parseRequestLine(buffer.substr(0, endRequestLine))) {
-		std::cout << "Request line wrong 1" << std::endl;
-		return (false); // TODO: manage exceptions
+	try {
+		std::cout << "buffer:\n" << buffer << std:: endl << std::endl;
+		parseRequestLine(buffer);
+		parseHeaders(buffer);
+		//TODO: PARSING BODY
+	} catch (const std::exception & e){
+		std::cerr << e.what() << std::endl;
 	}
 
-	size_t endHeaders = buffer.find('\r', endRequestLine);
-	if (endHeaders == std::string::npos) {
-		std::cout << "no \r in headers" << std:: endl;
-		return (false); // TODO: manage exceptions
-	}
-	if (!this->parseHeaders(buffer.substr(endRequestLine + 1, endHeaders))) {
-		std::cout << "header wrong" << std:: endl;
-		return (false); // TODO: manage exceptions
-	}
- 
-	//TODO: PARSING BODY
-
-	return (true);
 }
 
-bool	Request::parseRequestLine(const std::string & requestLineStr) {
+void	Request::parseRequestLine(const std::string & buffer) {
+	
+	size_t endRequestLine = buffer.find('\n');
+	
+	if (endRequestLine == std::string::npos) {
+		throw std::runtime_error("Error parsing Request: no \n in request");
+	}
+
+	std::string requestLineStr = buffer.substr(0, endRequestLine);
 	fillRequestLineVector(requestLineStr);
 	if (_requestLine.size() != 3) {
-		std::cout << "there is not 3 element in request line" << std::endl;
-		return (false); // TODO: manage exceptions
+		throw std::runtime_error("Error parsing Request: wrong request line");
 	}
-
-	for (std::vector<std::string>::iterator it = _requestLine.begin(); it != _requestLine.end(); it++) {
-		std::cout << "word: " << *it << std::endl;
-	}
-	
-	std::vector<std::string> requestVect = createValidRequestVector();
-
+	std::vector<std::string> requestVect = createValidRequestVector(); //TODO: use ServerConfig
 	std::vector<std::string>::iterator it = std::find(requestVect.begin(), requestVect.end(), _requestLine.front()); //
 	if (it == requestVect.end()) {
-		std::cout << "wrong request method";
-		return false; // TODO: manage exceptions
+		throw std::runtime_error("Error parsing Request: no metod allowed");
 	}
 
-	//TODO PARSE ROOT _firstLine ??
+	//TODO: PARSE ROOT _firstLine ??
 
 	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) {
-		std::cout << "bad http version" << std:: endl;
-		return false; // TODO: manage exceptions
+		throw std::runtime_error("Error parsing Request: bat http version");
 	}
-	return (true); 
 }
 
-void Request::fillRequestLineVector(const std::string & requestLineStr){
+void Request::fillRequestLineVector(std::string requestLineStr){
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
@@ -81,6 +60,7 @@ void Request::fillRequestLineVector(const std::string & requestLineStr){
 	}
 }
 
+//Pending to use configFile method allowed vector
 std::vector<std::string>  Request::createValidRequestVector(){
 	std::vector<std::string> requestVect;
 	requestVect.push_back("GET");
@@ -89,9 +69,9 @@ std::vector<std::string>  Request::createValidRequestVector(){
 	return requestVect;
 }
 
-bool	Request::parseHeaders(const std::string &header) {
+void	Request::parseHeaders(const std::string &header) {
 	
-	std::cout << "HEADER" << std::endl;
+	/*std::cout << "HEADER" << std::endl;
 	size_t posStartLine = 0;
 	size_t posEndLine = header.find('\n');;
 	size_t posColon = header.find(':');
@@ -113,8 +93,7 @@ bool	Request::parseHeaders(const std::string &header) {
 	}
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		std::cout << it->first << " :: " << it->second << std::endl;
-	}
-	return (true);
+	}*/
 }
 
 

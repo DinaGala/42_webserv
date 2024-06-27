@@ -15,10 +15,18 @@
 # include <sys/types.h>
 # include <arpa/inet.h>
 
+#include <sstream>
+#include <string>
+#include <algorithm>
+
+#include <stdexcept> // For standard exceptions
+
 # include "Server.hpp"
 # include "Socket.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
+
+
 
 class Server;
 class Socket;
