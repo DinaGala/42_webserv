@@ -27,7 +27,7 @@ std::map<std::string, std::string> Response::initStatus()
 const std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false)
+Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html")
 {}
 
 Response::Response(const Response &r)
@@ -79,8 +79,13 @@ std::string	&Response::getResponse(const std::string &code)
 		return (this->_cgi);
 	this->putStatusLine(code);
 	this->putGeneralHeaders();
-	this->_response += "Content-Length: 43\n";
-	this->_response += "\n<html><body>Response: holaaaa</body></html>";
+	if (!this->_path.empty())
+		this->fileToBody();
+	if (!this->_body.empty())
+		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
+//	this->_response += "Content-Length: 43\n";
+//	this->_response += "\n<html><body>Response: holaaaa</body></html>";
+	this->_response += this->_body;
 	return (this->_response);
 }
 
@@ -102,4 +107,27 @@ void	Response::putGeneralHeaders(void)
 		this->_response += "Connection: close\n";
 	else
 		this->_response += "Connection: keep-alive\n";
+}
+
+void	Response::fileToBody(void)
+{
+	if (access(this->_path.c_str(), F_OK))
+	{
+		this->_code = 404;
+		return ;
+	}
+	else if (access(this->_path.c_str(), R_OK))
+	{
+		this->_code = 403;
+		return ;
+	}
+	std::ifstream	rdfile(this->_path.c_str());
+	if (!rdfile.is_open())
+	{
+		this->_code = 505;
+		return ;
+	}
+	std::ostringstream	content;
+	content << rdfile.rdbuf();
+	this->_body = content.str();
 }

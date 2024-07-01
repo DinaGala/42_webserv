@@ -4,6 +4,9 @@
 #include <map>
 #include <string>
 #include <ctime>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
 
 class	Response
 {
@@ -17,10 +20,12 @@ class	Response
 		void		setCgi(const std::string &cgi);
 		void		putStatusLine(const std::string &code);
 		void		putGeneralHeaders(void);
+		void		fileToBody(void);
 	private:
 		static const std::map<std::string, std::string>	_status;
 		static std::map<std::string, std::string>	initStatus();
 		std::string		_body;
+		std::string		_path;
 		std::string		_response;
 		std::string		_cgi;
 		std::string		_servname; //tmp
