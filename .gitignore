@@ -2,3 +2,4 @@ objs/
 test.py
 webserv
 */.*
+.*.swp
