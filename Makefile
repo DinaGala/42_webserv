@@ -30,9 +30,9 @@ $(OBJ_PATH)%.o:	$(SRC_PATH)%.cpp Makefile
 	$(CPP) $(CPPFLAGS) -I$(HEADER) -c $< -o $@	
 
 test:
-	${CPP} ${CPPFLAGS} test.cpp
-	./a.out
-	rm ./a.out test.d
+	@${CPP} ${CPPFLAGS} test.cpp
+	@./a.out
+	@rm -f ./a.out test.d
 
 clean:
 	$(RM) $(OBJ_PATH) > /dev/null
