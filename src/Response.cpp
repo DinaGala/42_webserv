@@ -1,51 +1,51 @@
 #include "Response.hpp"
 
-std::map<std::string, std::string> Response::_status;
+////// Static Assets
 
-Response::Response()
+std::map<std::string, std::string> Response::initStatus()
 {
-	this->_status["100"] = "Continue";
-	this->_status["200"] = "OK";
-	this->_status["201"] = "Created";
-	this->_status["204"] = "No Content";
-	this->_status["302"] = "Found";
-	this->_status["400"] = "Bad Request";
-	this->_status["403"] = "Forbidden";
-	this->_status["404"] = "Not Found";
-	this->_status["405"] = "Method Not Allowed";
-	this->_status["406"] = "Not Acceptable";
-	this->_status["408"] = "Request Timeout";
-	this->_status["411"] = "Length Required";
-	this->_status["500"] = "Internal Server Error";
-	this->_status["501"] = "Not Implemented";
-	this->_status["505"] = "HTTP Version Not Supported";
+	std::map<std::string, std::string> error;
+
+	error["100"] = "Continue";
+	error["200"] = "OK";
+	error["201"] = "Created";
+	error["204"] = "No Content";
+	error["302"] = "Found";
+	error["400"] = "Bad Request";
+	error["403"] = "Forbidden";
+	error["404"] = "Not Found";
+	error["405"] = "Method Not Allowed";
+	error["406"] = "Not Acceptable";
+	error["408"] = "Request Timeout";
+	error["411"] = "Length Required";
+	error["500"] = "Internal Server Error";
+	error["501"] = "Not Implemented";
+	error["505"] = "HTTP Version Not Supported";
+	return (error);
 }
+
+const std::map<std::string, std::string> Response::_status = Response::initStatus();
+///////
+
+Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv")
+{}
 
 Response::Response(const Response &r)
 {
-	(void)r;
-	this->_status["100"] = "Continue";
-	this->_status["200"] = "OK";
-	this->_status["201"] = "Created";
-	this->_status["204"] = "No Content";
-	this->_status["302"] = "Found";
-	this->_status["400"] = "Bad Request";
-	this->_status["403"] = "Forbidden";
-	this->_status["404"] = "Not Found";
-	this->_status["405"] = "Method Not Allowed";
-	this->_status["406"] = "Not Acceptable";
-	this->_status["408"] = "Request Timeout";
-	this->_status["411"] = "Length Required";
-	this->_status["500"] = "Internal Server Error";
-	this->_status["501"] = "Not Implemented";
-	this->_status["505"] = "HTTP Version Not Supported";
+	this->_cgi = r._cgi;
+	this->_response = r._response;
+	this->_body = r._body;
+	this->_code = r._code;
 }
 
 Response::~Response() {}
 
 Response	&Response::operator=(const Response &r)
 {
-	(void)r;
+	this->_cgi = r._cgi;
+	this->_response = r._response;
+	this->_body = r._body;
+	this->_code = r._code;
 	return (*this);
 }
 
@@ -54,7 +54,12 @@ void	Response::setBody(const std::string &msg)
 	this->_body += msg;
 }
 
-std::string	Response::_ft_itoa(unsigned int n)
+void	Response::setCgi(const std::string &cgi)
+{
+	this->_cgi = cgi;
+}
+
+std::string	Response::_itoa(std::string::size_type n)
 {
 	std::string	str;
 
@@ -70,11 +75,26 @@ std::string	Response::_ft_itoa(unsigned int n)
 
 std::string	&Response::getResponse(const std::string &code)
 {
-	this->_response = "HTTP/1.1 " + code + " " + this->_status[code] + "\n";
+	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
+		return (this->_cgi);
+	this->putStatusLine(code);
 	if (this->_body.size() > 0)
 	{
-		this->_response += "Content-Length: " + this->_ft_itoa(this->_body.size()) + "\n";
+		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n";
 		this->_response += this->_body;
 	}
 	return (this->_response);
+}
+
+void	Response::putStatusLine(const std::string &code)
+{
+	this->_response = "HTTP/1.1 " + code + " ";
+	this->_response += this->_status.at(code) + "\r\n";
+}
+void	Response::putGeneralHeaders(void)
+{
+	std::time_t	date = std::time(NULL);
+	this->_response += "Date: ";
+	this->_response += std::asctime(std::localtime(&date));
+	this->_response += "Server: " + _servname;
 }
