@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 21:39:37 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/01 16:07:37 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 {
 	_host = src._host;
-	_hostName = src._hostName;
+//	_hostName = src._hostName;
 	_port = src._port;
 	_serverName = src._serverName;
 	_root = src._root;
@@ -59,11 +59,21 @@ void ServerConfig::_initKeys()
 	_keys["listen"] = &Parse::hostParse;
 	_keys["server_name"] = &Parse::servNameParse;
     _keys["root"] = &Parse::rootParse<ServerConfig>;
-   	_keys["max_body_size"] = &Parse::bodySizeParse;
+   	_keys["client_max_body_size"] = &Parse::bodySizeParse;
    	_keys["autoindex"] = &Parse::autoIndexParse<ServerConfig>;
     _keys["error_page"] = &Parse::errorParse<ServerConfig>;
     _keys["allow_methods"] = &Parse::allowMethodsParse<ServerConfig>;
  	_keys["cgi"] = &Parse::cgiParse<ServerConfig>;
+
+	_vars["listen"] = false;
+	_vars["server_name"] = false;
+    _vars["root"] = false;
+   	_vars["client_max_body_size"] = false;
+   	_vars["autoindex"] = false;
+    _vars["error_page"] = false;
+    _vars["allow_methods"] = false;
+ 	_vars["cgi"] = false;
+
 }
 
 // _____________  GETTERS ______________________________________
@@ -73,10 +83,10 @@ const std::string ServerConfig::getHost() const
 	return (_host);
 }
 
-const std::string ServerConfig::getHostName() const
-{
-	return (_hostName);
-}
+// const std::string ServerConfig::getHostName() const
+// {
+// 	return (_hostName);
+// }
 
 const std::vector<int> ServerConfig::getPort() const
 {
@@ -128,6 +138,11 @@ const std::map<std::string, ServerConfig::func>& 	ServerConfig::getKeys()
     return (_keys);
 }
 
+const std::map<std::string, bool>& 	ServerConfig::getVars()
+{
+    return (_vars);
+}
+
 // _____________  SETTERS ______________________________________
 
 void ServerConfig::setHost(const std::string& host)
@@ -174,15 +189,15 @@ void ServerConfig::setAutoIndex(bool autoindex)
 	_autoIndex = autoindex;
 }
 
-void ServerConfig::setHostName(const std::string& hostName)
-{
-	_hostName = hostName;
-}
-
 void 	ServerConfig::setAllowedMethod(const std::string& method)
 {
 	_allowedMethods.push_back(method);
 }
+
+// void ServerConfig::setHostName(const std::string& hostName)
+// {
+// 	_hostName = hostName;
+// }
 
 // void ServerConfig::setErrorPages(const std::map<int, std::string>& error_pages)
 // {

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 21:44:09 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/01 16:16:22 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void Parse::complexParse(T &serv, std::string &block)
     std::string line;
     switch (ft_getline(block, line, ";{"))
     {
-        case 1: lineParse(serv, checkComment(ft_split(line, " \v\t\n\r"))); break ;
+        case 1: lineParse(serv, ft_split(line, WS)); break ;
         case 2: blockParse(serv, line); break ;
         default: std::cout << "The server block is parsed" << std::endl; return ;
     }
@@ -86,96 +86,6 @@ void Parse::blockParse(T &serv, std::string &line)
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
     serv.setLocationConfig(LocationConfig(ft_getword(line), blockCrop(line)));
 }
-
-// PARSING SIMPLE DIRECTIVES ______________________________________
-
-template <typename T>
-void  Parse::errorParse(T &obj, std::vector<std::string> &line)
-{
-    (void)obj;
-    (void)line;
-    std::string root = line.back();
-    line.pop_back();
-    for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
-        obj.setErrorPage(std::atoi((*it).c_str()), root);
-    // std::cout << "Error Parse Template ----------------------------" << "\n";
-    // std::cout << "Line: " << line << "\n";
-}
-
-template <typename T>
-void  Parse::rootParse(T &obj, std::vector<std::string> &line)
-{
-    (void)obj;
-    (void)line;
-    obj.setRoot(line[1]);
-//    std::cout << "Root Parse Template ------------------------------------" << "\n";
-//    std::cout << "Line: " << line << "\n";
-}
-
-template <typename T>
-void  Parse::allowMethodsParse(T &obj, std::vector<std::string> &line)
-{
-    (void)obj;
-    (void)line;
-}
-
-template <typename T>
-void  Parse::cgiParse(T &obj, std::vector<std::string> &line)
-{
-    (void)obj;
-    (void)line;
-}
-
-template <typename T>
-void  Parse::autoIndexParse(T &obj, std::vector<std::string> &line) // switch: 0 - autoindex, 1 - upload
-{
-    (void)obj;
-    (void)line;
-}
-
-void  Parse::allowUploadParse(LocationConfig &serv, std::vector<std::string> &line)
-{
-    (void)serv;
-    (void)line;   
-}
-
-void  Parse::hostParse(ServerConfig &serv, std::vector<std::string> &line)
-{
-    (void)serv;
-    (void)line;   
-}
-void  Parse::servNameParse(ServerConfig &serv, std::vector<std::string> &line)
-{
-    (void)serv;
-    (void)line;   
-}
-void  Parse::bodySizeParse(ServerConfig &serv, std::vector<std::string> &line)
-{
-    (void)serv;
-    (void)line;   
-}
-
-void  Parse::uriParse(LocationConfig &loc, std::vector<std::string> &line)
-{
-    (void)loc;
-    (void)line;   
-}
-void  Parse::indexParse(LocationConfig &loc, std::vector<std::string> &line)
-{
-    (void)loc;
-    (void)line;   
-}
-void  Parse::returnParse(LocationConfig &loc, std::vector<std::string> &line)
-{
-    (void)loc;
-    (void)line;   
-}
-void  Parse::uploadDirParse(LocationConfig &loc, std::vector<std::string> &line)
-{
-    (void)loc;
-    (void)line;   
-}
-
 
 // PARSING UTILS ______________________________________
 
@@ -218,14 +128,25 @@ std::string Parse::ft_getword(std::string &buf)
     return (str);
 }
 
+/* Aux function that trims the comments and checks the brackets */
+
 std::string Parse::checkBrackets(std::ifstream &filename)
 {
 	std::string	file;
+    std::string line;
     int         op = 0;
     int         cl = 0;
 	
-    if (!std::getline(filename, file, '\0'))
+    if (!std::getline(filename, line))
         throw std::invalid_argument("Configuration file error: Empty file");
+    do {
+        line = trim(line);
+        if (line.empty() || line[0] == '#')
+            continue ;
+        std::vector<std::string> nocom = checkComment(ft_split(line, WS));
+        for (std::vector<std::string>::iterator it = nocom.begin(); it != nocom.end(); it++)
+            file = file + *it + ' ';
+    } while (std::getline(filename, line));
     for (int i = 0; file[i]; i++)
     {
         if (file[i] == '{')
@@ -235,13 +156,14 @@ std::string Parse::checkBrackets(std::ifstream &filename)
         if (op - cl < 0)
             break;
     }
+ //   std::cout << file << "\n";
     if (op - cl > 0)
         throw std::invalid_argument("Configuration file error: Unclosed bracket");
     if (op - cl < 0)
         throw std::invalid_argument("Configuration file error: Too many closing brackets");
     if (op == 0 && cl == 0)
         throw std::invalid_argument("Configuration file error: no brackets found");
-    file = trim(file);
+//    file = trim(file);
     return (file);
 }
 
@@ -277,14 +199,18 @@ std::string   Parse::blockCrop(std::string &buf)
 
 std::vector<std::string>  Parse::checkComment(std::vector<std::string> line)
 {
-    for (std::vector<std::string>::iterator it = line.begin(); it != line.end();)
+    std::vector<std::string> newvec;
+
+    for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
     {
-        if (it->empty() || (*it)[0] == '#')
-            it = line.erase(it);
+        if (it->empty())
+            continue ;
+        else if ((*it)[0] == '#')
+            break ;
         else
-            it++;
+            newvec.push_back(*it);
     }
-    return (line);
+    return (newvec);
 }
 
 
@@ -369,13 +295,3 @@ template void Parse::lineParse<ServerConfig>(ServerConfig &serv, std::vector<std
 template void Parse::lineParse<LocationConfig>(LocationConfig &serv, std::vector<std::string> args);
 template void Parse::blockParse<ServerConfig>(ServerConfig &serv, std::string &line);
 template void Parse::blockParse<LocationConfig>(LocationConfig &serv, std::string &line);
-template void Parse::rootParse<ServerConfig>(ServerConfig &serv, std::vector<std::string>&line);
-template void Parse::rootParse<LocationConfig>(LocationConfig &serv, std::vector<std::string>&line);
-template void Parse::errorParse<ServerConfig>(ServerConfig &serv, std::vector<std::string>&line);
-template void Parse::errorParse<LocationConfig>(LocationConfig &serv, std::vector<std::string>&line);
-template void Parse::autoIndexParse<ServerConfig>(ServerConfig &serv, std::vector<std::string>&line);
-template void Parse::autoIndexParse<LocationConfig>(LocationConfig &serv, std::vector<std::string>&line);
-template void Parse::allowMethodsParse<ServerConfig>(ServerConfig &serv, std::vector<std::string>&line);
-template void Parse::allowMethodsParse<LocationConfig>(LocationConfig &serv, std::vector<std::string>&line);
-template void Parse::cgiParse<ServerConfig>(ServerConfig &serv, std::vector<std::string>&line);
-template void Parse::cgiParse<LocationConfig>(LocationConfig &serv, std::vector<std::string>&line);

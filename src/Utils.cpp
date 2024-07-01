@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 19:07:23 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/01 16:48:03 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,4 +53,20 @@ std::vector<std::string>   ft_split(std::string s, std::string del)
     }
     res.push_back(str.substr(start));
     return (res);
+}
+
+/* A function that converts a string into a positive integer,
+or throws an exception otherwise */
+int 	ft_atopi(const std::string str)
+{
+	if (str.empty())
+		return (false);
+	for (int i = 0; str[i]; i++)
+	{
+		if (i > 9 || !isdigit(str[i]))
+			throw std::invalid_argument("Error: not a positive integer: " + str);
+	}
+	if (atol(str.c_str()) > INT_MAX)
+		throw std::invalid_argument("Error: not a positive integer: " + str);
+	return (atol(str.c_str()));
 }

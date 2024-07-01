@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 21:29:26 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/01 15:05:45 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,11 @@ class ServerConfig
 		const std::map<int, std::string> 	getErrorPages() const;
 		size_t 						getMaxBodySize() const;
 		bool 						getAutoIndex() const;
-		const std::string 				getHostName() const;
+//		const std::string 				getHostName() const;
 		const std::map<std::string, std::string> 	getCgiConf() const;
 		const std::vector<std::string> 		getAllowedMethods() const;
 		const std::map<std::string, func>& 	getKeys();
+		const std::map<std::string, bool>& 	getVars();
 
 		void 		setHost(const std::string& host);
 		void 		setPort(int port);
@@ -54,7 +55,7 @@ class ServerConfig
 //		void 		setCgiConf(const std::map<std::string, std::string>& cgiConf);
 		void 		setCgiConf(const std::string &ext, const std::string &path);
 		void 		setAutoIndex(bool autoIndex);
-		void 		setHostName(const std::string& hostName);
+//		void 		setHostName(const std::string& hostName);
 		void 		setLocationConfig(const LocationConfig& location);
 		void 		setErrorPage(int code, const std::string& page);
 		void 		setAllowedMethod(const std::string& method);
@@ -65,7 +66,7 @@ class ServerConfig
 
 		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
 		std::string 						_host; // Choose the port and host of each ’server’.
-		std::string 						_hostName; // Choose the port and host of each ’server’.
+//		std::string 						_hostName; // Choose the port and host of each ’server’.
 		std::vector<std::string> 			_serverName; // Setup the server_names or not.
 		std::string 						_root; // If empty it setups to default
 		size_t 								_maxBodySize; // Limit client body size
@@ -74,21 +75,9 @@ class ServerConfig
 		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<std::string, std::string> 	_cgiConf;
-//		std::map<std::string, bool>			_vars; // each variable if is set or not
+		std::map<std::string, bool>			_vars; // each variable if is set or not
 		std::map<std::string, func>			_keys;
 		void								_initKeys();
-		// std::string							_key[N_SERV_DIR] = 
-		// {
-		// 	"listen",
-    	// 	"server_name",
-    	// 	"root",
-   		//  	"max_body_size",
-    	// 	"autoindex",
-    	// 	"error_pages",
-    	// 	"location",
-    	// 	"allow_methods",
-    	// 	"cgi"
-		// };
 		
 		ServerConfig();
 

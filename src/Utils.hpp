@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 19:06:40 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/01 16:46:26 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 # include <exception>
 # include <cctype>
 # include <functional>
-
+# include <climits>
 
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
@@ -38,6 +38,8 @@ std::string trim(const std::string& s);
 
 
 std::vector<std::string>  ft_split(std::string str, std::string del); 
+int ft_atopi(const std::string str);
+
 
 
 

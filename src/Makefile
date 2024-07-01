@@ -9,7 +9,7 @@ CPP = c++
 FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -fsanitize=address
 RM = rm -f
 
-SRC =  main.cpp ServerConfig.cpp Parse.cpp LocationConfig.cpp Utils.cpp
+SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp
 F_OBJ = obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
