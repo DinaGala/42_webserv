@@ -27,7 +27,7 @@ std::map<std::string, std::string> Response::initStatus()
 const std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv")
+Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false)
 {}
 
 Response::Response(const Response &r)
@@ -78,11 +78,9 @@ std::string	&Response::getResponse(const std::string &code)
 	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
 		return (this->_cgi);
 	this->putStatusLine(code);
-	if (this->_body.size() > 0)
-	{
-		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n";
-		this->_response += this->_body;
-	}
+	this->putGeneralHeaders();
+	this->_response += "Content-Length: 43\n";
+	this->_response += "\n<html><body>Response: holaaaa</body></html>";
 	return (this->_response);
 }
 
@@ -91,10 +89,17 @@ void	Response::putStatusLine(const std::string &code)
 	this->_response = "HTTP/1.1 " + code + " ";
 	this->_response += this->_status.at(code) + "\r\n";
 }
+
 void	Response::putGeneralHeaders(void)
 {
 	std::time_t	date = std::time(NULL);
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
-	this->_response += "Server: " + _servname;
+	this->_response += "Server: " + _servname + "\n";
+	this->_response += "Keep-Alive: timeout=" + this->_itoa(this->_timeout);
+	this->_response += ", max=" + this->_itoa(this->_maxconnect) + "\n";
+	if (this->_connection)
+		this->_response += "Connection: close\n";
+	else
+		this->_response += "Connection: keep-alive\n";
 }
