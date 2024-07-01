@@ -3,7 +3,7 @@ NAME		:= webserv
 HEADER		:= ./inc/
 
 SRC_PATH	:= ./src/
-SRC_FILES	:= main.cpp Cluster.cpp Server.cpp Cgi.cpp
+SRC_FILES	:= main.cpp Cluster.cpp Server.cpp Cgi.cpp Response.cpp
 SRC			:= $(addprefix $(SRC_PATH),$(SRC_FILES))
 
 OBJ_PATH	:= objs/
@@ -28,6 +28,11 @@ $(NAME): $(OBJ)
 $(OBJ_PATH)%.o:	$(SRC_PATH)%.cpp Makefile
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -I$(HEADER) -c $< -o $@	
+
+test:
+	${CPP} ${CPPFLAGS} test.cpp
+	./a.out
+	rm ./a.out test.d
 
 clean:
 	$(RM) $(OBJ_PATH) > /dev/null
