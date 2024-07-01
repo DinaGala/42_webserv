@@ -2,6 +2,7 @@
 # define CLUSTER_HPP
 # include <vector>
 # include "Server.hpp"
+#include "Response.hpp"
 
 class Server;
 
