@@ -23,7 +23,10 @@ class	Response
 		std::string		_body;
 		std::string		_response;
 		std::string		_cgi;
-		std::string		_servname;
+		std::string		_servname; //tmp
+		int				_timeout; //tmp
+		int				_maxconnect; //tmp
+		bool			_connection; //tmp
 		unsigned int	_code;
 
 
