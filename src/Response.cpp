@@ -24,10 +24,10 @@ std::map<std::string, std::string> Response::initStatus()
 	return (error);
 }
 
-const std::map<std::string, std::string> Response::_status = Response::initStatus();
+std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html")
+Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.htmls"), _method("")
 {}
 
 Response::Response(const Response &r)
@@ -59,6 +59,11 @@ void	Response::setCgi(const std::string &cgi)
 	this->_cgi = cgi;
 }
 
+void	Response::setCode(const int &code)
+{
+	this->_code = code;
+}
+
 std::string	Response::_itoa(std::string::size_type n)
 {
 	std::string	str;
@@ -77,22 +82,25 @@ std::string	&Response::getResponse(const std::string &code)
 {
 	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
 		return (this->_cgi);
-	this->putStatusLine(code);
+	//this->putStatusLine(code);
 	this->putGeneralHeaders();
 	if (!this->_path.empty())
-		this->fileToBody();
+	{
+		if (this->fileToBody(this->_path))
+			return (this->_response);
+	}
 	if (!this->_body.empty())
 		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
 //	this->_response += "Content-Length: 43\n";
 //	this->_response += "\n<html><body>Response: holaaaa</body></html>";
 	this->_response += this->_body;
+	this->_response.insert(0, this->putStatusLine(code));
 	return (this->_response);
 }
 
-void	Response::putStatusLine(const std::string &code)
+std::string	Response::putStatusLine(const std::string &code)
 {
-	this->_response = "HTTP/1.1 " + code + " ";
-	this->_response += this->_status.at(code) + "\r\n";
+	return ("HTTP/1.1 " + code + " " + this->_status.at(code) + "\r\n");
 }
 
 void	Response::putGeneralHeaders(void)
@@ -108,26 +116,46 @@ void	Response::putGeneralHeaders(void)
 	else
 		this->_response += "Connection: keep-alive\n";
 }
-
-void	Response::fileToBody(void)
+/*
+void	Response::putPostHeaders()
 {
-	if (access(this->_path.c_str(), F_OK))
+	std::ifstream	mime(mime.types);
+	std::string		ext = this->
+	if (!mime.is_open())
 	{
-		this->_code = 404;
+		this->_code = 500;
 		return ;
 	}
-	else if (access(this->_path.c_str(), R_OK))
-	{
-		this->_code = 403;
-		return ;
-	}
-	std::ifstream	rdfile(this->_path.c_str());
+
+}*/
+
+bool	Response::fileToBody(const std::string &path)
+{
+	if (access(path.c_str(), F_OK))
+		return (sendError("404", "errors/404.html"), 1);
+	else if (access(path.c_str(), R_OK))
+		return (sendError("403", "errors/403.html"), 1);
+	std::ifstream	rdfile(path.c_str());
 	if (!rdfile.is_open())
-	{
-		this->_code = 505;
-		return ;
-	}
+		return (sendError("505", "errors/505.html"), 1);
 	std::ostringstream	content;
 	content << rdfile.rdbuf();
 	this->_body = content.str();
+	return (0);
+}
+
+void	Response::sendError(const std::string &code, const std::string &path)
+{
+	this->_response = "Content-Type: text/html\n";
+	if (fileToBody(path))
+	{
+		this->_response += "Content-Length: 75\n";
+		this->_response += "\n<html><body><h1>505</h1>"
+							"<h2>Severe Internal Server Error</h2></body></html>";
+		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
+		return ;
+	}
+	this->_response.insert(0, this->putStatusLine(code));
+	this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
+	this->_response += this->_body;
 }
