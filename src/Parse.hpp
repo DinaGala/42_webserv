@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/01 17:42:10 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/02 19:40:38 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 
 # include "Utils.hpp"
 
-# define INDEX 0
-# define UPLOAD 1
-# define WS " \v\t\n\r"
+//# define INDEX 0
+//# define UPLOAD 1
+
 
 class ServerConfig;
 class LocationConfig;
@@ -47,7 +47,8 @@ class Parse
         template <typename T>
         static void  errorParse(T &obj, std::vector<std::string> &line);
         template <typename T>
-        static void  rootParse(T &obj, std::vector<std::string> &line);
+        static void rootParse(T &obj, std::vector<std::string> &line);
+        static void urlCheck(std::string url);
         template <typename T>
         static void  allowMethodsParse(T &obj, std::vector<std::string> &line);
         template <typename T>
@@ -55,18 +56,23 @@ class Parse
         template <typename T>
         static void  autoIndexParse(T &obj, std::vector<std::string> &line);
 
-        static void  hostParse(ServerConfig &serv, std::vector<std::string> &line);
+        static void     hostParse(ServerConfig &serv, std::vector<std::string> &line);
         static std::string  hostCheck(std::string host);
-        static bool   hostNameCheck(std::string host);
-        static bool   ipCheck(std::string host);
-        static void  servNameParse(ServerConfig &serv, std::vector<std::string> &line);
-        static void  bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
+        static bool     hostNameCheck(std::string host);
+        static bool     ipCheck(std::string host);
+        static int      portCheck(std::string port);
+        static void     servNameParse(ServerConfig &serv, std::vector<std::string> &line);
+        static void     bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
 
         static void  uriParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  indexParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  returnParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  uploadDirParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  allowUploadParse(LocationConfig &serv, std::vector<std::string> &line);
+
+        static std::string	isHostName();
+        static std::string	isPath();
+        static std::string	isUrl();
 
 };
 

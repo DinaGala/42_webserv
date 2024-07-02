@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/01 16:07:37 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/02 18:15:51 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,10 +147,17 @@ const std::map<std::string, bool>& 	ServerConfig::getVars()
 
 void ServerConfig::setHost(const std::string& host)
 {
+	if (!_host.empty())
+		throw std::invalid_argument("Error: host duplication in listen: " + host);
 	_host = host;
 }
 void ServerConfig::setPort(int port)
 {
+	for (std::vector<int>::iterator it = _port.begin(); it != _port.end(); it++)
+	{
+		if (*it == port)
+			throw std::invalid_argument("Error: port duplication in listen");
+	}
 	_port.push_back(port);
 }
 

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/01 15:05:45 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/02 19:10:10 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,6 @@
 # define SERVERCONFIG_HPP
 
 # include "Utils.hpp"
-
-# define MAX_BODY_SIZE 2000000000 //2GB
-# define DEFAULT_BODY_SIZE 10000000 //10MB
-# define N_SERV_DIR 9
 
 class Parse;
 class LocationConfig;

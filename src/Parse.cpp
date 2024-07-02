@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/01 16:16:22 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/02 18:18:53 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,14 +219,14 @@ std::vector<std::string>  Parse::checkComment(std::vector<std::string> line)
 std::ostream	&operator<<(std::ostream &out, const std::vector<std::string> &val)
 {
     for (unsigned int i = 0; i < val.size(); i++)
-		out << val[i] << ", ";
+		out << val[i] << "  ";
 	return (out);
 }
 
 std::ostream	&operator<<(std::ostream &out, const std::vector<int> &val)
 {
     for (unsigned int i = 0; i < val.size(); i++)
-		out << val[i] << ", ";
+		out << val[i] << "  ";
 	return (out);
 }
 

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/01 16:48:03 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/02 19:36:48 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,13 +60,37 @@ or throws an exception otherwise */
 int 	ft_atopi(const std::string str)
 {
 	if (str.empty())
-		return (false);
+		throw std::invalid_argument("Error: empty string cannot be converted into a positive integer");
 	for (int i = 0; str[i]; i++)
 	{
-		if (i > 9 || !isdigit(str[i]))
+		if (i > 10 || !isdigit(str[i]))
 			throw std::invalid_argument("Error: not a positive integer: " + str);
 	}
 	if (atol(str.c_str()) > INT_MAX)
 		throw std::invalid_argument("Error: not a positive integer: " + str);
 	return (atol(str.c_str()));
+}
+
+/* A function that converts a string into an integer,
+or throws an exception otherwise */
+int 	ft_atoi(const std::string str)
+{
+	if (str.empty())
+		throw std::invalid_argument("Error: empty string cannot be converted into an integer");
+	for (int i = 0; str[i]; i++)
+	{
+		if (i == 0 && str[i] == '-')
+            continue ;
+        else if (i > 11 || !isdigit(str[i]))
+			throw std::invalid_argument("Error: not an integer: " + str);
+	}
+	if (atol(str.c_str()) > INT_MAX || atol(str.c_str()) < INT_MIN)
+		throw std::invalid_argument("Error: not an integer: " + str);
+	return (atol(str.c_str()));
+}
+
+/* returns a string of letters and digits */
+std::string	isLetDig()
+{
+    return ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 }
