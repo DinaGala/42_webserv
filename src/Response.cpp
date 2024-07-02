@@ -82,7 +82,6 @@ std::string	&Response::getResponse(const std::string &code)
 {
 	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
 		return (this->_cgi);
-	//this->putStatusLine(code);
 	this->putGeneralHeaders();
 	if (!this->_path.empty())
 	{
@@ -91,8 +90,6 @@ std::string	&Response::getResponse(const std::string &code)
 	}
 	if (!this->_body.empty())
 		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
-//	this->_response += "Content-Length: 43\n";
-//	this->_response += "\n<html><body>Response: holaaaa</body></html>";
 	this->_response += this->_body;
 	this->_response.insert(0, this->putStatusLine(code));
 	return (this->_response);
@@ -137,7 +134,7 @@ bool	Response::fileToBody(const std::string &path)
 		return (sendError("403", "errors/403.html"), 1);
 	std::ifstream	rdfile(path.c_str());
 	if (!rdfile.is_open())
-		return (sendError("505", "errors/505.html"), 1);
+		return (sendError("500", "errors/500.html"), 1);
 	std::ostringstream	content;
 	content << rdfile.rdbuf();
 	this->_body = content.str();
