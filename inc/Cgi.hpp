@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 //It needs:
 // port, server, method, host
@@ -19,24 +20,30 @@
 class	Cgi
 {
 	public:
-		Cgi(const std::string &serv, int port, const std::string &method, const std::string &host);
+		Cgi(int port, const std::string &method);
 		~Cgi();
 		void	addPair(const std::string &ext, const std::string &cmd);
-		char	**getEnv(void);
-		int		executeCgi(void);
-		void	setContentLength(const std::string &clen);
-		void	setContentType(const std::string &ctype);
-		//void	setUrlEnv(const std::string &url);
-		void	parseUrl(const std::string &url);
+		std::string		executeCgi(void);
+		void	setUrl(const std::string &url);
+		void	setHost(const std::string &host);
+		void	setServName(const std::string &serv);
 
 	private:
 		std::map<std::string, std::string>	_pairs;
 		std::map<std::string, std::string>	_env;
+		std::string							_url;
+		std::string							_reqbody;
 
 		Cgi();
 		Cgi(const Cgi &c);
 		Cgi		&operator=(const Cgi &c);
 		char	**vecToMat(const std::vector<std::string> &vec);
+		std::vector<std::string>	_parseUrl(const std::string &url);
+		void	_searchFile(std::vector<std::string> vec);
+		void	_setPathInfo(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
+		void	_setQueryString(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
+		char	**_getEnv(void);
+		std::string	_childProcess(int *fdreq, int *fdcgi);
 };
 
 #endif
