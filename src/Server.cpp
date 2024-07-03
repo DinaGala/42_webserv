@@ -85,9 +85,12 @@ struct sockaddr_in Server::getSockaddr() const {
 	return(_sockaddr);
 }
 
-int	Server::executeCgi(void)
+//this should be part of Request, not Server
+std::string	Server::executeCgi(void)
 {
-	Cgi	cgi("servername", 8080, "GET", "localhost");
+	Cgi	cgi(8080, "GET");
+	cgi.setUrl("http://localhost:8080/cgi-bin/ubuntu_cgi_tester");
+	cgi.setHost("localhost");
+	cgi.setServName("serv_name");
 	return (cgi.executeCgi());
-	//return (0);
 }

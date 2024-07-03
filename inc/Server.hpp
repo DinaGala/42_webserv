@@ -25,15 +25,15 @@ class Server {
 		~Server();
 		//ADD CANONICAL FORM
 
-		void	setUpServer();
-		void	initSocket();
-		void	bindSocket();
-		void	listenConnection();
+		void		setUpServer();
+		void		initSocket();
+		void		bindSocket();
+		void		listenConnection();
 
-		void	setIpAddress(const char* ipAddress);
-		void	setPort(const int port);
+		void		setIpAddress(const char* ipAddress);
+		void		setPort(const int port);
 
-		int		executeCgi(void);
+		std::string	executeCgi(void);
 
 		long				getSockfd() const;
 		struct sockaddr_in	getSockaddr() const;
