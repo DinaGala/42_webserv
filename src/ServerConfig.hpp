@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 20:38:01 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:24:23 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class ServerConfig
 		const std::map<std::string, bool>& 	getVars();
 
 		void 		setHost(const std::string& host);
+		void 		setIp(const std::string& ip);
 		void 		setPort(int port);
 		void 		setServerName(const std::string& serverName);
 		void 		setRoot(const std::string& root);

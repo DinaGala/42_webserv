@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 21:09:19 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:46:28 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,29 @@
 template <typename T>
 void  Parse::errorParse(T &obj, std::vector<std::string> &line)
 {
-	(void)obj;
-	(void)line;
+	if (line.size() < 3)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"root\": enter only one parameter");
 	std::string root = line.back();
 	line.pop_back();
 	for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
-		obj.setErrorPage(std::atoi((*it).c_str()), root);
+		obj.setErrorPage(errorCheck(*it), root);
 	// std::cout << "Error Parse Template ----------------------------" << "\n";
 	// std::cout << "Line: " << line << "\n";
+}
+
+int		Parse::errorCheck(std::string er)
+{
+	try
+	{
+		int res = ft_atopi(er);
+		if (res < 300 || res > 599)
+			throw std::invalid_argument("");
+		return (res);
+	}
+	catch(const std::exception& e)
+	{
+		throw std::invalid_argument("Configuration file error: error value must be between 300 and 599");
+	}
 }
 
 template <typename T>
@@ -55,14 +70,26 @@ void  Parse::cgiParse(T &obj, std::vector<std::string> &line)
 template <typename T>
 void  Parse::autoIndexParse(T &obj, std::vector<std::string> &line)
 {
-	(void)obj;
-	(void)line;
+	if (line.size() != 2)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"autoindex\" ");
+	if (line[1] == "true")
+		obj.setAutoIndex(true);
+	else if (line[1] == "false")
+		obj.setAutoIndex(false);
+	else
+		throw std::invalid_argument("Configuration file error: invalid parameter \"autoindex\": " + line[1]);
 }
 
 void  Parse::allowUploadParse(LocationConfig &serv, std::vector<std::string> &line)
 {
-	(void)serv;
-	(void)line;   
+if (line.size() != 2)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"allow_upload\" ");
+	if (line[1] == "true")
+		serv.setAllowUpload(true);
+	else if (line[1] == "false")
+		serv.setAllowUpload(false);
+	else
+		throw std::invalid_argument("Configuration file error: invalid parameter \"allow_upload\": " + line[1]);
 }
 
 void  Parse::hostParse(ServerConfig &serv, std::vector<std::string> &line)

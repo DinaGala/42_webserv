@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 21:09:16 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:25:05 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,11 +162,15 @@ void ServerConfig::setHost(const std::string& host)
 	_host = host;
 	_vars["host"] = true;
 	if (Parse::ipCheck(host))
-	{
-		_ip = host;
-		_vars["ip"] = true;
-	}
+		setIp(host);
 }
+
+void ServerConfig::setIp(const std::string& ip)
+{
+	_ip = ip;
+	_vars["ip"] = true;
+}
+
 void ServerConfig::setPort(int port)
 {
 	for (std::vector<int>::iterator it = _port.begin(); it != _port.end(); it++)

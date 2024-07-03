@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 19:40:38 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:34:31 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,11 @@ class Parse
 
     /* PARSING SIMPLE DIRECTIVES - ParseDir.cpp _______________________________*/
         template <typename T>
-        static void  errorParse(T &obj, std::vector<std::string> &line);
+        static void errorParse(T &obj, std::vector<std::string> &line);
+        static int  errorCheck(std::string er);
+
         template <typename T>
         static void rootParse(T &obj, std::vector<std::string> &line);
-        static void urlCheck(std::string url);
         template <typename T>
         static void  allowMethodsParse(T &obj, std::vector<std::string> &line);
         template <typename T>
