@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 18:15:51 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:09:16 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 {
 //	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 	_initKeys();
+	_autoIndex = false;
+	_root = "html";
+	_maxBodySize = 10000000;
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
@@ -65,15 +68,17 @@ void ServerConfig::_initKeys()
     _keys["allow_methods"] = &Parse::allowMethodsParse<ServerConfig>;
  	_keys["cgi"] = &Parse::cgiParse<ServerConfig>;
 
-	_vars["listen"] = false;
-	_vars["server_name"] = false;
+	_vars["port"] = false;
+	_vars["host"] = false;
+	_vars["ip"] = false;
+//	_vars["server_name"] = false;
     _vars["root"] = false;
    	_vars["client_max_body_size"] = false;
    	_vars["autoindex"] = false;
     _vars["error_page"] = false;
     _vars["allow_methods"] = false;
  	_vars["cgi"] = false;
-
+	_vars["location"] = false;
 }
 
 // _____________  GETTERS ______________________________________
@@ -81,6 +86,11 @@ void ServerConfig::_initKeys()
 const std::string ServerConfig::getHost() const
 {
 	return (_host);
+}
+
+const std::string ServerConfig::getIp() const
+{
+	return (_ip);
 }
 
 // const std::string ServerConfig::getHostName() const
@@ -147,9 +157,15 @@ const std::map<std::string, bool>& 	ServerConfig::getVars()
 
 void ServerConfig::setHost(const std::string& host)
 {
-	if (!_host.empty())
+	if (_vars["host"] || _vars["ip"])
 		throw std::invalid_argument("Error: host duplication in listen: " + host);
 	_host = host;
+	_vars["host"] = true;
+	if (Parse::ipCheck(host))
+	{
+		_ip = host;
+		_vars["ip"] = true;
+	}
 }
 void ServerConfig::setPort(int port)
 {
@@ -159,45 +175,74 @@ void ServerConfig::setPort(int port)
 			throw std::invalid_argument("Error: port duplication in listen");
 	}
 	_port.push_back(port);
+	if (!_vars["port"])
+		_vars["port"] = true;
 }
 
 void ServerConfig::setServerName(const std::string& serverName)
 {
 	_serverName.push_back(serverName);
+	_vars["server_name"] = true;
 }
 
 void ServerConfig::setRoot(const std::string& root)
 {
+	if (_vars["root"])
+		throw std::invalid_argument("Error: \"root\" directive is duplicate");
 	_root = root;
+	_vars["root"] = true;	
 }
 
 void ServerConfig::setLocationConfig(const LocationConfig& location)
 {
+	for (std::vector<LocationConfig>::iterator it = _locations.begin(); it != _locations.end(); it++)
+	{
+		if (it->getUri() == location.getUri())
+			throw std::invalid_argument("Error: uri duplication in location: " + location.getUri());
+	}
 	_locations.push_back(location);
+	if (!_vars["location"])
+		_vars["location"] = true;
 }
 
 void ServerConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages.insert(std::make_pair(code, page));
+	_errorPages[code] = page;
+	if (!_vars["error_page"])
+		_vars["error_page"] = true;
+//	_errorPages.insert(std::make_pair(code, page));
 }
 
 void ServerConfig::setClientMaxBodySize(size_t client_max_body_size)
 {
+	if (_vars["host"])
+		throw std::invalid_argument("Error:\"client_max_body_size\" directive is duplicate ");
 	_maxBodySize = client_max_body_size;
+	_vars["client_max_body_size"] = true;
 }
 
 void ServerConfig::setCgiConf(const std::string &ext, const std::string &path)
 {
-	_cgiConf.insert(std::make_pair(ext, path));
+	_cgiConf[ext] = path;
+	if (!_vars["cgi"])
+		_vars["cgi"] = true;
 }
 
 void ServerConfig::setAutoIndex(bool autoindex)
 {
+	if (_vars["autoindex"])
+		throw std::invalid_argument("Error:\"autoindex\" directive is duplicate ");
 	_autoIndex = autoindex;
+	_vars["autoindex"] = true;
 }
 
 void 	ServerConfig::setAllowedMethod(const std::string& method)
 {
+	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
+	{
+		if (*it == method)
+			throw std::invalid_argument("Error: method duplication in allowed_method");
+	}
 	_allowedMethods.push_back(method);
 }
 

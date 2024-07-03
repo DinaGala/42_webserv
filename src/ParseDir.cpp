@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 21:47:25 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 21:09:19 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,18 +32,9 @@ void  Parse::rootParse(T &obj, std::vector<std::string> &line)
 {
 	if (line.size() != 2)
 		throw std::invalid_argument("Configuration file error: invalid parameter \"root\": enter only one parameter");
-	urlCheck(line[1]);
 	obj.setRoot(line[1]);
 //    std::cout << "Root Parse Template ------------------------------------" << "\n";
 //    std::cout << "Line: " << line << "\n";
-}
-
-void    Parse::urlCheck(std::string url)
-{
-	for (int i = 0; url[i]; i++)
-	{
-		if 
-	}
 }
 
 template <typename T>
@@ -51,6 +42,7 @@ void  Parse::allowMethodsParse(T &obj, std::vector<std::string> &line)
 {
 	(void)obj;
 	(void)line;
+	// DO NOT FORGET TO SET THE VARS[METHODS] TO TRUE AND CHECK THE DUPS
 }
 
 template <typename T>

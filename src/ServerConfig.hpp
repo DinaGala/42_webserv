@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 19:10:10 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/03 20:38:01 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ class ServerConfig
 
 		typedef void (*func)(ServerConfig &, std::vector<std::string> &);
 		const std::string 				getHost() const;
+		const std::string 				getIp() const;
 		const std::vector<int>			getPort() const;
 		const std::vector<std::string>	getServerName() const;
 		const std::string			 		getRoot() const;
@@ -62,6 +63,7 @@ class ServerConfig
 
 		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
 		std::string 						_host; // Choose the port and host of each ’server’.
+		std::string							_ip;
 //		std::string 						_hostName; // Choose the port and host of each ’server’.
 		std::vector<std::string> 			_serverName; // Setup the server_names or not.
 		std::string 						_root; // If empty it setups to default
