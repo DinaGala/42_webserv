@@ -27,7 +27,7 @@ std::map<std::string, std::string> Response::initStatus()
 std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.htmls"), _method("")
+Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html"), _method("")
 {}
 
 Response::Response(const Response &r)
@@ -64,7 +64,7 @@ void	Response::setCode(const int &code)
 	this->_code = code;
 }
 
-std::string	Response::_itoa(std::string::size_type n)
+std::string	Response::_toString(std::string::size_type n)
 {
 	std::string	str;
 
@@ -78,6 +78,7 @@ std::string	Response::_itoa(std::string::size_type n)
 	return (str);
 }
 
+//writes and returns the server's response
 std::string	&Response::getResponse(const std::string &code)
 {
 	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
@@ -89,43 +90,64 @@ std::string	&Response::getResponse(const std::string &code)
 			return (this->_response);
 	}
 	if (!this->_body.empty())
-		this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
+		this->_response += "Content-Length: " + this->_toString(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 	this->_response.insert(0, this->putStatusLine(code));
 	return (this->_response);
 }
 
+//puts status line in the response
 std::string	Response::putStatusLine(const std::string &code)
 {
 	return ("HTTP/1.1 " + code + " " + this->_status.at(code) + "\r\n");
 }
 
+//puts general header in the response: date, server, keep-alive and connection
 void	Response::putGeneralHeaders(void)
 {
 	std::time_t	date = std::time(NULL);
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
 	this->_response += "Server: " + _servname + "\n";
-	this->_response += "Keep-Alive: timeout=" + this->_itoa(this->_timeout);
-	this->_response += ", max=" + this->_itoa(this->_maxconnect) + "\n";
+	this->_response += "Keep-Alive: timeout=" + this->_toString(this->_timeout);
+	this->_response += ", max=" + this->_toString(this->_maxconnect) + "\n";
 	if (this->_connection)
 		this->_response += "Connection: close\n";
 	else
 		this->_response += "Connection: keep-alive\n";
 }
-/*
-void	Response::putPostHeaders()
+
+//checks mime type + adds specific POST headers in the response
+bool	Response::putPostHeaders(const std::string &file)
 {
-	std::ifstream	mime(mime.types);
-	std::string		ext = this->
+	std::string	ext = file.substr(file.find_last_of("."));
+	std::ifstream	mime("mime.types");
+	std::string		line = "";
 	if (!mime.is_open())
+		return (sendError("500", "errors/500.html"), 1);
+	while (1)
 	{
-		this->_code = 500;
-		return ;
+		if (mime.eof())
+			break ;
+		getline(mime, line);
+		if (line.find(ext) != std::string::npos)
+			break ;
 	}
+	this->_response += "Location: /"; //PROBABLY NOT THIS ONE
+	if (line == "" || mime.eof())
+	{
+		if (access(file.c_str(), X_OK)) // if not executable
+			this->_response += "Content-Type: text/plain\n";
+		else
+			this->_response += "Content-Type: application/octet-stream\n";
+		return (0);
+	}
+	this->_response += "Content-Type: ";
+	this->_response += line.substr(line.find_first_not_of("\t \n\v\r", ext.size())) + "\n";
+	return (0);
+}
 
-}*/
-
+//puts file content in body string. If something's wrong, sends error
 bool	Response::fileToBody(const std::string &path)
 {
 	if (access(path.c_str(), F_OK))
@@ -141,6 +163,8 @@ bool	Response::fileToBody(const std::string &path)
 	return (0);
 }
 
+//makes error response. If there's an error with the error page,
+// a severe internal server error page is sent
 void	Response::sendError(const std::string &code, const std::string &path)
 {
 	this->_response = "Content-Type: text/html\n";
@@ -153,6 +177,6 @@ void	Response::sendError(const std::string &code, const std::string &path)
 		return ;
 	}
 	this->_response.insert(0, this->putStatusLine(code));
-	this->_response += "Content-Length: " + this->_itoa(this->_body.size()) + "\n\n";
+	this->_response += "Content-Length: " + this->_toString(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 }

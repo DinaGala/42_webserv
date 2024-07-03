@@ -12,21 +12,25 @@ class	Response
 {
 	public:
 		Response();
-		Response(const Response &r);
 		~Response();
-		Response	&operator=(const Response &r);
-		std::string	&getResponse(const std::string &code);
+		//SET VARS
 		void		setBody(const std::string &msg);
 		void		setCgi(const std::string &cgi);
 		void		setCode(const int &code);
+		//WRITE RESPONSE
 		std::string	putStatusLine(const std::string &code);
 		void		putGeneralHeaders(void);
+		bool		putPostHeaders(const std::string &file);
 		bool		fileToBody(const std::string &path);
+		//SEND RESPONSE
+		std::string	&getResponse(const std::string &code);
 		void		sendError(const std::string &code, const std::string &path);
+
 	private:
 		static std::map<std::string, std::string>	_status;
 		static std::map<std::string, std::string>	initStatus();
 		std::string		_body;
+		std::string		_reqbody;
 		std::string		_response;
 		std::string		_cgi;
 		std::string		_path; //tmp
@@ -37,7 +41,9 @@ class	Response
 		bool			_connection; //tmp
 		unsigned int	_code;
 
-		std::string	_itoa(std::string::size_type n);
+		Response(const Response &r);
+		Response	&operator=(const Response &r);
+		std::string	_toString(std::string::size_type n);
 };
 
 #endif
