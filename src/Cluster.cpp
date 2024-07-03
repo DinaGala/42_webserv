@@ -44,8 +44,10 @@ void	Cluster::runCluster(){
 		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
 		std::cout << "Request: " << buffer;
-		Request request;
-		request.parseRequest(buffer);
+		Request request(buffer); //Add server and socket
+		request.parseRequest();
+
+		
 		/*SEND 
 			send a message to the connection
 			int send(int sockfd, const void *msg, int len, int flags); 

@@ -4,6 +4,7 @@
 # include "Cluster.hpp"
 
 class Server {
+	
 	private:
 	
 	public:

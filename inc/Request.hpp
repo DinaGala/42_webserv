@@ -1,6 +1,11 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
+#define INITIAL_STATUS 0
+#define REQUEST_LINE_PARSED 1
+#define HEADERS_PARSED 2
+#define FINISH_PARSED 3
+
 # include "Cluster.hpp"
 
 class Server;
@@ -8,22 +13,34 @@ class Socket;
 
 class Request {
 	private:
+		std::string							_buffer;
+		
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		int									_errorCode;
+
+		std::string							_body;
+		int									_status;	
+
 		Socket								*socket;
 		Server								*server;
-		//body
+
+	
 
 	public:
-		Request();
-        Request(const std::string& buffer);
+        Request(const std::string & buffer);
 		~Request();
 
-		void	parseRequest(const std::string & buffer);
-		void	parseRequestLine(const std::string & requestLineStr);
-		void	parseHeaders(const std::string & header);
-		void 	fillRequestLineVector(std::string requestLineStr);
+		void	parseRequest();
+		void	parseRequestLine();
+		void	parseHeaders();
+		void	parseBody();
+		void 	createRequestLineVector(std::string requestLineStr);
+		void	addHeaderToMap(std::string line);
+
+		void	parseBodyByContentLenght();
+		void	parseBodyByChunked();
+
 		std::vector<std::string>  createValidRequestVector();
 };
 

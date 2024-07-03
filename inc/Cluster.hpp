@@ -25,8 +25,7 @@
 # include "Socket.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
-
-
+# include "Utils.hpp"
 
 class Server;
 class Socket;
