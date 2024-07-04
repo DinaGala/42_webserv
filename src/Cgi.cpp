@@ -54,36 +54,7 @@ void	Cgi::addPair(const std::string &ext, const std::string &cmd)
 {
 	this->_pairs[ext] = cmd;
 }
-/*
-char	**Cgi::vecToMat(const std::vector<std::string> &vec)
-{
-	char	**mat;
-	size_t	len = vec.size();
 
-	try
-	{
-		mat = new char *[len + 1];
-	}
-	catch (std::exception &ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	for (size_t i = 0; i < len; i++)
-	{
-		try
-		{
-			mat[i] = new char [vec[i].length() + 1];
-			std::strcpy(mat[i], vec[i].c_str());
-		}
-		catch (std::exception &ex)
-		{
-			std::cerr << ex.what() << std::endl;
-			exit(EXIT_FAILURE);
-		}
-	}
-	return (mat);
-}*/
 
 //from map to char **
 char	**Cgi::_getEnv(void)
@@ -213,40 +184,9 @@ std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
 	}
 	return (split);
 }
-/*
-//needs access to host
-void	Cgi::parseUrl(void)
-{
-	std::string::size_type	found;
-	std::string	tmp = this->_url;
 
-	found = tmp.find("//");
-	if (found != std::string::npos)
-		tmp = tmp.substr(found + 2);
-	tmp = tmp.substr(this->_env["HTTP_HOST"].length());
-	//this for should be done in the request probably
-	found = std::string::npos;
-	for (std::map<std::string, std::string>::iterator it = this->_pairs.begin();
-			it != this->_pairs.end() || found != std::string::npos; ++it)
-		found = tmp.find(it->first);
-	if (found == std::string::npos)
-		return ;
-	this->_env["SCRIPT_NAME"] = tmp.substr(0, tmp.find("/", found));
-	tmp = tmp.substr(this->_env["SCRIPT_NAME"].length());
-	if (url == "")
-		return ;
-	found = url.find("#");
-	if (found == std::string::npos)
-		this->_env["PATH_INFO"] = url;
-	else
-	{
-		this->_env["PATH_INFO"] = tmp.substr(0, found);
-		this->_env["QUERY_STRING"] = tmp.substr(found + 1);
-	}
-}
-*/
 #include <stdio.h>
-
+/*
 std::string	Cgi::_childProcess(int *fdreq, int *fdcgi)
 {
 	//////////////////////////////////////////////////
@@ -256,70 +196,127 @@ std::string	Cgi::_childProcess(int *fdreq, int *fdcgi)
     const char tmp[] = "./cgi-bin/ubuntu_cgi_tester";
     strcpy(args[0], tmp);
 	args[1] = NULL;
-	this->_reqbody = "hola que tal";
 	//////////////////////////////////////////////////
 	if (dup2(fdreq[0], STDIN_FILENO) == -1 || dup2(fdcgi[1], STDOUT_FILENO) == -1)
 	{
 		perror("child: dup2");
 		exit(1);
 	}
-	write(fdreq[1], this->_reqbody.c_str(), this->_reqbody.size());
-	close(fdcgi[0]); // we don't want to read the cgi
-	close(fdreq[1]); // we don't want to write in the request
-	execve(args[0], args, this->_getEnv());
-	close(fdreq[0]); // we don't want to read the request
-	std::cerr << "Execve failed" << std::endl;
+	close(fdcgi[0]); 
+	close(fdreq[1]);
+	close(fdreq[0]); 
 	close(fdcgi[1]);
+	dprintf(2, "pre write\n");
+	dprintf(2, "pre execve\n");
+	execve(args[0], args, this->_getEnv());
+	std::cerr << "Execve failed" << std::endl;
+	exit(1);
+}*/
+
+char	**Cgi::vecToMat(const std::vector<std::string> &vec)
+{
+	char	**mat;
+	size_t	len = vec.size();
+
+	try
+	{
+		mat = new char *[len + 1];
+	}
+	catch (std::exception &ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	for (size_t i = 0; i < len; i++)
+	{
+		try
+		{
+			mat[i] = new char [vec[i].length() + 1];
+			std::strcpy(mat[i], vec[i].c_str());
+		}
+		catch (std::exception &ex)
+		{
+			std::cerr << ex.what() << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+	return (mat);
+}
+std::vector<std::string> Cgi::getArgs(void)
+{
+		std::vector<std::string> args;
+
+		args.push_back("./cgi-bin/ubuntu_cgi_tester");
+		return (args);
+}
+
+void	Cgi::_childProcess(int *req, int *cgi)
+{
+	std::vector<std::string> vec = getArgs();
+	char	**args = vecToMat(vec);
+	if (close(req[1]))
+		std::cerr << "Close req[0] child" << std::endl;
+	if (close(cgi[0]))
+		std::cerr << "Close cgi[1] child" << std::endl;
+	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
+	{
+		perror("child: dup2");
+		exit(1);
+	}
+	if (close(req[0]))
+		std::cerr << "Close req[0] child" << std::endl;
+	if (close(cgi[1]))
+		std::cerr << "Close cgi[1] child" << std::endl;
+	execve(args[0], args, this->_getEnv());
+	std::cerr << "execve failed" << std::endl;
 	exit(1);
 }
 
 std::string	Cgi::executeCgi(void)
 {
-    pid_t pid;
-    int status;
-    int fdreq[2], fdcgi[2];
+	pid_t	pid;
+	int		status;
+	int		req[2], cgi[2];
 	std::string	cgi_response;
+	std::string	reqbody = "this is the request's body\nhola\0";
+	char buffer[1024];
+	ssize_t count;
 
-    if (pipe(fdreq) == -1 || pipe(fdcgi))
+	if (pipe(req) || pipe(cgi))
+	{
+		std::cerr << "Pipe failed" << std::endl;
+		exit(1);
+	}
+	pid = fork();
+	if (pid == -1)
+	{
+		std::cerr << "Fork failed" << std::endl;
+		exit(1);
+	}
+	if (pid == 0)
+		this->_childProcess(req, cgi);
+	if (close(req[0]))
+		std::cerr << "Close req[0]" << std::endl;
+	if (close(cgi[1]))
+		std::cerr << "Close cgi[1]" << std::endl;
+	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
+	if (close(req[1]))
+		std::cerr << "Close req[1]" << std::endl;
+	if (waitpid(pid, &status, 0) == -1)
     {
-        std::cerr << "Pipe failed" << std::endl;
+        std::cerr << "Waitpid failed" << std::endl;
         exit(EXIT_FAILURE);
     }
-    pid = fork();
-    if (pid == -1)
-    {
-        std::cerr << "Fork failed" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    if (pid == 0)
-		this->_childProcess(fdreq, fdcgi);
-    else
-    {
-        char buffer[1024];
-        ssize_t count;
-		
-		if (waitpid(pid, &status, 0) == -1)
-        {
-            std::cerr << "Waitpid failed" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-		if (!WIFEXITED(status) || WEXITSTATUS(status))
-			return ("");
-        close(fdreq[0]);
-        close(fdcgi[1]);
-        close(fdreq[1]);
-        while ((count = read(fdcgi[0], buffer, sizeof(buffer))) != 0)
-        {
-            if (count == -1)
-            {
-                std::cerr << "Read failed" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            cgi_response += buffer;
-        }
-        close(fdcgi[0]);
-    }
-	std::cout << "cgi_response: " << cgi_response << std::endl;
-
-    return (cgi_response);
+	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
+	{
+		if (count == -1)
+		{
+			std::cerr << "Read failed" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		cgi_response += buffer;
+	}
+	if (close(cgi[0]))
+		std::cerr << "Close cgi[0]" << std::endl;
+	return (cgi_response);
 }
