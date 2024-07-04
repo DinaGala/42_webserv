@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 21:25:05 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/04 15:33:14 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,10 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_autoIndex = false;
 	_root = "html";
 	_maxBodySize = 10000000;
+	_cgiConf[".sh"] = "/bin/bash";
+	_cgiConf[".js"] = "/usr/bin/node";
+	_cgiConf[".php"] = "/usr/bin/php";
+	_cgiConf[".py"] = "/usr/bin/python3";
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
@@ -71,7 +75,7 @@ void ServerConfig::_initKeys()
 	_vars["port"] = false;
 	_vars["host"] = false;
 	_vars["ip"] = false;
-//	_vars["server_name"] = false;
+	_vars["server_name"] = false;
     _vars["root"] = false;
    	_vars["client_max_body_size"] = false;
    	_vars["autoindex"] = false;
@@ -92,11 +96,6 @@ const std::string ServerConfig::getIp() const
 {
 	return (_ip);
 }
-
-// const std::string ServerConfig::getHostName() const
-// {
-// 	return (_hostName);
-// }
 
 const std::vector<int> ServerConfig::getPort() const
 {
@@ -220,7 +219,7 @@ void ServerConfig::setErrorPage(int code, const std::string& page)
 void ServerConfig::setClientMaxBodySize(size_t client_max_body_size)
 {
 	if (_vars["host"])
-		throw std::invalid_argument("Error:\"client_max_body_size\" directive is duplicate ");
+		throw std::invalid_argument("Error: \"client_max_body_size\" directive is duplicate ");
 	_maxBodySize = client_max_body_size;
 	_vars["client_max_body_size"] = true;
 }
@@ -240,7 +239,7 @@ void ServerConfig::setAutoIndex(bool autoindex)
 	_vars["autoindex"] = true;
 }
 
-void 	ServerConfig::setAllowedMethod(const std::string& method)
+void 	ServerConfig::setAllowMethod(const std::string& method)
 {
 	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
 	{
@@ -248,6 +247,11 @@ void 	ServerConfig::setAllowedMethod(const std::string& method)
 			throw std::invalid_argument("Error: method duplication in allowed_method");
 	}
 	_allowedMethods.push_back(method);
+}
+
+void 		ServerConfig::setVars(const std::string& key)
+{
+	_vars[key] = true;
 }
 
 // void ServerConfig::setHostName(const std::string& hostName)

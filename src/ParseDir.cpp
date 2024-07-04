@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 21:46:28 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/04 17:16:57 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,16 @@ template <typename T>
 void  Parse::errorParse(T &obj, std::vector<std::string> &line)
 {
 	if (line.size() < 3)
-		throw std::invalid_argument("Configuration file error: invalid parameter \"root\": enter only one parameter");
+		throw std::invalid_argument("Configuration file error: invalid parameter \"error_page\": enter at least 2 parameters: [error_num] ... [path]");
 	std::string root = line.back();
 	line.pop_back();
 	for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
+	{
+		if (it == line.begin())
+			continue ;
 		obj.setErrorPage(errorCheck(*it), root);
+	}
+		
 	// std::cout << "Error Parse Template ----------------------------" << "\n";
 	// std::cout << "Line: " << line << "\n";
 }
@@ -31,6 +36,7 @@ int		Parse::errorCheck(std::string er)
 {
 	try
 	{
+//		std::cout << er << "\n";
 		int res = ft_atopi(er);
 		if (res < 300 || res > 599)
 			throw std::invalid_argument("");
@@ -55,16 +61,26 @@ void  Parse::rootParse(T &obj, std::vector<std::string> &line)
 template <typename T>
 void  Parse::allowMethodsParse(T &obj, std::vector<std::string> &line)
 {
-	(void)obj;
-	(void)line;
-	// DO NOT FORGET TO SET THE VARS[METHODS] TO TRUE AND CHECK THE DUPS
+	if (line.size() < 2)
+		throw std::invalid_argument("Configuration file error: invalid number of parameters \"allow_methods\": enter at least one parameter");
+	std::map<std::string, bool> temp = obj.getVars();
+	if (temp["allow_methods"])
+		throw std::invalid_argument("Configuratiosn file error: \"allow_methods\" directive is duplicate ");
+	for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
+	{
+		if (it == line.begin())
+			continue ;
+		obj.setAllowMethod(*it);
+	}
+	obj.setVars("allow_methods");
 }
 
 template <typename T>
 void  Parse::cgiParse(T &obj, std::vector<std::string> &line)
 {
-	(void)obj;
-	(void)line;
+	if (line.size() != 3)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"cgi\": enter two parameters [.ext] [path]");
+	obj.setCgiConf(line[1], line[2]);
 }
 
 template <typename T>
@@ -82,7 +98,7 @@ void  Parse::autoIndexParse(T &obj, std::vector<std::string> &line)
 
 void  Parse::allowUploadParse(LocationConfig &serv, std::vector<std::string> &line)
 {
-if (line.size() != 2)
+	if (line.size() != 2)
 		throw std::invalid_argument("Configuration file error: invalid parameter \"allow_upload\" ");
 	if (line[1] == "true")
 		serv.setAllowUpload(true);
@@ -179,7 +195,11 @@ void  Parse::servNameParse(ServerConfig &serv, std::vector<std::string> &line)
 	std::vector<std::string>::iterator	it = line.begin();
 	it++;
 	while (it != line.end())
+	{
 		serv.setServerName(*it);
+		it++;
+	}
+		
 }
 
 void  Parse::bodySizeParse(ServerConfig &serv, std::vector<std::string> &line)
@@ -216,25 +236,28 @@ void  Parse::bodySizeParse(ServerConfig &serv, std::vector<std::string> &line)
 	}
 }
 
-void  Parse::uriParse(LocationConfig &loc, std::vector<std::string> &line)
-{
-	(void)loc;
-	(void)line;   
-}
+// void  Parse::uriParse(LocationConfig &loc, std::vector<std::string> &line)
+// {
+// 	(void)loc;
+// 	(void)line;   
+// }
 void  Parse::indexParse(LocationConfig &loc, std::vector<std::string> &line)
 {
-	(void)loc;
-	(void)line;   
+	if (line.size() != 2)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"index\": introduce one parameter");
+	loc.setIndex(line[1]);
 }
 void  Parse::returnParse(LocationConfig &loc, std::vector<std::string> &line)
 {
-	(void)loc;
-	(void)line;   
+	if (line.size() != 2)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"return\": introduce one parameter");
+	loc.setReturn(line[1]);
 }
 void  Parse::uploadDirParse(LocationConfig &loc, std::vector<std::string> &line)
 {
-	(void)loc;
-	(void)line;   
+	if (line.size() != 2)
+		throw std::invalid_argument("Configuration file error: invalid parameter \"upload_dir\": introduce one parameter");
+	loc.setUploadDir(line[1]);
 }
 
 std::string	Parse::isHostName()

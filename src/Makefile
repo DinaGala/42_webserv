@@ -5,7 +5,7 @@ BLUE = \033[1;34m
 BLACK = \033[0;39m
 
 NAME = config
-CPP = c++
+CPP = g++ -g -O0
 FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -fsanitize=address
 RM = rm -f
 

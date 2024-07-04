@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/06/26 21:19:39 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/04 15:49:39 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 class LocationConfig
 {
 	public:
-		LocationConfig(std::string uri, std::string file);
+		LocationConfig(std::string uri, const std::string &root, std::string file);
 		LocationConfig(const LocationConfig& src);
 		LocationConfig& operator=(const LocationConfig& src);
 		~LocationConfig();
@@ -38,12 +38,13 @@ class LocationConfig
 		const std::map<int, std::string>& 	getErrorPages() const;
 		const std::map<std::string, func>& 	getKeys() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;
+		const std::map<std::string, bool>& 	getVars();
 		
 		void setUri(const std::string& uri);
 		void setRoot(const std::string& root);
 		void setReturn(const std::string& alias);
 		void setErrorPage(int code, const std::string& page);
-		void setAllowedMethod(const std::string& method);
+		void setAllowMethod(const std::string& method);
 //		void addCgiConfig(const std::map<std::string, std::string>& cgiConfig);
 		void setCgiConf(const std::string &ext, const std::string &path);
 		void setIndex(const std::string& index);
@@ -53,6 +54,7 @@ class LocationConfig
 		void setLocationConfig(const LocationConfig& location) {
 			(void)location;
 		}
+		void setVars(const std::string& key);
 
 		const bool	loc;
 
@@ -68,6 +70,7 @@ class LocationConfig
 		std::map<int, std::string> 			_errorPages;
 		std::map<std::string, std::string> 	_cgiConf; // Execute CGI based on certain file extension (for example .php).
 		std::map<std::string, func>			_keys;
+		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
 
 		LocationConfig();

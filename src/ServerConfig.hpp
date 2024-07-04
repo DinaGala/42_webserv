@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/03 21:24:23 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/04 15:20:14 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,8 @@ class ServerConfig
 //		void 		setHostName(const std::string& hostName);
 		void 		setLocationConfig(const LocationConfig& location);
 		void 		setErrorPage(int code, const std::string& page);
-		void 		setAllowedMethod(const std::string& method);
+		void 		setAllowMethod(const std::string& method);
+		void 		setVars(const std::string& key);
 		const bool	loc;
 //		bool		empty;
 
@@ -74,8 +75,8 @@ class ServerConfig
 		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<std::string, std::string> 	_cgiConf;
-		std::map<std::string, bool>			_vars; // each variable if is set or not
 		std::map<std::string, func>			_keys;
+		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
 		
 		ServerConfig();

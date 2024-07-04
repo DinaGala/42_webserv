@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 18:18:53 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/04 17:14:34 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,14 +27,15 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
     buf = checkBrackets(file);
     while (!buf.empty())
 	{
- //       std::cout << buf.substr(0, 15) << "\n";
+        std::cout << buf.substr(0, 15) << "\n";
         if (buf.substr(0, 6) != "server")
             throw std::invalid_argument("Configuration file error: no server keyword: " + buf.substr(0, buf.find('\n')));
         // std::stringstream   directive;
         // directive << 
- //       std::cout << "Printing directive: " << directive.str() << "\n" << " ----------------------------------------------" << std::endl;
-		sconf.push_back( ServerConfig(blockCrop(buf)));
 //        std::cout << buf << "\n";
+//        std::cout << "Printing directive: " << directive.str() << "\n" << " ----------------------------------------------" << std::endl;
+		sconf.push_back( ServerConfig(blockCrop(buf)));
+        std::cout << buf << "\n";
         buf = ltrim(buf);
 	}
 	return (sconf);
@@ -44,6 +45,7 @@ template <typename T>
 void Parse::complexParse(T &serv, std::string &block)
 {
     std::string line;
+    std::cout << "CP BEFORE SWITCH\n";
     switch (ft_getline(block, line, ";{"))
     {
         case 1: lineParse(serv, ft_split(line, WS)); break ;
@@ -58,13 +60,14 @@ void Parse::lineParse(T &obj, std::vector<std::string> args)
 {
     if (args.empty())
         return ;
-    // std::cout << "Line Parse -----------------" << "\n";
-    // std::cout << "Line: " << args << "\n";
+     std::cout << "Line Parse -----------------" << "\n";
+     std::cout << "Line: " << args << "\n";
 
     typename std::map<std::string, typename T::func>::iterator it;
     std::map<std::string, typename T::func> keys = obj.getKeys();
     for (it = keys.begin(); it != keys.end(); it++)
     {
+        std::cout << "key: " << it->first << "\n";
         if (it->first == args[0])
         {
             it->second(obj, args); // change everywhere strings to vectors
@@ -84,7 +87,7 @@ void Parse::blockParse(T &serv, std::string &line)
     line.erase(0, 8);
     if (ft_getword(line).empty())
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
-    serv.setLocationConfig(LocationConfig(ft_getword(line), blockCrop(line)));
+    serv.setLocationConfig(LocationConfig(ft_getword(line), serv.getRoot(), blockCrop(line)));
 }
 
 // PARSING UTILS ______________________________________
@@ -94,13 +97,14 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
     buf = trim(buf);
     if (buf.empty())
         return (0);
-    // std::cout << "FT GET LINE START ___________________" << "\n";
-    // std::cout << "block: " << buf << "\n";
+     std::cout << "FT GET LINE START ___________________" << "\n";
+     std::cout << "block: " << buf << "\n\n";
     size_t  pos = buf.find_first_of(del);
     int res = 1;
     if (pos == std::string::npos)
     {
         line = buf.substr(0, buf.length());
+     //    std::cout << "BUF pos NPOS " << buf << "\n";
         buf.clear();
     }
     else 
@@ -108,14 +112,14 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
         if (buf[pos] == '{')
         {
             pos = buf.find('}') + 1;
-            // std::cout << "BUF pos " << buf[pos - 1] << "\n";
+        //     std::cout << "BUF pos BRACK " << buf[pos - 1] << "\n";
             res = 2;
         }
         line = buf.substr(0, pos);
         buf.erase(0, line.length() + 1);
     }
-    // std::cout << "FT GET LINE END" << "\n";
-    // std::cout << "Line: " << line << "\n";
+     std::cout << "FT GET LINE END" << "\n";
+     std::cout << "Line: " << line << "\n\n";
     return (res);
 }
 
@@ -219,7 +223,7 @@ std::vector<std::string>  Parse::checkComment(std::vector<std::string> line)
 std::ostream	&operator<<(std::ostream &out, const std::vector<std::string> &val)
 {
     for (unsigned int i = 0; i < val.size(); i++)
-		out << val[i] << "  ";
+		out << val[i] << "  "; 
 	return (out);
 }
 
@@ -254,7 +258,7 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
     out << "Max Body Size:  " << val.getMaxBodySize() << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "Error pages:  \n" << val.getErrorPages() << "\n";
-    out << "CGI:  " << val.getCgiConf() << "\n";
+    out << "CGI:  \n" << val.getCgiConf() << "\n";
     std::vector<LocationConfig> temp = val.getLocationConfig();
     for (std::vector<LocationConfig>::iterator it = temp.begin(); it != temp.end(); it++) {
         out << "LOCATION \n" << (*it) << "\n";
