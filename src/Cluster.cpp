@@ -40,12 +40,15 @@ void	Cluster::runCluster(){
 		std::cout << "Request: " << buffer;
 
 		////////////////////////////
-		std::string cgi = server.executeCgi();
+		std::string response = server.executeCgi();
 		std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
-		//////////////////////////
-		Response	rsp;
-		std::string	response = rsp.getResponse("200");
+		if (response == "")
+		{
+			Response	rsp;
+			response = rsp.getResponse("200");
+		}
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
+		//////////////////////////
 		/*SEND 
 		send a message to the connection
 		int send(int sockfd, const void *msg, int len, int flags); 
