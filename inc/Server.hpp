@@ -33,8 +33,6 @@ class Server {
 		void		setIpAddress(const char* ipAddress);
 		void		setPort(const int port);
 
-		std::string	executeCgi(void);
-
 		long				getSockfd() const;
 		struct sockaddr_in	getSockaddr() const;
 };
