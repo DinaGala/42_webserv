@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 15:49:29 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:40:22 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ LocationConfig::LocationConfig(): loc(false) {}
 
 LocationConfig::LocationConfig(std::string url, const std::string &root, std::string file): loc(false), _uri(url), _root(root)
 {
+	// std::cout << "UN LOC CONSTRUCT, URL: " + url + "\n";
 	_autoIndex = false;
     _allowUpload = false;
     _index = "index.html";

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 15:33:14 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:37:25 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,6 +198,7 @@ void ServerConfig::setRoot(const std::string& root)
 
 void ServerConfig::setLocationConfig(const LocationConfig& location)
 {
+//	std::cout << "ENTERED SET LOCATION ----------- " << std::endl;
 	for (std::vector<LocationConfig>::iterator it = _locations.begin(); it != _locations.end(); it++)
 	{
 		if (it->getUri() == location.getUri())

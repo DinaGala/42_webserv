@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 17:14:34 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:45:33 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
     buf = checkBrackets(file);
     while (!buf.empty())
 	{
-        std::cout << buf.substr(0, 15) << "\n";
+ //       std::cout << buf.substr(0, 15) << "\n";
         if (buf.substr(0, 6) != "server")
             throw std::invalid_argument("Configuration file error: no server keyword: " + buf.substr(0, buf.find('\n')));
         // std::stringstream   directive;
@@ -35,7 +35,7 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
 //        std::cout << buf << "\n";
 //        std::cout << "Printing directive: " << directive.str() << "\n" << " ----------------------------------------------" << std::endl;
 		sconf.push_back( ServerConfig(blockCrop(buf)));
-        std::cout << buf << "\n";
+ //       std::cout << buf << "\n";
         buf = ltrim(buf);
 	}
 	return (sconf);
@@ -45,12 +45,12 @@ template <typename T>
 void Parse::complexParse(T &serv, std::string &block)
 {
     std::string line;
-    std::cout << "CP BEFORE SWITCH\n";
+ //   std::cout << "CP BEFORE SWITCH\n";
     switch (ft_getline(block, line, ";{"))
     {
         case 1: lineParse(serv, ft_split(line, WS)); break ;
         case 2: blockParse(serv, line); break ;
-        default: std::cout << "The server block is parsed" << std::endl; return ;
+        default: return ; //std::cout << "The server block is parsed" << std::endl; 
     }
    complexParse(serv, block);
 }
@@ -60,14 +60,14 @@ void Parse::lineParse(T &obj, std::vector<std::string> args)
 {
     if (args.empty())
         return ;
-     std::cout << "Line Parse -----------------" << "\n";
-     std::cout << "Line: " << args << "\n";
+    //  std::cout << "Line Parse -----------------" << "\n";
+    //  std::cout << "Line: " << args << "\n";
 
     typename std::map<std::string, typename T::func>::iterator it;
     std::map<std::string, typename T::func> keys = obj.getKeys();
     for (it = keys.begin(); it != keys.end(); it++)
     {
-        std::cout << "key: " << it->first << "\n";
+ //       std::cout << "key: " << it->first << "\n";
         if (it->first == args[0])
         {
             it->second(obj, args); // change everywhere strings to vectors
@@ -85,9 +85,13 @@ void Parse::blockParse(T &serv, std::string &line)
     if (!serv.loc)
         throw std::invalid_argument("Configuration file error: location inside of a location not permitted: " + line.substr(0, line.find('\n')));
     line.erase(0, 8);
-    if (ft_getword(line).empty())
+    std::string path = ft_getword(line);
+    if (path.empty())
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
-    serv.setLocationConfig(LocationConfig(ft_getword(line), serv.getRoot(), blockCrop(line)));
+//    std::cout << "line before location: " << line << std::endl;
+    serv.setLocationConfig(LocationConfig(path, serv.getRoot(), blockCrop(line)));
+    // std::cout << "------------------------------------------\n";
+    // std::cout << serv << "\n";
 }
 
 // PARSING UTILS ______________________________________
@@ -97,8 +101,8 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
     buf = trim(buf);
     if (buf.empty())
         return (0);
-     std::cout << "FT GET LINE START ___________________" << "\n";
-     std::cout << "block: " << buf << "\n\n";
+    //  std::cout << "FT GET LINE START ___________________" << "\n";
+    //  std::cout << "block: " << buf << "\n\n";
     size_t  pos = buf.find_first_of(del);
     int res = 1;
     if (pos == std::string::npos)
@@ -118,17 +122,21 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
         line = buf.substr(0, pos);
         buf.erase(0, line.length() + 1);
     }
-     std::cout << "FT GET LINE END" << "\n";
-     std::cout << "Line: " << line << "\n\n";
+    //  std::cout << "FT GET LINE END" << "\n";
+    //  std::cout << "Line: " << line << "\n\n";
     return (res);
 }
 
 std::string Parse::ft_getword(std::string &buf)
 {
+    // std::cout << "FT GET WORD START" << "\n";
+    // std::cout << "BUF: " << buf << "\n\n";
     std::string str = trim(buf);
     size_t pos = str.find_first_of(" \v\t\n\r");
     if (pos != std::string::npos)
         str = str.substr(0, pos);
+    // std::cout << "FT GET WORD END" << "\n";
+    // std::cout << "wORD: " << str << "\n\n";
     return (str);
 }
 
@@ -254,14 +262,15 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
 {
     out << "Port:  " << val.getPort() << "\n";
     out << "Host:  " << val.getHost() << "\n";
+    out << "IP:  " << val.getIp() << "\n";
     out << "Root:  " << val.getRoot() << "\n";
     out << "Max Body Size:  " << val.getMaxBodySize() << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "Error pages:  \n" << val.getErrorPages() << "\n";
-    out << "CGI:  \n" << val.getCgiConf() << "\n";
+    out << "    CGI:  " << "\n" << val.getCgiConf() << "\n";
     std::vector<LocationConfig> temp = val.getLocationConfig();
     for (std::vector<LocationConfig>::iterator it = temp.begin(); it != temp.end(); it++) {
-        out << "LOCATION \n" << (*it) << "\n";
+        out << "    LOCATION \n" << (*it) << "\n";
     }
 	return (out);
 }
@@ -286,7 +295,7 @@ std::ostream	&operator<<(std::ostream &out, const LocationConfig &val)
     out << "    |___    Autoindex:  " << val.getAutoIndex() << "\n";
     out << "    |___    Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
-    out << "    |___    CGI:  " << val.getCgiConf() << "\n";
+    out << "    |______     CGI:  " << "\n" << val.getCgiConf() << "\n";
 
 	return (out);
 }
