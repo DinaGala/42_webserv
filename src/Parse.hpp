@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:21:21 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:48:08 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ class Parse
         static void blockParse(T &serv, std::string &line);
         template <typename T>
         static void lineParse(T &obj, std::vector<std::string> args);
+        static std::vector<ServerConfig>	portDefault(std::vector<ServerConfig>sconf);
+        static std::vector<ServerConfig>	hostDefault(std::vector<ServerConfig>sconf);
 
     /* PARSING UTILS ________________________________________________________*/
         static int          ft_getline(std::string &buf, std::string &line, std::string del); //returns 0 - empty line, 1 - first delimiter, 2  - second delimiter

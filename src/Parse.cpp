@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:24:47 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 19:47:17 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
  //       std::cout << buf << "\n";
         buf = ltrim(buf);
 	}
+    sconf = portDefault(sconf); // port check and autofill
+    sconf = hostDefault(sconf); // host and ip check and fill   
 	return (sconf);
 }
 
@@ -92,6 +94,36 @@ void Parse::blockParse(T &serv, std::string &line)
     serv.setLocationConfig(LocationConfig(path, serv.getRoot(), blockCrop(line)));
     // std::cout << "------------------------------------------\n";
     // std::cout << serv << "\n";
+}
+
+std::vector<ServerConfig>	Parse::portDefault(std::vector<ServerConfig> sconf)
+{
+    
+    for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end(); it++)
+	{
+		std::map<std::string, bool> svar = it->getVars();
+     //   std::cout << svar["port"] << "\n";
+        if (svar["port"] == false)
+			it->setPort(8080);
+	}
+    //here the checking
+    return (sconf);
+}
+
+std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig>sconf)
+{
+    for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end(); it++)
+	{
+		std::map<std::string, bool> svar = it->getVars();
+        if (!svar["host"] && !svar["ip"])
+        {
+            it->setHost("localhost");
+            it->setIp("127.0.0.1");
+        }
+		else if (it->getHost() == "localhost" && !svar["ip"])
+            it->setIp("127.0.0.1");
+	}
+    return (sconf);
 }
 
 // PARSING UTILS ______________________________________

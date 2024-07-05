@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:38:32 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 19:14:20 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_maxBodySize = src._maxBodySize;
 	_cgiConf = src._cgiConf;
 	_autoIndex = src._autoIndex;
+	_vars = src._vars;
 //	empty = src.empty;
 	return (*this);
 }
@@ -182,6 +183,7 @@ void ServerConfig::setPort(int port)
 	_port.push_back(port);
 	if (!_vars["port"])
 		_vars["port"] = true;
+//	std::cout << _vars["port"] << "\n";
 }
 
 void ServerConfig::setServerName(const std::string& serverName)
