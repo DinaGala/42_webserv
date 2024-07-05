@@ -40,13 +40,9 @@ void	Cluster::runCluster(){
 		std::cout << "Request: " << buffer;
 
 		////////////////////////////
-		std::string response = server.executeCgi();
-		std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
-		if (response == "")
-		{
-			Response	rsp;
-			response = rsp.getResponse("200");
-		}
+		Response	rsp;
+		rsp.setCgi("a");
+		std::string response = rsp.getResponse("200");
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
 		//////////////////////////
 		/*SEND 
