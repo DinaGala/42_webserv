@@ -1,5 +1,13 @@
 #include "Cgi.hpp"
 
+static void	error(const char *ft, const std::string &msg)
+{
+	std::cerr << "Error: " << ft << ": " << msg << std::endl;
+	//if (close(this->_socket))
+	//	std::cerr << "Failed to close socket" << std::endl;
+	exit(EXIT_FAILURE);
+}
+
 Cgi::Cgi() {}
 
 Cgi::Cgi(int port, const std::string &method)
@@ -12,7 +20,6 @@ Cgi::Cgi(int port, const std::string &method)
 	this->_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_env["SERVER_NAME"] = "server";
 	this->_env["REQUEST_METHOD"] = method;
-	//this->_env["SCRIPT_NAME"] = "/cgi-bin/ubuntu_cgi_tester";
 	this->_env["PATH_INFO"]="/";
 	///////// 	TMP VARS   /////////////
 	this->_pairs[".sh"] = "/bin/bash";
@@ -34,19 +41,11 @@ Cgi	&Cgi::operator=(const Cgi &c)
 	return ((void)c, *this);
 }
 
-void	Cgi::setUrl(const std::string &url)
+void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std::string &serv)
 {
 	this->_url = "http://localhost:8080/cgi-bin/ubuntu_cgi_tester?input=hola";
-	this->_searchFile(this->_parseUrl(url));
-}
-
-void	Cgi::setHost(const std::string &host)
-{
+	this->_searchFile(this->_parseUrl(this->_url));
 	this->_env["HTTP_HOST"] = host;
-}
-
-void	Cgi::setServName(const std::string &serv)
-{
 	this->_env["SERVER_NAME"] = serv;
 }
 
@@ -88,7 +87,7 @@ char	**Cgi::_getEnv(void)
 			for (int j = 0; j < i; ++j)
                 delete[] mat[j];
             delete[] mat;
-            exit(EXIT_FAILURE);
+			exit(1);
 		}
 		it++;
 		i++;
@@ -185,34 +184,6 @@ std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
 	return (split);
 }
 
-#include <stdio.h>
-/*
-std::string	Cgi::_childProcess(int *fdreq, int *fdcgi)
-{
-	//////////////////////////////////////////////////
-    char **args = (char **)calloc(3, sizeof(char *));
-    args[0] = (char *)calloc(30, sizeof(char));
-    //args[1] = (char *)calloc(20, sizeof(char));
-    const char tmp[] = "./cgi-bin/ubuntu_cgi_tester";
-    strcpy(args[0], tmp);
-	args[1] = NULL;
-	//////////////////////////////////////////////////
-	if (dup2(fdreq[0], STDIN_FILENO) == -1 || dup2(fdcgi[1], STDOUT_FILENO) == -1)
-	{
-		perror("child: dup2");
-		exit(1);
-	}
-	close(fdcgi[0]); 
-	close(fdreq[1]);
-	close(fdreq[0]); 
-	close(fdcgi[1]);
-	dprintf(2, "pre write\n");
-	dprintf(2, "pre execve\n");
-	execve(args[0], args, this->_getEnv());
-	std::cerr << "Execve failed" << std::endl;
-	exit(1);
-}*/
-
 char	**Cgi::vecToMat(const std::vector<std::string> &vec)
 {
 	char	**mat;
@@ -254,21 +225,14 @@ void	Cgi::_childProcess(int *req, int *cgi)
 {
 	std::vector<std::string> vec = getArgs();
 	char	**args = vecToMat(vec);
-	if (close(req[1]))
-		std::cerr << "Close req[0] child" << std::endl;
-	if (close(cgi[0]))
-		std::cerr << "Close cgi[1] child" << std::endl;
+	if (close(req[1]) || close(cgi[0]))
+		error("close", "failed to close pipe in child process");
 	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
-	{
-		perror("child: dup2");
-		exit(1);
-	}
-	if (close(req[0]))
-		std::cerr << "Close req[0] child" << std::endl;
-	if (close(cgi[1]))
-		std::cerr << "Close cgi[1] child" << std::endl;
+		error("dup2", "failed to redirect fd in child process");
+	if (close(req[0]) || close(cgi[1]))
+		error("close", "failed to close pipe in child process");
 	execve(args[0], args, this->_getEnv());
-	std::cerr << "execve failed" << std::endl;
+	error("execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 	exit(1);
 }
 
@@ -278,45 +242,32 @@ std::string	Cgi::executeCgi(void)
 	int		status;
 	int		req[2], cgi[2];
 	std::string	cgi_response;
-	std::string	reqbody = "this is the request's body\nhola\0";
 	char buffer[1024];
 	ssize_t count;
 
+	this->_reqbody = "this is the request's body\nhola";
 	if (pipe(req) || pipe(cgi))
-	{
-		std::cerr << "Pipe failed" << std::endl;
-		exit(1);
-	}
+		error("pipe", "unable to create a pipe");
 	pid = fork();
 	if (pid == -1)
-	{
-		std::cerr << "Fork failed" << std::endl;
-		exit(1);
-	}
+		error("fork", "unable to create a new process");
 	if (pid == 0)
 		this->_childProcess(req, cgi);
-	if (close(req[0]))
-		std::cerr << "Close req[0]" << std::endl;
-	if (close(cgi[1]))
-		std::cerr << "Close cgi[1]" << std::endl;
+	if (close(req[0]) || close(cgi[1]))
+		std::cerr << "Error: close" << std::endl;
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
+	write(req[1], "\0", 1);
 	if (close(req[1]))
-		std::cerr << "Close req[1]" << std::endl;
+		error("close", "failed to close pipe");
 	if (waitpid(pid, &status, 0) == -1)
-    {
-        std::cerr << "Waitpid failed" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+		error("waitpid", "something went wrong");
 	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
 	{
 		if (count == -1)
-		{
-			std::cerr << "Read failed" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+			error("read", "couldn't read cgi's respone");
 		cgi_response += buffer;
 	}
 	if (close(cgi[0]))
-		std::cerr << "Close cgi[0]" << std::endl;
+		error("close", "failed to close pipe");
 	return (cgi_response);
 }
