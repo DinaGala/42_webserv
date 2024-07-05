@@ -24,9 +24,7 @@ class	Cgi
 		~Cgi();
 		void	addPair(const std::string &ext, const std::string &cmd);
 		std::string		executeCgi(void);
-		void	setUrl(const std::string &url);
-		void	setHost(const std::string &host);
-		void	setServName(const std::string &serv);
+		void	setEnvVars(const std::string &url, const std::string &host, const std::string &serv);
 
 		char	**vecToMat(const std::vector<std::string> &vec);
 		std::vector<std::string>	getArgs(void);
