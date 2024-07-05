@@ -40,8 +40,13 @@ class Request {
 
 		void	parseBodyByContentLenght();
 		void	parseBodyByChunked();
+		void	parseBodyByMultipartFormData();
 
-		std::vector<std::string>  createValidRequestVector();
+		std::vector<std::string>	createValidRequestVector();
+		bool 						isStringOfDigits(std::string line);
+		uint64_t					convertStrToHex(std::string line);
+
+
 };
 
 #endif

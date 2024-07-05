@@ -1,6 +1,7 @@
 #include "Request.hpp"
 
 Request::Request(const std::string & buffer) : _buffer(buffer), _status(INITIAL_STATUS), _body("") {
+		//TODO: Remain body?? new object?
 }
 
 Request::~Request() {
@@ -115,21 +116,26 @@ void	Request::parseBody(){
 	if (_headers.find("Content-Length") == _headers.end() && _headers.find("Transfer-Encoding") == _headers.end()){
 		_status = FINISH_PARSED;
 	}
-	else if (_headers.find("Content-Length") != _headers.end()) {
+	else if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") == _headers.end()) {
 		parseBodyByContentLenght();
 	}
-	else if (_headers.find("Transfer-Encoding") != _headers.end()) {
+	else if (_headers.find("Content-Length") == _headers.end() && _headers.find("Transfer-Encoding") != _headers.end()) {
 		if (_headers.find("Transfer-Encoding")->second != "chunked")
 			throw std::runtime_error("Error parsing Request: wrong Transfer-Encoding parameter");
 		parseBodyByChunked();
 	}
+	else if (_headers.find("Content-Type") != _headers.end() && _headers.find("Content-Type")->second.find("multipart/form-data") != std::string::npos) {
+		parseBodyByMultipartFormData();
+    }
 }
 
 void	Request::parseBodyByContentLenght() {
 	if (_buffer.size() > ft_atoi(_headers.find("Content-Length")->second)) {
 		throw std::runtime_error("Error parsing Request: Body Lenght greater than Content lenght header param");
 	}
-	
+	if (ft_atoi(_headers.find("Content-Length")->second) > 2000) { //TODO: update with server server.getMaxBodySize()
+		throw std::runtime_error("Error parsing Request: Body Lenght greater than Content lenght header param");
+	}
 	size_t posEndBody = _buffer.find("\r\n\r\n");
 	if (posEndBody != std::string::npos) //body finished
 		_status = FINISH_PARSED;
@@ -144,36 +150,46 @@ Mozilla\r\n
 0\r\n
 \r\n
 */
+//https://datatracker.ietf.org/doc/rfc9112/ - 7.1.3.  Decoding Chunked
 void	Request::parseBodyByChunked(){
 	
-	std::stringstream	ss(_buffer);
 	std::string			line;
-	int					sizeChunk = -1;				
-	
-	while (std::getline(ss, line)) {
-		/*if (line[line.size() - 1] != '\r')
-			throw std::runtime_error("Error Bad Request: Wrong body");
-		line.erase(line.size() - 1);
-		
-		if (sizeChunk < 0) {
-			sizeChunk = convertStrToHex(line);
-		}
-		else {
-			if (sizeChunk != line.length())
-				throw std::runtime_error("Error Bad Request: Wrong body");
-			_body = _body + line;
-			sizeChunk = -1;
-		} 
-		if (sizeChunk == 0) { 
-			_status = FINISH_PARSED;
-			break ;
-		}*/
+	int					sizeChunk = 0;		
+	int					lenght;
+	size_t				posEndSIze;
+
+	posEndSIze = _buffer.find("\r\n");
+	if (posEndSIze == std::string::npos){
+		return;
 	}
-	//pending remain body
+
+	line = line.substr(0, posEndSIze);
+	sizeChunk = convertStrToHex(line);
+
+	while (sizeChunk > 0) {
+		if (sizeChunk + 2 - posEndSIze - 2 > _buffer.length())
+			return;
+		if (_buffer.find("\r\n", posEndSIze + 2 + sizeChunk) == std::string::npos)
+			throw std::runtime_error("Error parsing Request: Transfre encoding it is not okay");
+		if (_buffer.substr(posEndSIze + 2, sizeChunk).length() + _body.length() > 2000) //TODO: update with server server.getMaxBodySize()
+			throw std::runtime_error("Error parsing Request: Body is too large");
+		
+		_body = _body + _buffer.substr(posEndSIze + 2, sizeChunk);
+		_buffer.erase(posEndSIze + sizeChunk + 4);
+	}
+
+	if (sizeChunk == 0) {
+		_status = FINISH_PARSED;
+		_headers.find("Transfer-Encoding")->second = ""; //remove chunked
+		_headers.insert(std::make_pair("Content-Length", std::to_string(_body.length())));
+	}
 }
 
+void	Request::parseBodyByMultipartFormData() {
 
-bool isStringOfDigits(std::string line){
+}
+
+bool Request::isStringOfDigits(std::string line){
 	for (std::string::iterator it = line.begin(); it != line.end(); it++) {
 		 if (!std::isdigit(*it))
 			return (false);
@@ -181,8 +197,13 @@ bool isStringOfDigits(std::string line){
 	return (true);
 }
 
+uint64_t	Request::convertStrToHex(std::string line){
+	
+	size_t endSizeChunk = line.find(' ');
 
-uint64_t	convertStrToHex(std::string line){
+	if (endSizeChunk != std::string::npos)
+		line = line.substr(0, endSizeChunk);
+
 	if (line.empty() || !isStringOfDigits(line))
 		throw std::runtime_error("Error Bad Request: Wrong body");
 	
@@ -193,3 +214,5 @@ uint64_t	convertStrToHex(std::string line){
 
 	return result;
 }
+
+
