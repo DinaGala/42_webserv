@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 19:36:48 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:40:17 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ std::vector<std::string>   ft_split(std::string s, std::string del)
     size_t  end = str.find_first_of(del);
     while (end != std::string::npos)
     {
-        res.push_back(str.substr(start, end - start));
+        if (!str.substr(start, end - start).empty())
+            res.push_back(str.substr(start, end - start));
         start = end + 1;
         end = str.find_first_of(del, start);
     }

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 13:37:25 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:38:32 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_port = src._port;
 	_serverName = src._serverName;
 	_root = src._root;
+	_ip = src._ip;
+	_allowedMethods = src._allowedMethods;
 	_locations = src._locations;
 	_errorPages = src._errorPages;
 	_maxBodySize = src._maxBodySize;
@@ -219,7 +221,7 @@ void ServerConfig::setErrorPage(int code, const std::string& page)
 
 void ServerConfig::setClientMaxBodySize(size_t client_max_body_size)
 {
-	if (_vars["host"])
+	if (_vars["client_max_body_size"])
 		throw std::invalid_argument("Error: \"client_max_body_size\" directive is duplicate ");
 	_maxBodySize = client_max_body_size;
 	_vars["client_max_body_size"] = true;
@@ -242,12 +244,14 @@ void ServerConfig::setAutoIndex(bool autoindex)
 
 void 	ServerConfig::setAllowMethod(const std::string& method)
 {
+//	std::cout << "SET ALLOW METHODS, METHOD: " << method << std::endl;
 	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
 	{
 		if (*it == method)
 			throw std::invalid_argument("Error: method duplication in allowed_method");
 	}
 	_allowedMethods.push_back(method);
+//	std::cout << "END SET ALLOW METHODS, VARIABLE: " << _allowedMethods << std::endl;
 }
 
 void 		ServerConfig::setVars(const std::string& key)

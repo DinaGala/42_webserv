@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 13:40:22 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:14:19 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,10 @@ LocationConfig& LocationConfig::operator=(const LocationConfig& src)
 	_root = src._root;
     _return = src._return;
     _index = src._index;
+	_allowedMethods = src._allowedMethods;
     _autoIndex = src._autoIndex;
-    _allowUpload = src._allowUpload;
+    _uploadDir = src._uploadDir;
+	_allowedMethods = src._allowedMethods;
 	_errorPages = src._errorPages;
 	_cgiConf = src._cgiConf;
 	return (*this);

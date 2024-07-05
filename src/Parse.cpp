@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 13:45:33 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:24:47 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,9 +107,10 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
     int res = 1;
     if (pos == std::string::npos)
     {
-        line = buf.substr(0, buf.length());
+     //   line = buf.substr(0, buf.length());
      //    std::cout << "BUF pos NPOS " << buf << "\n";
-        buf.clear();
+     //   buf.clear();
+        throw std::invalid_argument("Configuration file error: unfinished line " + line.substr(0, line.find('\n')) + ". Use a delimiter: \"" + del + "\"");
     }
     else 
     {
@@ -188,6 +189,11 @@ std::string   Parse::blockCrop(std::string &buf)
     if (pos == std::string::npos)
         throw std::invalid_argument("Configuration file error: missing bracket after a keyword: " + buf.substr(0, buf.find('\n')));
  //   std::cout << buf.substr(0, 15) << "\n";
+ //   std::vector<std::string> key = ft_split(buf.substr(0, pos), WS);
+ //   std::cout << "KEYWORDS: " << key << std::endl;
+    if (ft_split(buf.substr(0, pos), WS).size() != 1)
+        throw std::invalid_argument("Configuration file error: wrong amout of arguments: " + buf.substr(0, buf.find('{')));
+
     buf = buf.substr(pos + 1);
     pos = 0;
     int br = 1;
@@ -242,6 +248,14 @@ std::ostream	&operator<<(std::ostream &out, const std::vector<int> &val)
 	return (out);
 }
 
+std::string	 printBool(const bool val)
+{
+    if (!val)
+		return ("false ");
+    else
+        return ("true ");
+}
+
 std::ostream	&operator<<(std::ostream &out, const std::map<std::string, std::string> &valinit)
 {
     std::map<std::string, std::string> val = valinit;
@@ -263,8 +277,10 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
     out << "Port:  " << val.getPort() << "\n";
     out << "Host:  " << val.getHost() << "\n";
     out << "IP:  " << val.getIp() << "\n";
+    out << "Server names:  " << val.getServerName() << "\n";
     out << "Root:  " << val.getRoot() << "\n";
     out << "Max Body Size:  " << val.getMaxBodySize() << "\n";
+    out << "Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "Error pages:  \n" << val.getErrorPages() << "\n";
     out << "    CGI:  " << "\n" << val.getCgiConf() << "\n";
@@ -291,8 +307,8 @@ std::ostream	&operator<<(std::ostream &out, const LocationConfig &val)
     out << "    |___    Return:  " << val.getReturn() << "\n";
     out << "    |___    Index:  " << val.getIndex() << "\n";
     out << "    |___    Upload dir:  " << val.getUploadDir() << "\n";
-    out << "    |___    Allow upload:  " << val.getAllowUpload() << "\n";
-    out << "    |___    Autoindex:  " << val.getAutoIndex() << "\n";
+    out << "    |___    Allow upload:  " << printBool(val.getAllowUpload()) << "\n";
+    out << "    |___    Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "    |___    Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
     out << "    |______     CGI:  " << "\n" << val.getCgiConf() << "\n";

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/20 18:38:05 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 13:45:56 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:41:55 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ int	main(int ac, char **av)
 	{
 		if (ac == 2) {
             std::vector<ServerConfig>	sconf = Parse::configParse(av[1]);
-			std::cout << sconf;
+		//	std::cout << sconf;
 		}
 	}
 	catch(const std::exception& e)

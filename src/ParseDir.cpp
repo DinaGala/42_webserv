@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 17:16:57 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:39:02 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void  Parse::allowMethodsParse(T &obj, std::vector<std::string> &line)
 	if (line.size() < 2)
 		throw std::invalid_argument("Configuration file error: invalid number of parameters \"allow_methods\": enter at least one parameter");
 	std::map<std::string, bool> temp = obj.getVars();
+//	std::cout << "ALLOW METHODS, LINE: " << line << std::endl;
 	if (temp["allow_methods"])
 		throw std::invalid_argument("Configuratiosn file error: \"allow_methods\" directive is duplicate ");
 	for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
@@ -179,7 +180,7 @@ int     Parse::portCheck(std::string port)
 	{
 		res = ft_atopi(port);
 		if (res < 0 || res > 65535)
-			throw std::invalid_argument("");
+			throw std::invalid_argument("");  
 		return (res);
 	}
 	catch(const std::exception& e)
