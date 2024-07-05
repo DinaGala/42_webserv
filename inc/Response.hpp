@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include "Cgi.hpp"
 
 class	Response
 {
@@ -32,7 +33,7 @@ class	Response
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
-		std::string		_cgi;
+		std::string		_cgi_path;
 		std::string		_path; //tmp
 		std::string		_servname; //tmp
 		std::string		_method; //tmp
@@ -44,6 +45,7 @@ class	Response
 		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		std::string	_toString(std::string::size_type n);
+		bool		_parseCgiResponse(void);
 };
 
 #endif
