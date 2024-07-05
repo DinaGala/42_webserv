@@ -27,12 +27,12 @@ std::map<std::string, std::string> Response::initStatus()
 std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html"), _method("")
+Response::Response(): _cgi_path(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html"), _method("")
 {}
 
 Response::Response(const Response &r)
 {
-	this->_cgi = r._cgi;
+	this->_cgi_path = r._cgi_path;
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
@@ -42,7 +42,7 @@ Response::~Response() {}
 
 Response	&Response::operator=(const Response &r)
 {
-	this->_cgi = r._cgi;
+	this->_cgi_path = r._cgi_path;
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
@@ -56,7 +56,7 @@ void	Response::setBody(const std::string &msg)
 
 void	Response::setCgi(const std::string &cgi)
 {
-	this->_cgi = cgi;
+	this->_cgi_path = cgi;
 }
 
 void	Response::setCode(const int &code)
@@ -78,13 +78,30 @@ std::string	Response::_toString(std::string::size_type n)
 	return (str);
 }
 
+bool	Response::_parseCgiResponse(void)
+{
+	if (this->_response.find("HTTP/") != std::string::npos)
+		return (0);
+	this->_body = this->_response;
+	this->_response = "";
+	return (1);
+}
+
 //writes and returns the server's response
 std::string	&Response::getResponse(const std::string &code)
 {
-	if (this->_cgi.empty() && this->_cgi.find("HTTP/") != std::string::npos)
-		return (this->_cgi);
+	this->_method = "GET"; //tmp
+	if (this->_cgi_path.empty() == false)
+	{
+		Cgi	cgi(8080, this->_method);
+		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
+		this->_response = cgi.executeCgi();
+		std::cout << "CGI" << std::endl << this->_response << std::endl;
+		if (!this->_parseCgiResponse())
+			return (this->_response);
+	}
 	this->putGeneralHeaders();
-	if (!this->_path.empty())
+	if (this->_body == "" && this->_path.empty() == false)
 	{
 		if (this->fileToBody(this->_path))
 			return (this->_response);
