@@ -12,7 +12,7 @@ DEP			:= $(addprefix $(OBJ_PATH),$(SRC:$(SRC_PATH)%.cpp=%.d))
 
 CPP			:= g++ -std=c++98
 
-#CPPFLAGS	:= -Wall -Wextra -Werror -MMD -Wshadow -Wno-shadow
+CPPFLAGS	:= -Wall -Wextra -Werror -MMD -Wshadow -Wno-shadow -g -fsanitize=address
 
 RM			:= @rm -rf
 
@@ -33,6 +33,9 @@ test:
 	@${CPP} ${CPPFLAGS} test.cpp
 	@./a.out
 	@rm -f ./a.out test.d
+
+run: ${NAME}
+	./${NAME} | cat -e
 
 clean:
 	$(RM) $(OBJ_PATH) > /dev/null
