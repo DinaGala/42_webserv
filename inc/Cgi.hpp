@@ -20,7 +20,7 @@
 class	Cgi
 {
 	public:
-		Cgi(int port, const std::string &method);
+		Cgi(int port, const std::string &method, int socket);
 		~Cgi();
 		void	addPair(const std::string &ext, const std::string &cmd);
 		std::string		executeCgi(void);
@@ -34,6 +34,7 @@ class	Cgi
 		std::map<std::string, std::string>	_env;
 		std::string							_url;
 		std::string							_reqbody;
+		int									_socket;
 
 		Cgi();
 		Cgi(const Cgi &c);

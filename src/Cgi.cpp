@@ -1,16 +1,16 @@
 #include "Cgi.hpp"
 
-static void	error(const char *ft, const std::string &msg)
+static void	error(int sock, const char *ft, const std::string &msg)
 {
 	std::cerr << "Error: " << ft << ": " << msg << std::endl;
-	//if (close(this->_socket))
-	//	std::cerr << "Failed to close socket" << std::endl;
+	if (close(sock))
+		std::cerr << "Failed to close socket" << std::endl;
 	exit(EXIT_FAILURE);
 }
 
 Cgi::Cgi() {}
 
-Cgi::Cgi(int port, const std::string &method)
+Cgi::Cgi(int port, const std::string &method, int socket): _socket(socket)
 {
 	std::ostringstream oss;
 	oss << port;
@@ -43,8 +43,12 @@ Cgi	&Cgi::operator=(const Cgi &c)
 
 void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std::string &serv)
 {
-	this->_url = "http://localhost:8080/cgi-bin/ubuntu_cgi_tester?input=hola";
-	this->_searchFile(this->_parseUrl(this->_url));
+	(void)url;
+	//this->_url = "http://localhost:8080/cgi-bin/ubuntu_cgi_tester?input=hola";
+	this->_url = "http://localhost:8080/cgi-bin/test.py";
+	std::vector<std::string> vec = this->_parseUrl(this->_url);
+	this->_searchFile(vec);
+	//this->_searchFile(this->_parseUrl(this->_url));
 	this->_env["HTTP_HOST"] = host;
 	this->_env["SERVER_NAME"] = serv;
 }
@@ -77,9 +81,9 @@ char	**Cgi::_getEnv(void)
 		try
 		{
 			tmp = it->first + "=" + it->second;
-			mat[i] = new char [tmp.size() + 2];
-			std::strcpy(mat[i], tmp.c_str());
-			mat[tmp.size() + 1] = '\0';
+			mat[i] = strdup(tmp.c_str());
+			if (!mat[i])
+				throw std::bad_alloc();
 		}
 		catch (std::exception &ex)
 		{
@@ -122,7 +126,7 @@ char	**Cgi::vecToMat(const std::vector<std::string> &vec)
 		catch (std::exception &ex)
 		{
 			std::cerr << ex.what() << std::endl;
-			for (int j = 0; j < i; ++j)
+			for (size_t j = 0; j < i; ++j)
                 delete[] mat[j];
             delete[] mat;
 			exit(EXIT_FAILURE);
@@ -163,7 +167,8 @@ void	Cgi::_searchFile(std::vector<std::string> vec)
 {
 	std::string	path = "";
 	struct stat	path_stat;
-	int	i = -1, ret;
+	std::vector<std::string>::size_type	i = -1;
+	int ret;
 
 	while (++i < vec.size())
 	{
@@ -186,7 +191,7 @@ void	Cgi::_searchFile(std::vector<std::string> vec)
 		}
 		path += "/";
 	}
-	if (i < vec.size())
+	if (i < vec.size() - 1)
 		this->_setPathInfo(vec.begin() + i + 1, vec.end());
 }
 
@@ -223,23 +228,40 @@ std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
 std::vector<std::string> Cgi::getArgs(void)
 {
 		std::vector<std::string> args;
+		std::string::size_type found = this->_env["SCRIPT_NAME"].find(".");
+		std::string	ext;
 
+		if (found != std::string::npos)
+		{
+			ext = this->_env["SCRIPT_NAME"].substr(found);
+			if (this->_pairs.find(ext) == this->_pairs.end())
+				error(this->_socket, "cgi", "extension " + ext + " not allowed");
+			args.push_back(this->_pairs[ext]);
+		}
 		args.push_back(this->_env["SCRIPT_NAME"]);
 		return (args);
 }
 
+#include <stdio.h>
 void	Cgi::_childProcess(int *req, int *cgi)
 {
-	char	**args = vecToMat(getArgs());
+	char	**args = this->vecToMat(this->getArgs());
+	char	**env = this->_getEnv();
 	if (close(req[1]) || close(cgi[0]))
-		error("close", "failed to close pipe in child process");
+		error(this->_socket, "close", "failed to close pipe in child process");
 	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
-		error("dup2", "failed to redirect fd in child process");
+		error(this->_socket, "dup2", "failed to redirect fd in child process");
 	if (close(req[0]) || close(cgi[1]))
-		error("close", "failed to close pipe in child process");
-	execve(args[0], args, this->_getEnv());
-	error("execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
-	exit(1);
+		error(this->_socket, "close", "failed to close pipe in child process");
+//	int i = 0;
+	//for (char **env = this->_getEnv(); env[i]; i++)
+	//	std::cerr << "\t|" << env[i] << "|" << std::endl;
+	//execve(args[0], args, NULL);
+	for (int i = 0; args[i]; i++)
+		std::cerr << "\t" << args[i] << std::endl;
+	execve(args[0], args, env);
+	perror("execve");
+	error(this->_socket, "execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 }
 
 std::string	Cgi::executeCgi(void)
@@ -251,29 +273,35 @@ std::string	Cgi::executeCgi(void)
 	char buffer[1024];
 	ssize_t count;
 
-	this->_reqbody = "this is the request's body\nhola";
+	//this->_reqbody = "[CGI: REQUEST BODY]";
 	if (pipe(req) || pipe(cgi))
-		error("pipe", "unable to create a pipe");
+		error(this->_socket, "pipe", "unable to create a pipe");
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	pid = fork();
 	if (pid == -1)
-		error("fork", "unable to create a new process");
+		error(this->_socket, "fork", "unable to create a new process");
 	if (pid == 0)
 		this->_childProcess(req, cgi);
 	if (close(req[0]) || close(cgi[1]))
 		std::cerr << "Error: close" << std::endl;
 	if (close(req[1]))
-		error("close", "failed to close pipe");
+		error(this->_socket, "close", "failed to close pipe");
 	if (waitpid(pid, &status, 0) == -1)
-		error("waitpid", "something went wrong");
+		error(this->_socket, "waitpid", "something went wrong");
+	//int i = 0;
+	//for (char **env = this->_getEnv(); env[i]; i++)
+	//	std::cout << env[i] << "\n";
 	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
 	{
 		if (count == -1)
-			error("read", "couldn't read cgi's respone");
+			error(this->_socket, "read", "couldn't read cgi's respone");
 		buffer[count] = '\0';
+		//std::cerr << "\033[1;31mcount: " << count << " buffer: " << buffer << "\033[0m" << std::endl;
 		cgi_response += buffer;
 	}
 	if (close(cgi[0]))
-		error("close", "failed to close pipe");
+		error(this->_socket, "close", "failed to close pipe");
+	if (cgi_response == "")
+		error(this->_socket, "CGI", "empty response");
 	return (cgi_response);
 }
