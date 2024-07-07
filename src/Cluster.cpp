@@ -8,7 +8,7 @@ Cluster::~Cluster() {
 
 void	Cluster::setUpCluster(){
     this->_nServers = 1;
-	for (unsigned int i=0; i < _nServers; i++) {
+	for (int i=0; i < _nServers; i++) {
         Server server;
 		server.setUpServer();
 		this->_servers.push_back(server);
@@ -36,15 +36,25 @@ void	Cluster::runCluster(){
 		// Read from the connection
 		char buffer[1000];
 		int bytesRead = recv(connection, buffer, 100, 0);
+		if (bytesRead == -1)
+		{
+			std::cerr << "Recv failed" << std::endl;
+			exit(1);
+		}
 		
 		std::cout << "Request: " << buffer;
 
-		////////////////////////////
+		/////////////////////////////
+		///////// RESPONSE /////////
+		///////////////////////////
 		Response	rsp;
 		rsp.setCgiPath("a");
+		rsp.setMethod("GET");
+		rsp.setSocket((int)server.getSockfd());
 		std::string response = rsp.getResponse("200");
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
-		//////////////////////////
+		///////////////////////////
+		///////////////////////////
 		/*SEND 
 		send a message to the connection
 		int send(int sockfd, const void *msg, int len, int flags); 
@@ -58,7 +68,7 @@ void	Cluster::runCluster(){
 	close(server.getSockfd());
 }
 
-/*	/*ACCEPT
+	/*ACCEPT
 	int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
 	addrlen is now a value-result argument. 
 	It expects a pointer to an int that will be the size of addr. 
