@@ -26,6 +26,9 @@ class	Response
 		//SEND RESPONSE
 		std::string	&getResponse(const std::string &code);
 		void		sendError(const std::string &code, const std::string &path);
+		//TMP
+		void		setSocket(int sock);
+		void		setMethod(const std::string &meth);
 
 	private:
 		static std::map<std::string, std::string>	_status;
@@ -37,6 +40,7 @@ class	Response
 		std::string		_path; //tmp
 		std::string		_servname; //tmp
 		std::string		_method; //tmp
+		int				_socket; //tmp
 		int				_timeout; //tmp
 		int				_maxconnect; //tmp
 		bool			_connection; //tmp
@@ -45,7 +49,7 @@ class	Response
 		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		std::string	_toString(std::string::size_type n);
-		bool		_parseCgiResponse(void);
+		void		_parseCgiResponse(void);
 };
 
 #endif

@@ -27,7 +27,7 @@ std::map<std::string, std::string> Response::initStatus()
 std::map<std::string, std::string> Response::_status = Response::initStatus();
 ///////
 
-Response::Response(): _cgi_path(""), _response(""), _body(""), _code(0), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _path("./html/test.html"), _method("")
+Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _code(0)
 {}
 
 Response::Response(const Response &r)
@@ -64,6 +64,16 @@ void	Response::setCode(const int &code)
 	this->_code = code;
 }
 
+void	Response::setSocket(int sock)
+{
+	this->_socket = sock;
+}
+
+void	Response::setMethod(const std::string &meth)
+{
+	this->_method = meth;
+}
+
 std::string	Response::_toString(std::string::size_type n)
 {
 	std::string	str;
@@ -78,26 +88,29 @@ std::string	Response::_toString(std::string::size_type n)
 	return (str);
 }
 
-bool	Response::_parseCgiResponse(void)
+void	Response::_parseCgiResponse(void)
 {
-	if (this->_response.find("HTTP/") != std::string::npos)
-		return (0);
-	this->_body = this->_response;
-	this->_response = "";
-	return (1);
+	std::string::size_type	found = this->_response.find("\n\n");
+
+	if (found == std::string::npos)
+	{
+		this->_body = this->_response;
+		this->_response = "";
+		return ;
+	}
+	this->_body = this->_response.substr(found + 2, this->_response.size());
+	this->_response = this->_response.substr(0, found);
 }
 
 //writes and returns the server's response
 std::string	&Response::getResponse(const std::string &code)
 {
-	this->_method = "GET"; //tmp
 	if (this->_cgi_path.empty() == false)
 	{
-		Cgi	cgi(8080, this->_method);
+		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
 		this->_response = cgi.executeCgi();
-		if (!this->_parseCgiResponse())
-			return (this->_response);
+		this->_parseCgiResponse();
 	}
 	this->putGeneralHeaders();
 	if (this->_body == "" && this->_path.empty() == false)
