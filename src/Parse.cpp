@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 19:47:17 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 20:58:31 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,15 +98,17 @@ void Parse::blockParse(T &serv, std::string &line)
 
 std::vector<ServerConfig>	Parse::portDefault(std::vector<ServerConfig> sconf)
 {
-    
+ //   std::vector<int>    ports;
+
     for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end(); it++)
 	{
 		std::map<std::string, bool> svar = it->getVars();
      //   std::cout << svar["port"] << "\n";
         if (svar["port"] == false)
 			it->setPort(8080);
+//        ports = checkDupsPorts
 	}
-    //here the checking
+    //here the checking ???
     return (sconf);
 }
 
@@ -116,14 +118,33 @@ std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig>sconf)
 	{
 		std::map<std::string, bool> svar = it->getVars();
         if (!svar["host"] && !svar["ip"])
-        {
             it->setHost("localhost");
-            it->setIp("127.0.0.1");
-        }
-		else if (it->getHost() == "localhost" && !svar["ip"])
-            it->setIp("127.0.0.1");
+        if (svar["host"] && !svar["ip"])
+            it->setIp(findIp(it->getHost()));
 	}
+
     return (sconf);
+}
+
+std::string	Parse::findIp(std::string host)
+{
+    std::ifstream file("/etc/hosts");
+    if (!file.is_open())
+        throw std::invalid_argument("Error: couldn't open the hosts file to find the host \"" + host + "\"");
+    std::string line;
+
+    while(getline(file, line))
+    {
+        if (line.empty() || trim(line).empty() || trim(line)[0] == '#')
+            continue ;
+        std::vector<std::string>    arr = ft_split(trim(line), WS);
+        if (arr.size() < 2)
+            continue ;
+        if (arr[1] == host)
+            return (arr[0]);   
+    }
+    throw std::invalid_argument("Configuration file error: host not found in \"" + host + "\" of the \"listen\" directive");
+    return (line);
 }
 
 // PARSING UTILS ______________________________________
