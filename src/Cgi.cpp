@@ -54,7 +54,6 @@ void	Cgi::addPair(const std::string &ext, const std::string &cmd)
 	this->_pairs[ext] = cmd;
 }
 
-
 //from map to char **
 char	**Cgi::_getEnv(void)
 {
@@ -78,12 +77,13 @@ char	**Cgi::_getEnv(void)
 		try
 		{
 			tmp = it->first + "=" + it->second;
-			mat[i] = new char [tmp.size() + 1];
+			mat[i] = new char [tmp.size() + 2];
 			std::strcpy(mat[i], tmp.c_str());
+			mat[tmp.size() + 1] = '\0';
 		}
 		catch (std::exception &ex)
 		{
-			std::cout << ex.what() << std::endl;
+			std::cerr << ex.what() << std::endl;
 			for (int j = 0; j < i; ++j)
                 delete[] mat[j];
             delete[] mat;
@@ -96,9 +96,46 @@ char	**Cgi::_getEnv(void)
 	return (mat);
 }
 
+char	**Cgi::vecToMat(const std::vector<std::string> &vec)
+{
+	char	**mat;
+	size_t	len = vec.size();
+
+	try
+	{
+		mat = new char *[len + 1];
+		mat[len] = NULL;
+	}
+	catch (std::exception &ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	for (size_t i = 0; i < len; i++)
+	{
+		try
+		{
+			mat[i] = new char [vec[i].size() + 1];
+			std::strcpy(mat[i], vec[i].c_str());
+			mat[i][vec[i].size()] = '\0';
+		}
+		catch (std::exception &ex)
+		{
+			std::cerr << ex.what() << std::endl;
+			for (int j = 0; j < i; ++j)
+                delete[] mat[j];
+            delete[] mat;
+			exit(EXIT_FAILURE);
+		}
+	}
+	return (mat);
+}
+
 void	Cgi::_setQueryString(std::vector<std::string>::iterator it,
 							std::vector<std::string>::iterator end)
 {
+	this->_env["QUERY_STRING"] = &((*it).c_str())[1];
+	it++;
 	while (it != end)
 	{
 		this->_env["QUERY_STRING"] = *it;
@@ -109,10 +146,9 @@ void	Cgi::_setQueryString(std::vector<std::string>::iterator it,
 void	Cgi::_setPathInfo(std::vector<std::string>::iterator it,
 						std::vector<std::string>::iterator end)
 {
-	if ((*it)[0] != '/')
+	if ((*it)[0] == '?')
 	{
-		if ((*it)[0] == '?')
-			this->_setQueryString(it, end);
+		this->_setQueryString(it, end);
 		return ;
 	}
 	while (it != end)
@@ -127,12 +163,12 @@ void	Cgi::_searchFile(std::vector<std::string> vec)
 {
 	std::string	path = "";
 	struct stat	path_stat;
-	int	i, ret = -1;
+	int	i = -1, ret;
 
 	while (++i < vec.size())
 	{
 		path += vec[i].c_str();
-		int ret = stat(path.c_str(), &path_stat);
+		ret = stat(path.c_str(), &path_stat);
 		if (ret)
 		{
 			if (i == 0)
@@ -146,12 +182,12 @@ void	Cgi::_searchFile(std::vector<std::string> vec)
 		if (S_ISREG(path_stat.st_mode))
 		{
 			this->_env["SCRIPT_NAME"] = path;
-			return ;
+			break ;
 		}
 		path += "/";
 	}
 	if (i < vec.size())
-		this->_setPathInfo(vec.begin() + i, vec.end());
+		this->_setPathInfo(vec.begin() + i + 1, vec.end());
 }
 
 std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
@@ -184,47 +220,17 @@ std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
 	return (split);
 }
 
-char	**Cgi::vecToMat(const std::vector<std::string> &vec)
-{
-	char	**mat;
-	size_t	len = vec.size();
-
-	try
-	{
-		mat = new char *[len + 1];
-	}
-	catch (std::exception &ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	for (size_t i = 0; i < len; i++)
-	{
-		try
-		{
-			mat[i] = new char [vec[i].length() + 1];
-			std::strcpy(mat[i], vec[i].c_str());
-		}
-		catch (std::exception &ex)
-		{
-			std::cerr << ex.what() << std::endl;
-			exit(EXIT_FAILURE);
-		}
-	}
-	return (mat);
-}
 std::vector<std::string> Cgi::getArgs(void)
 {
 		std::vector<std::string> args;
 
-		args.push_back("./cgi-bin/ubuntu_cgi_tester");
+		args.push_back(this->_env["SCRIPT_NAME"]);
 		return (args);
 }
 
 void	Cgi::_childProcess(int *req, int *cgi)
 {
-	std::vector<std::string> vec = getArgs();
-	char	**args = vecToMat(vec);
+	char	**args = vecToMat(getArgs());
 	if (close(req[1]) || close(cgi[0]))
 		error("close", "failed to close pipe in child process");
 	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
@@ -248,6 +254,7 @@ std::string	Cgi::executeCgi(void)
 	this->_reqbody = "this is the request's body\nhola";
 	if (pipe(req) || pipe(cgi))
 		error("pipe", "unable to create a pipe");
+	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	pid = fork();
 	if (pid == -1)
 		error("fork", "unable to create a new process");
@@ -255,8 +262,6 @@ std::string	Cgi::executeCgi(void)
 		this->_childProcess(req, cgi);
 	if (close(req[0]) || close(cgi[1]))
 		std::cerr << "Error: close" << std::endl;
-	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
-	write(req[1], "\0", 1);
 	if (close(req[1]))
 		error("close", "failed to close pipe");
 	if (waitpid(pid, &status, 0) == -1)
@@ -265,6 +270,7 @@ std::string	Cgi::executeCgi(void)
 	{
 		if (count == -1)
 			error("read", "couldn't read cgi's respone");
+		buffer[count] = '\0';
 		cgi_response += buffer;
 	}
 	if (close(cgi[0]))
