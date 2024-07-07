@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 15:20:14 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 21:50:18 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class ServerConfig
 		ServerConfig& operator=(const ServerConfig& src);
 		ServerConfig(const ServerConfig& src);
 		ServerConfig(std::string file);
+		ServerConfig();
 		~ServerConfig();
 
 		typedef void (*func)(ServerConfig &, std::vector<std::string> &);
@@ -46,6 +47,7 @@ class ServerConfig
 		void 		setHost(const std::string& host);
 		void 		setIp(const std::string& ip);
 		void 		setPort(int port);
+		void 		unsetPort(int port);
 		void 		setServerName(const std::string& serverName);
 		void 		setRoot(const std::string& root);
 //		void 		setErrorPages(const std::map<int, std::string>& error_pages);
@@ -78,8 +80,6 @@ class ServerConfig
 		std::map<std::string, func>			_keys;
 		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
-		
-		ServerConfig();
 
 };
 

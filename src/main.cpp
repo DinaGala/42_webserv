@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/20 18:38:05 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 20:54:38 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 22:18:13 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,15 @@ int	main(int ac, char **av)
 	{
 		if (ac == 2) {
             std::vector<ServerConfig>	sconf = Parse::configParse(av[1]);
-			std::cout << sconf;
+		//	std::cout << sconf;
 		}
+		else if (ac == 1)
+		{
+            std::vector<ServerConfig>	sconf = Parse::configParse();
+		//	std::cout << sconf;
+		}
+		else
+			throw std::invalid_argument("Wrong amount of arguments: introduce only one config file or nothing");
 	}
 	catch(const std::exception& e)
 	{

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 20:58:31 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 22:09:06 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,15 @@ std::vector<ServerConfig>	Parse::configParse(char *filename)
     sconf = portDefault(sconf); // port check and autofill
     sconf = hostDefault(sconf); // host and ip check and fill   
 	return (sconf);
+}
+
+std::vector<ServerConfig>	Parse::configParse()
+{
+	std::vector<ServerConfig>	sconf;
+    ServerConfig    serv;
+
+    sconf.push_back(serv);
+    return (sconf);
 }
 
 template <typename T>
@@ -96,23 +105,28 @@ void Parse::blockParse(T &serv, std::string &line)
     // std::cout << serv << "\n";
 }
 
-std::vector<ServerConfig>	Parse::portDefault(std::vector<ServerConfig> sconf)
+std::vector<ServerConfig>	Parse::portDefault(std::vector<ServerConfig> &sconf)
 {
- //   std::vector<int>    ports;
+    std::vector<int> p;
 
-    for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end(); it++)
+    for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end();)
 	{
 		std::map<std::string, bool> svar = it->getVars();
      //   std::cout << svar["port"] << "\n";
         if (svar["port"] == false)
 			it->setPort(8080);
-//        ports = checkDupsPorts
+ //       int i = ;
+ //       std::cout << i << "\n";
+        if (checkDupsPort(*it, p))
+            it = sconf.erase(it);
+        else
+            it++;
 	}
-    //here the checking ???
+
     return (sconf);
 }
 
-std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig>sconf)
+std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig> &sconf)
 {
     for (std::vector<ServerConfig>::iterator it = sconf.begin(); it != sconf.end(); it++)
 	{
@@ -145,6 +159,28 @@ std::string	Parse::findIp(std::string host)
     }
     throw std::invalid_argument("Configuration file error: host not found in \"" + host + "\" of the \"listen\" directive");
     return (line);
+}
+
+int  Parse::checkDupsPort(ServerConfig &serv, std::vector<int> &all)
+{
+    std::vector<int> ports = serv.getPort();
+    for (std::vector<int>::iterator it = ports.begin(); it != ports.end(); it++)
+    {
+        if (std::find(all.begin(), all.end(), *it) != all.end()) 
+        {
+            std::cout << "Attention: port " << *it << " is already used by another server, ignored\n";
+            serv.unsetPort(*it);
+        }   
+        else 
+        {
+            all.push_back(*it);
+        }
+    }
+    if (serv.getPort().empty() && std::find(all.begin(), all.end(), 8080) != all.end())
+        return (1);
+    else if (serv.getPort().empty())
+        serv.setPort(8080);
+    return (0);
 }
 
 // PARSING UTILS ______________________________________

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 20:17:46 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 22:02:33 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,15 +29,17 @@ class Parse
 
     /* MAIN PARSING ENGINE: PARSING COMPLEX DIRECTIVES ______________________*/
         static std::vector<ServerConfig>	configParse(char *name);
+        static std::vector<ServerConfig>    configParse();
         template <typename T>
         static void complexParse(T &serv, std::string &block);       
         template <typename T>
         static void blockParse(T &serv, std::string &line);
         template <typename T>
         static void lineParse(T &obj, std::vector<std::string> args);
-        static std::vector<ServerConfig>	portDefault(std::vector<ServerConfig>sconf);
-        static std::vector<ServerConfig>	hostDefault(std::vector<ServerConfig>sconf);
+        static std::vector<ServerConfig>	portDefault(std::vector<ServerConfig> &sconf);
+        static std::vector<ServerConfig>	hostDefault(std::vector<ServerConfig> &sconf);
         static std::string	findIp(std::string host);
+        static int  checkDupsPort(ServerConfig &serv, std::vector<int> &all);
 
     /* PARSING UTILS ________________________________________________________*/
         static int          ft_getline(std::string &buf, std::string &line, std::string del); //returns 0 - empty line, 1 - first delimiter, 2  - second delimiter
@@ -68,7 +70,7 @@ class Parse
         static void     servNameParse(ServerConfig &serv, std::vector<std::string> &line);
         static void     bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
 
-        static void  uriParse(LocationConfig &loc, std::vector<std::string> &line);
+//        static void  uriParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  indexParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  returnParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  uploadDirParse(LocationConfig &loc, std::vector<std::string> &line);

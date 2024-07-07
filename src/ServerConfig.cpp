@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 19:14:20 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/07 22:17:04 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,27 @@
 
 // _____________  CONSTRUCTORS ______________________________________
 
-ServerConfig::ServerConfig(): loc(true) {}
+ServerConfig::ServerConfig(): loc(true)
+{
+	_initKeys();
+	_autoIndex = false;
+	_root = "html";
+	_maxBodySize = 10000000;
+	_cgiConf[".sh"] = "/bin/bash";
+	_cgiConf[".js"] = "/usr/bin/node";
+	_cgiConf[".php"] = "/usr/bin/php";
+	_cgiConf[".py"] = "/usr/bin/python3";
+	_host = "localhost";
+	_ip = "127.0.0.1";
+	_port.push_back(8080);
+	_allowedMethods.push_back("GET");
+	_allowedMethods.push_back("POST");
+	_allowedMethods.push_back("DELETE");
+	_errorPages[403] = "./errors/403.html";
+	_errorPages[404] = "./errors/404.html";
+	_errorPages[500] = "./errors/500.html";
+	//ERROR PAGES
+}
 
 ServerConfig::ServerConfig(std::string file): loc(true)
 {
@@ -27,6 +47,9 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
 	_cgiConf[".py"] = "/usr/bin/python3";
+	_errorPages[403] = "./errors/403.html";
+	_errorPages[404] = "./errors/404.html";
+	_errorPages[500] = "./errors/500.html";
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
@@ -183,6 +206,16 @@ void ServerConfig::setPort(int port)
 	_port.push_back(port);
 	if (!_vars["port"])
 		_vars["port"] = true;
+//	std::cout << _vars["port"] << "\n";
+}
+
+void ServerConfig::unsetPort(int port)
+{
+	std::vector<int>::iterator newEnd = std::remove(_port.begin(), _port.end(), port);
+	_port.erase(newEnd, _port.end());
+	// if (_port.empty())
+	// 	return (1);
+	// return (0);
 //	std::cout << _vars["port"] << "\n";
 }
 
