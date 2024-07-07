@@ -54,7 +54,7 @@ void	Response::setBody(const std::string &msg)
 	this->_body += msg;
 }
 
-void	Response::setCgi(const std::string &cgi)
+void	Response::setCgiPath(const std::string &cgi)
 {
 	this->_cgi_path = cgi;
 }
@@ -96,7 +96,6 @@ std::string	&Response::getResponse(const std::string &code)
 		Cgi	cgi(8080, this->_method);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
 		this->_response = cgi.executeCgi();
-		std::cout << "CGI" << std::endl << this->_response << std::endl;
 		if (!this->_parseCgiResponse())
 			return (this->_response);
 	}

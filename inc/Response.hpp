@@ -16,7 +16,7 @@ class	Response
 		~Response();
 		//SET VARS
 		void		setBody(const std::string &msg);
-		void		setCgi(const std::string &cgi);
+		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
 		//WRITE RESPONSE
 		std::string	putStatusLine(const std::string &code);

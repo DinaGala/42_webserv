@@ -41,7 +41,7 @@ void	Cluster::runCluster(){
 
 		////////////////////////////
 		Response	rsp;
-		rsp.setCgi("a");
+		rsp.setCgiPath("a");
 		std::string response = rsp.getResponse("200");
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
 		//////////////////////////
