@@ -6,10 +6,10 @@ BLACK = \033[0;39m
 
 NAME = webserv
 CPP = g++ -g -O0
-FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -fsanitize=address
+FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -Wshadow -Wno-shadow -fsanitize=address
 RM = rm -f
 
-SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp Cluster.cpp Server.cpp Socket.cpp Request.cpp Response.cpp
+SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp Cluster.cpp Server.cpp Socket.cpp Request.cpp Response.cpp Cgi.cpp
 F_SRC = src/
 F_OBJ = obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
@@ -27,6 +27,14 @@ dir:
 $(NAME): $(OBJ)
 	$(CPP) $(FLAGS) -I ./inc/ $(OBJ) -o $(NAME)
 	@echo "$(GREEN)Everything has been compilated.$(BLACK)"
+
+test:
+	@${CPP} ${CPPFLAGS} test.cpp
+	@./a.out
+	@rm -f ./a.out test.d
+
+run: ${NAME}
+	./${NAME} | cat -e
 
 clean:
 	$(RM) $(OBJ) $(DEP)

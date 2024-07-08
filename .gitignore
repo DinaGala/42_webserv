@@ -1,1 +1,7 @@
+objs/
+test.py
+webserv
+*/.*
+.*.swp
+test.cpp
 .vscode

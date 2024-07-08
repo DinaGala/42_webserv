@@ -10,9 +10,14 @@ class Server {
 	public:
 		Server();
 		~Server();
-		//ADD CANONICHAL FORM
 
-		void	setUpServer();
+		void		setUpServer();
+		void		initSocket();
+		void		bindSocket();
+		void		listenConnection();
+
+		void		setIpAddress(const char* ipAddress);
+		void		setPort(const int port);
 
 };
 

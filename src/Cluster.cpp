@@ -48,7 +48,6 @@ void	Cluster::runCluster(){
 	Socket socket = _sockets[0]; //TODO: identify socket
 
 	while (1){ //manage signals
-
 		int	connection = acceptConnection(socket);
 
 		// Read from the connection
@@ -61,19 +60,23 @@ void	Cluster::runCluster(){
 		request.parseRequest(); //
 		//request.manageRequest(); 
 
-		
+		/////////////////////////////
+		///////// RESPONSE /////////
+		///////////////////////////
+		Response	rsp;
+		rsp.setCgiPath("a");
+		rsp.setMethod("GET");
+		rsp.setSocket((int)server.getSockfd());
+		std::string response = rsp.getResponse("200");
+		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
+		///////////////////////////
+		///////////////////////////
+
 		/*SEND 
 			send a message to the connection
 			int send(int sockfd, const void *msg, int len, int flags); 
 		*/
-		//Response response;
-		//response.manageResponse(request);
-		std::string response = "HTTP/1.1 200 OK\n"
-							"Content-Type: text/html\n"
-							"Content-Length: 38\n\n"
-							"<html><body>Good talking to you!</body></html>";
 		send(connection, response.c_str(), response.size(), 0);
-			std::cerr << "hiii3 " << std::endl;
 
 		// Close the connections
 		close(connection);
