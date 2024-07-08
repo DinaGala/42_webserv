@@ -44,8 +44,11 @@ Cgi	&Cgi::operator=(const Cgi &c)
 void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std::string &serv)
 {
 	(void)url;
-	//this->_url = "http://localhost:8080/cgi-bin/ubuntu_cgi_tester?input=hola";
-	this->_url = "http://localhost:8080/cgi-bin/test.py";
+	//this->_url = url;
+	//this->_url = "http://localhost:8080/cgi-bin/random_number";
+	//this->_url = "http://localhost:8080/cgi-bin/test.py";
+	//this->_url = "http://localhost:8080/cgi-bin/watch.js";
+	this->_url = "http://localhost:8080/cgi-bin/watched.js";
 	std::vector<std::string> vec = this->_parseUrl(this->_url);
 	this->_searchFile(vec);
 	//this->_searchFile(this->_parseUrl(this->_url));
@@ -242,7 +245,6 @@ std::vector<std::string> Cgi::getArgs(void)
 		return (args);
 }
 
-#include <stdio.h>
 void	Cgi::_childProcess(int *req, int *cgi)
 {
 	char	**args = this->vecToMat(this->getArgs());
@@ -253,14 +255,7 @@ void	Cgi::_childProcess(int *req, int *cgi)
 		error(this->_socket, "dup2", "failed to redirect fd in child process");
 	if (close(req[0]) || close(cgi[1]))
 		error(this->_socket, "close", "failed to close pipe in child process");
-//	int i = 0;
-	//for (char **env = this->_getEnv(); env[i]; i++)
-	//	std::cerr << "\t|" << env[i] << "|" << std::endl;
-	//execve(args[0], args, NULL);
-	for (int i = 0; args[i]; i++)
-		std::cerr << "\t" << args[i] << std::endl;
 	execve(args[0], args, env);
-	perror("execve");
 	error(this->_socket, "execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 }
 
@@ -273,7 +268,6 @@ std::string	Cgi::executeCgi(void)
 	char buffer[1024];
 	ssize_t count;
 
-	//this->_reqbody = "[CGI: REQUEST BODY]";
 	if (pipe(req) || pipe(cgi))
 		error(this->_socket, "pipe", "unable to create a pipe");
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
@@ -289,15 +283,11 @@ std::string	Cgi::executeCgi(void)
 		error(this->_socket, "close", "failed to close pipe");
 	if (waitpid(pid, &status, 0) == -1)
 		error(this->_socket, "waitpid", "something went wrong");
-	//int i = 0;
-	//for (char **env = this->_getEnv(); env[i]; i++)
-	//	std::cout << env[i] << "\n";
 	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
 	{
 		if (count == -1)
 			error(this->_socket, "read", "couldn't read cgi's respone");
 		buffer[count] = '\0';
-		//std::cerr << "\033[1;31mcount: " << count << " buffer: " << buffer << "\033[0m" << std::endl;
 		cgi_response += buffer;
 	}
 	if (close(cgi[0]))
