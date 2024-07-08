@@ -43,7 +43,7 @@ void	Request::parseRequestLine() {
 		return ;
 		//throw std::runtime_error("Error parsing Request: no request line");
 
-	createRequestLineVector(_body.substr(0, posBuffer));
+	createRequestLineVector(_buffer.substr(0, posBuffer));
 	if (_requestLine.size() != 3)
 		throw std::runtime_error("Error parsing Request: wrong request line");
 
