@@ -1,33 +1,32 @@
-NAME		:= webserv
+RED = \033[1;31m
+GREEN = \033[1;32m
+YELLOW = \033[1;33m
+BLUE = \033[1;34m
+BLACK = \033[0;39m
 
-HEADER		:= ./inc/
+NAME = webserv
+CPP = g++ -g -O0
+FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -Wshadow -Wno-shadow -fsanitize=address
+RM = rm -f
 
-SRC_PATH	:= ./src/
-SRC_FILES	:= main.cpp Cluster.cpp Server.cpp Cgi.cpp Response.cpp
-SRC			:= $(addprefix $(SRC_PATH),$(SRC_FILES))
+SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp Cluster.cpp Server.cpp Socket.cpp Request.cpp Response.cpp Cgi.cpp
+F_SRC = src/
+F_OBJ = obj/
+OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
+DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
-OBJ_PATH	:= objs/
-OBJ			:= $(addprefix $(OBJ_PATH),$(SRC:$(SRC_PATH)%.cpp=%.o))
-DEP			:= $(addprefix $(OBJ_PATH),$(SRC:$(SRC_PATH)%.cpp=%.d))
+$(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
+	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
 
-CPP			:= g++ -std=c++98
+all: dir $(NAME)
 
-CPPFLAGS	:= -Wall -Wextra -Werror -MMD -Wshadow -Wno-shadow -g -fsanitize=address
-
-RM			:= @rm -rf
-
-
-all:	$(NAME)
-
-$(NAME): $(OBJ)
-	${CPP} ${CPPFLAGS} ${OBJ} -o ${NAME}
-	@echo "$(PINK)Webserv compiled$(DEF_COLOR)"
+dir:
+	@mkdir -p $(F_OBJ)
 
 -include $(DEP)
-
-$(OBJ_PATH)%.o:	$(SRC_PATH)%.cpp Makefile
-	@mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) -I$(HEADER) -c $< -o $@	
+$(NAME): $(OBJ)
+	$(CPP) $(FLAGS) -I ./inc/ $(OBJ) -o $(NAME)
+	@echo "$(GREEN)Everything has been compilated.$(BLACK)"
 
 test:
 	@${CPP} ${CPPFLAGS} test.cpp
@@ -38,13 +37,13 @@ run: ${NAME}
 	./${NAME} | cat -e
 
 clean:
-	$(RM) $(OBJ_PATH) > /dev/null
-	@echo "$(PINK)Objects removed$(DEF_COLOR)"
+	$(RM) $(OBJ) $(DEP)
+	$(RM) -R obj
 
 fclean: clean
-	$(RM) $(NAME) > /dev/null
-	@echo "$(PINK)Webserv removed$(DEF_COLOR)"
+	$(RM) $(NAME)
+	@echo "$(YELLOW)Everything has been cleaned.$(BLACK)"
 
-re:	fclean all
+re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re dir

@@ -4,3 +4,4 @@ webserv
 */.*
 .*.swp
 test.cpp
+.vscode
