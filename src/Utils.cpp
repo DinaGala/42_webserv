@@ -6,11 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:40:17 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 15:57:49 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#include "../inc/Utils.hpp"
 
 // Helper function to trim leading whitespace
 std::string ltrim(const std::string& str) 

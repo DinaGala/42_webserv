@@ -6,11 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:14:19 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 15:57:00 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "LocationConfig.hpp"
+#include "../inc/LocationConfig.hpp"
 
 // _____________  CONSTRUCTORS ______________________________________
 

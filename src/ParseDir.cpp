@@ -6,11 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/05 14:39:02 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 15:57:29 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Parse.hpp"
+#include "../inc/Parse.hpp"
 
 // PARSING SIMPLE DIRECTIVES ______________________________________
 

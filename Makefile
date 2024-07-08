@@ -4,17 +4,18 @@ YELLOW = \033[1;33m
 BLUE = \033[1;34m
 BLACK = \033[0;39m
 
-NAME = config
+NAME = webserv
 CPP = g++ -g -O0
 FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -fsanitize=address
 RM = rm -f
 
 SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp
+F_SRC = src/
 F_OBJ = obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
-$(F_OBJ)%.o: %.cpp Makefile
+$(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
 	$(CPP) $(FLAGS) -I ./ -c $< -o $@
 
 all: dir $(NAME)
@@ -24,7 +25,7 @@ dir:
 
 -include $(DEP)
 $(NAME): $(OBJ)
-	$(CPP) $(FLAGS) -I ./ $(OBJ) -o $(NAME)
+	$(CPP) $(FLAGS) -I ./inc/ $(OBJ) -o $(NAME)
 	@echo "$(GREEN)Everything has been compilated.$(BLACK)"
 
 clean:

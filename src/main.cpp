@@ -6,11 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/20 18:38:05 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 22:18:13 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 15:57:09 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#include "../inc/Utils.hpp"
 
 
 

@@ -6,11 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 22:17:04 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 15:57:40 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ServerConfig.hpp"
+#include "../inc/ServerConfig.hpp"
 
 // _____________  CONSTRUCTORS ______________________________________
 
