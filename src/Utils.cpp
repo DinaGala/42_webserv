@@ -82,7 +82,7 @@ int 	ft_atoi(const std::string str)
 	{
 		if (i == 0 && str[i] == '-')
             continue ;
-        else if (i > 11 || !isdigit(str[i]))
+    else if (i > 11 || !isdigit(str[i]))
 			throw std::invalid_argument("Error: not an integer: " + str);
 	}
 	if (atol(str.c_str()) > INT_MAX || atol(str.c_str()) < INT_MIN)
@@ -93,5 +93,12 @@ int 	ft_atoi(const std::string str)
 /* returns a string of letters and digits */
 std::string	isLetDig()
 {
-    return ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+	return ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+}
+
+std::string ft_itoa(int nb)
+{
+	std::stringstream ss;
+	ss << nb;
+	return (ss.str());
 }

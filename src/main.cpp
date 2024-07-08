@@ -1,38 +1,19 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/20 18:38:05 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:09 by nzhuzhle         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
-#include "../inc/Utils.hpp"
+#include "Utils.hpp"
 
+int main(int ac, char **av){
 
-
-int	main(int ac, char **av)
-{
-	try
-	{
-		if (ac == 2) {
-            std::vector<ServerConfig>	sconf = Parse::configParse(av[1]);
-		//	std::cout << sconf;
-		}
-		else if (ac == 1)
-		{
-            std::vector<ServerConfig>	sconf = Parse::configParse();
-		//	std::cout << sconf;
-		}
-		else
+	try {
+		if (ac > 2)
 			throw std::invalid_argument("Wrong amount of arguments: introduce only one config file or nothing");
+		Cluster clusterC;
+
+		clusterC.setUpCluster(int ac, char **av);
+		clusterC.runCluster();
 	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n'; // unable to connect error ()
+	catch (const std::exception e){
+		std::cerr << e.what() << std::endl;
 	}
 	return (0);
 }
+
