@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 19:34:32 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/08 21:33:23 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ std::vector<std::string>  ft_split(std::string str, std::string del);
 int ft_atopi(const std::string str);
 int ft_atoi(const std::string str);
 std::string ft_itoa(int nb);
+std::string toString(std::string::size_type nb);
 std::string	isLetDig();
 
 #endif
