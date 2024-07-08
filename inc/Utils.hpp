@@ -28,9 +28,11 @@
 # include <functional>
 # include <climits>
 
-/*# include "LocationConfig.hpp"
+
+# include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
-# include "Parse.hpp"*/
+# include "Parse.hpp"
+# include "Cluster.hpp"
 
 # define MAX_BODY_SIZE 2000000000 //2GB
 # define DEFAULT_BODY_SIZE 10000000 //10MB
@@ -48,7 +50,6 @@ std::vector<std::string>  ft_split(std::string str, std::string del);
 int ft_atopi(const std::string str);
 int ft_atoi(const std::string str);
 std::string ft_itoa(int nb);
-
 std::string	isLetDig();
 
 #endif
