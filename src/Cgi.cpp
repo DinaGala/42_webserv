@@ -277,6 +277,7 @@ std::string	Cgi::executeCgi(void)
 	if (pipe(req) || pipe(cgi))
 		error(this->_socket, "pipe", "unable to create a pipe");
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
+	write(req[1], "\0", 1);
 	pid = fork();
 	if (pid == -1)
 		error(this->_socket, "fork", "unable to create a new process");
