@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 21:34:19 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/08 22:45:28 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,18 +101,4 @@ std::string ft_itoa(int nb)
 	std::stringstream ss;
 	ss << nb;
 	return (ss.str());
-}
-
-std::string	toString(std::string::size_type n)
-{
-	std::string	str;
-
-	if (n == 0)
-		return ("0");
-	while (n)
-	{
-		str.insert(0, 1, n % 10 + '0');
-		n = n / 10;
-	}
-	return (str);
 }
