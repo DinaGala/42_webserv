@@ -13,6 +13,9 @@ Request::~Request() {
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
 
+
+/*----------------- PARSING REQUEST LINE -----------------*/
+
 void	Request::parseRequest() {
 	try {
 		
@@ -103,8 +106,8 @@ void	Request::addHeaderToMap(std::string line){
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
 		throw std::runtime_error("Error parsing Request: no ':' in header");
+	
 	std::string name = line.substr(0, posColon);
-
 	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
 
 	_headers.insert(std::make_pair(name, value));
@@ -113,34 +116,36 @@ void	Request::addHeaderToMap(std::string line){
 
 //----------------- PARSING BODY -----------------
 void	Request::parseBody(){
-	if (_headers.find("Content-Length") == _headers.end() && _headers.find("Transfer-Encoding") == _headers.end()){
-		_status = FINISH_PARSED;
-	}
-	else if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") == _headers.end()) {
-		parseBodyByContentLenght();
-	}
-	else if (_headers.find("Content-Length") == _headers.end() && _headers.find("Transfer-Encoding") != _headers.end()) {
+
+	if (_headers.find("Transfer-Encoding") != _headers.end()) {
 		if (_headers.find("Transfer-Encoding")->second != "chunked")
-			throw std::runtime_error("Error parsing Request: wrong Transfer-Encoding parameter");
+			throw std::runtime_error("Error parsing Request: wrong Transfer-Encoding value parameter");
 		parseBodyByChunked();
 	}
-	else if (_headers.find("Content-Type") != _headers.end() && _headers.find("Content-Type")->second.find("multipart/form-data") != std::string::npos) {
-		parseBodyByMultipartFormData();
-    }
+	else if (_headers.find("Content-Length") != _headers.end()) {
+		parseBodyByContentLength();
+	}
+	else {
+		_status = FINISH_PARSED;
+	}
 }
 
-void	Request::parseBodyByContentLenght() {
-	if (_buffer.size() > ft_atoi(_headers.find("Content-Length")->second)) {
-		throw std::runtime_error("Error parsing Request: Body Lenght greater than Content lenght header param");
+void	Request::parseBodyByContentLength() { 
+	int contentLength = ft_atoi(_headers.find("Content-Length")->second);
+	
+	if (_buffer.size() > contentLength ) {  //TODO: manage remain body?? Adria - create new request with remain body
+		throw std::runtime_error("Error parsing Request: Body Length greater than Content length header param");
 	}
-	if (ft_atoi(_headers.find("Content-Length")->second) > 2000) { //TODO: update with server server.getMaxBodySize()
-		throw std::runtime_error("Error parsing Request: Body Lenght greater than Content lenght header param");
+	if (contentLength > 2000) { //TODO: update with server server.getMaxBodySize()
+		throw std::runtime_error("Error parsing Request: Body Length greater than Max body size");
 	}
-	size_t posEndBody = _buffer.find("\r\n\r\n");
-	if (posEndBody != std::string::npos) //body finished
+	while (_body.length() < contentLength && _buffer.length() > 0) {
+		_body.push_back(_buffer(0));
+		_buffer.erase(0);
+	}
+	if (_body.length() == contentLength) {
 		_status = FINISH_PARSED;
-	_body = _buffer;
-	_buffer.clear();
+	}
 }
 
 
@@ -152,10 +157,9 @@ Mozilla\r\n
 */
 //https://datatracker.ietf.org/doc/rfc9112/ - 7.1.3.  Decoding Chunked
 void	Request::parseBodyByChunked(){
-	
 	std::string			line;
-	int					sizeChunk = 0;		
-	int					lenght;
+	int					sizeChunk = 0;
+	int					length;
 	size_t				posEndSIze;
 
 	posEndSIze = _buffer.find("\r\n");
@@ -181,12 +185,9 @@ void	Request::parseBodyByChunked(){
 	if (sizeChunk == 0) {
 		_status = FINISH_PARSED;
 		_headers.find("Transfer-Encoding")->second = ""; //remove chunked
-		_headers.insert(std::make_pair("Content-Length", std::to_string(_body.length())));
+		size_t length = _body.length();
+		_headers.insert(std::make_pair("Content-Length", ft_itoa(length)));
 	}
-}
-
-void	Request::parseBodyByMultipartFormData() {
-
 }
 
 bool Request::isStringOfDigits(std::string line){

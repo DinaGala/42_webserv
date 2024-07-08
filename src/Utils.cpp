@@ -95,7 +95,10 @@ std::string	isLetDig()
 	return ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 }
 
-std::string ft_itoa(int nb) 
+std::string ft_itoa(int nb)
 {
-
+	std::stringstream ss;
+	ss << nb;
+	return (ss.str());
 }
+
