@@ -93,13 +93,22 @@ void	Response::_parseCgiResponse(void)
 	std::string::size_type	found = this->_response.find("\n\n");
 
 	if (found == std::string::npos)
+		found = this->_response.find("\r\n\r\n");
+	if (found == std::string::npos)
 	{
 		this->_body = this->_response;
 		this->_response = "";
 		return ;
 	}
 	this->_body = this->_response.substr(found + 2, this->_response.size());
-	this->_response = this->_response.substr(0, found);
+	this->_response = this->_response.substr(0, found) + "\n";
+	for (int i = 0; this->_response[i]; i++)
+	{
+		if ((this->_response[i] < 32 || this->_response[i] == 127)
+		&& this->_response[i] != '\n' && this->_response[i] != '\t'
+		&& this->_response[i] != '\r')
+			this->_response.erase(i, 1);
+	}
 }
 
 //writes and returns the server's response
