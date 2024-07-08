@@ -66,7 +66,7 @@ void	Cluster::runCluster(){
 		Response	rsp;
 		rsp.setCgiPath("a");
 		rsp.setMethod("GET");
-		rsp.setSocket((int)server.getSockfd());
+		rsp.setSocket((int)socket.getSockfd());
 		std::string response = rsp.getResponse("200");
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
 		///////////////////////////
