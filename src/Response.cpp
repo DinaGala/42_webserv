@@ -2,29 +2,50 @@
 
 ////// Static Assets
 
-std::map<std::string, std::string> Response::initStatus()
+/*std::map<int, std::string> Response::initStatus()
 {
-	std::map<std::string, std::string> error;
+	std::map<int, std::string> error;
 
-	error["100"] = "Continue";
-	error["200"] = "OK";
-	error["201"] = "Created";
-	error["204"] = "No Content";
-	error["302"] = "Found";
-	error["400"] = "Bad Request";
-	error["403"] = "Forbidden";
-	error["404"] = "Not Found";
-	error["405"] = "Method Not Allowed";
-	error["406"] = "Not Acceptable";
-	error["408"] = "Request Timeout";
-	error["411"] = "Length Required";
-	error["500"] = "Internal Server Error";
-	error["501"] = "Not Implemented";
-	error["505"] = "HTTP Version Not Supported";
+	error[100] = "Continue";
+	error[200] = "OK";
+	error[201] = "Created";
+	error[204] = "No Content";
+	error[302] = "Found";
+	error[400] = "Bad Request";
+	error[403] = "Forbidden";
+	error[404] = "Not Found";
+	error[405] = "Method Not Allowed";
+	error[406] = "Not Acceptable";
+	error[408] = "Request Timeout";
+	error[411] = "Length Required";
+	error[500] = "Internal Server Error";
+	error[501] = "Not Implemented";
+	error[505] = "HTTP Version Not Supported";
+	return (error);
+}*/
+
+std::map<int, std::string> Response::initStatus()
+{
+	std::map<int, std::string> error;
+
+	error[100] = "errors/100.html";
+	error[200] = "errors/200.html";
+	error[201] = "errors/201.html";
+	error[204] = "errors/204.html";
+	error[302] = "errors/302.html";
+	error[400] = "errors/400.html";
+	error[403] = "errors/403.html";
+	error[404] = "errors/404.html";
+	error[405] = "errors/405.html";
+	error[406] = "errors/406.html";
+	error[408] = "errors/408.html";
+	error[411] = "errors/411.html";
+	error[500] = "errors/500.html";
+	error[501] = "errors/501.html";
 	return (error);
 }
 
-std::map<std::string, std::string> Response::_status = Response::initStatus();
+std::map<int, std::string> Response::_status = Response::initStatus();
 ///////
 
 Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _code(0)
@@ -74,20 +95,6 @@ void	Response::setMethod(const std::string &meth)
 	this->_method = meth;
 }
 
-std::string	Response::_toString(std::string::size_type n)
-{
-	std::string	str;
-
-	if (n == 0)
-		return ("0");
-	while (n)
-	{
-		str.insert(0, 1, n % 10 + '0');
-		n = n / 10;
-	}
-	return (str);
-}
-
 void	Response::_parseCgiResponse(void)
 {
 	std::string::size_type	found = this->_response.find("\n\n");
@@ -112,10 +119,15 @@ void	Response::_parseCgiResponse(void)
 }
 
 //writes and returns the server's response
-std::string	&Response::getResponse(const std::string &code)
+std::string	&Response::getResponse(int code)
 {
-	if (this->_cgi_path.empty() == false)
+	if (this->_cgi_path.empty() == false) // if there's cgi
 	{
+		if (access(this->_cgi_path.c_str(), F_OK))
+			return (this->sendError(404), this->_response);
+		if (access(this->_cgi_path.c_str(), X_OK))
+			return (this->sendError(403), this->_response);
+		std::cout << "getResponse(123)" << "|" << _cgi_path << "|" << std::endl;
 		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
 		this->_response = cgi.executeCgi();
@@ -124,20 +136,21 @@ std::string	&Response::getResponse(const std::string &code)
 	this->putGeneralHeaders();
 	if (this->_body == "" && this->_path.empty() == false)
 	{
-		if (this->fileToBody(this->_path))
-			return (this->_response);
+		int error = this->fileToBody(this->_path);
+		if (error)
+			return (sendError(error), this->_response);
 	}
 	if (!this->_body.empty())
-		this->_response += "Content-Length: " + this->_toString(this->_body.size()) + "\n\n";
+		this->_response += "Content-Length: " + toString(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 	this->_response.insert(0, this->putStatusLine(code));
 	return (this->_response);
 }
 
 //puts status line in the response
-std::string	Response::putStatusLine(const std::string &code)
+std::string	Response::putStatusLine(int code)
 {
-	return ("HTTP/1.1 " + code + " " + this->_status.at(code) + "\r\n");
+	return ("HTTP/1.1 " + toString(code) + "\r\n");
 }
 
 //puts general header in the response: date, server, keep-alive and connection
@@ -146,13 +159,13 @@ void	Response::putGeneralHeaders(void)
 	std::time_t	date = std::time(NULL);
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
-	this->_response += "Server: " + _servname + "\n";
-	this->_response += "Keep-Alive: timeout=" + this->_toString(this->_timeout);
-	this->_response += ", max=" + this->_toString(this->_maxconnect) + "\n";
+	this->_response += "Server: " + _servname + "\r\n";
+	this->_response += "Keep-Alive: timeout=" + toString(this->_timeout);
+	this->_response += ", max=" + toString(this->_maxconnect) + "\r\n";
 	if (this->_connection)
-		this->_response += "Connection: close\n";
+		this->_response += "Connection: close\r\n";
 	else
-		this->_response += "Connection: keep-alive\n";
+		this->_response += "Connection: keep-alive\r\n";
 }
 
 //checks mime type + adds specific POST headers in the response
@@ -160,9 +173,9 @@ bool	Response::putPostHeaders(const std::string &file)
 {
 	std::string	ext = file.substr(file.find_last_of("."));
 	std::ifstream	mime("mime.types");
-	std::string		line = "";
+	std::string		line("");
 	if (!mime.is_open())
-		return (sendError("500", "errors/500.html"), 1);
+		return (sendError(500), 1);
 	while (1)
 	{
 		if (mime.eof())
@@ -175,26 +188,26 @@ bool	Response::putPostHeaders(const std::string &file)
 	if (line == "" || mime.eof())
 	{
 		if (access(file.c_str(), X_OK)) // if not executable
-			this->_response += "Content-Type: text/plain\n";
+			this->_response += "Content-Type: text/plain\r\n";
 		else
-			this->_response += "Content-Type: application/octet-stream\n";
+			this->_response += "Content-Type: application/octet-stream\r\n";
 		return (0);
 	}
 	this->_response += "Content-Type: ";
-	this->_response += line.substr(line.find_first_not_of("\t \n\v\r", ext.size())) + "\n";
+	this->_response += line.substr(line.find_first_not_of("\t \n\v\r", ext.size())) + "\r\n";
 	return (0);
 }
 
-//puts file content in body string. If something's wrong, sends error
-bool	Response::fileToBody(const std::string &path)
+//puts file content in body string. If something's wrong, returns error code
+int	Response::fileToBody(const std::string &path)
 {
-	if (access(path.c_str(), F_OK))
-		return (sendError("404", "errors/404.html"), 1);
-	else if (access(path.c_str(), R_OK))
-		return (sendError("403", "errors/403.html"), 1);
+	if (access(path.c_str(), F_OK))//if given error page doesn't exist
+		return (404);
+	else if (access(path.c_str(), R_OK))//if given error page doesn't have the rights
+		return (403);
 	std::ifstream	rdfile(path.c_str());
 	if (!rdfile.is_open())
-		return (sendError("500", "errors/500.html"), 1);
+		return (500);
 	std::ostringstream	content;
 	content << rdfile.rdbuf();
 	this->_body = content.str();
@@ -203,10 +216,11 @@ bool	Response::fileToBody(const std::string &path)
 
 //makes error response. If there's an error with the error page,
 // a severe internal server error page is sent
-void	Response::sendError(const std::string &code, const std::string &path)
+void	Response::sendError(int code)
 {
 	this->_response = "Content-Type: text/html\n";
-	if (fileToBody(path))
+	int error = fileToBody(this->_status.at(code));
+	if (error && fileToBody(this->_status.at(error)))
 	{
 		this->_response += "Content-Length: 75\n";
 		this->_response += "\n<html><body><h1>505</h1>"
@@ -215,6 +229,6 @@ void	Response::sendError(const std::string &code, const std::string &path)
 		return ;
 	}
 	this->_response.insert(0, this->putStatusLine(code));
-	this->_response += "Content-Length: " + this->_toString(this->_body.size()) + "\n\n";
+	this->_response += "Content-Length: " + toString(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 }

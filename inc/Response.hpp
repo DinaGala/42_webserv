@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 #include "Cgi.hpp"
+#include "Utils.hpp"
 
 class	Response
 {
@@ -19,20 +20,20 @@ class	Response
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
 		//WRITE RESPONSE
-		std::string	putStatusLine(const std::string &code);
+		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
 		bool		putPostHeaders(const std::string &file);
-		bool		fileToBody(const std::string &path);
+		int			fileToBody(const std::string &path);
 		//SEND RESPONSE
-		std::string	&getResponse(const std::string &code);
-		void		sendError(const std::string &code, const std::string &path);
+		std::string	&getResponse(int code);
+		void		sendError(int code);
 		//TMP
 		void		setSocket(int sock);
 		void		setMethod(const std::string &meth);
 
 	private:
-		static std::map<std::string, std::string>	_status;
-		static std::map<std::string, std::string>	initStatus();
+		static std::map<int, std::string>	_status;
+		static std::map<int, std::string>	initStatus();
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
@@ -48,7 +49,6 @@ class	Response
 
 		Response(const Response &r);
 		Response	&operator=(const Response &r);
-		std::string	_toString(std::string::size_type n);
 		void		_parseCgiResponse(void);
 };
 
