@@ -23,12 +23,12 @@ class Request {
 		int									_status;	
 
 		Socket								*socket;
-		Server								*server;
+		Server*								_server;
 
 	
 
 	public:
-        Request(const std::string & buffer);
+        Request(const std::string & buffer, Server *server);
 		~Request();
 
 		void	parseRequest();

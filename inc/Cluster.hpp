@@ -14,8 +14,6 @@ class Cluster {
 		std::vector<ServerConfig>	_sconf; 
 		std::vector<Server> 		_servers;
 		std::vector<Socket>			_sockets;
-		int							_nServers; //TODO: pending configFIle
-		int							_nSockets; //TODO: pending configFIle
 
 	public:
 		Cluster();

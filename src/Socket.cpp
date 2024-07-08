@@ -1,9 +1,9 @@
 #include "Socket.hpp"
 
-Socket::Socket() {
+Socket::Socket(Server server, int port) {
 	//TODO: configFile
-	setIpAddress("");
-	setPort(8080);
+	setIpAddress(server.getIp());
+	setPort(port);
 }
 
 Socket::~Socket() {
@@ -45,7 +45,7 @@ void	Socket::initSocket() {
 
 void	Socket::bindSocket(){
 	_sockaddr.sin_family = AF_INET;
-    _sockaddr.sin_addr.s_addr = inet_addr(this->_ipAddress); //tansform address to binary
+    _sockaddr.sin_addr.s_addr = inet_addr(this->_ipAddress.c_str()); //tansform address to binary
 	_sockaddr.sin_port = htons(this->_port); // htons is necessary to convert a number to network byte order
 
 	if (bind(this->_sockfd, (struct sockaddr*)&this->_sockaddr, sizeof(this->_sockaddr)) < 0) {
@@ -66,10 +66,8 @@ void	Socket::listenConnection(){
 	}
 }
 
-
-
 //SETTERS
-void	Socket::setIpAddress(const char* ipAddress){
+void	Socket::setIpAddress(const std::string & ipAddress){
 	this->_ipAddress = ipAddress;
 }
 
@@ -84,4 +82,8 @@ long	Socket::getSockfd() const {
 
 struct sockaddr_in Socket::getSockaddr() const {
 	return(_sockaddr);
+}
+
+Server* Socket::getServer() const {
+	return(_server);
 }

@@ -17,29 +17,29 @@ void	Cluster::setUpCluster(int ac, char **av){
 			std::cout << _sconf;
 	}	
 	
-
-
-	this->_nServers = 1; //TODO: pending configFIle
-	this->_nSockets = 1; //TODO: pending configFIle
-
 	createServers();
 	createSockets();
+	std::cout << "---- Num servers " << _servers.size();
+	std::cout << " | Num sockets " << _sockets.size() << "-------" << std::endl;
 }
 
 void	Cluster::createServers(){
-	for (int i=0; i < _nServers; i++) {
-		Server server;
-		server.setUpServer();
+	for (std::vector<ServerConfig>::iterator it = _sconf.begin(); it != _sconf.end(); it++) {
+		Server server(*it);
 		this->_servers.push_back(server);
 	}
 }
 
 void	Cluster::createSockets(){
-	for (int i=0; i < _nSockets; i++) {
-		Socket socket;
-		socket.setUpSocket();
-		this->_sockets.push_back(socket);
-    }
+	for (std::vector<Server>::iterator itServers = _servers.begin(); itServers != _servers.end(); itServers++) {
+		Server server = (Server)*itServers;
+		std::vector<int> ports = server.getPort();
+		for (std::vector<int>::iterator itPorts = ports.begin(); itPorts != ports.end(); itPorts++) {
+			Socket socket(server, *itPorts);
+			socket.setUpSocket();
+			this->_sockets.push_back(socket);
+		}
+	}
 }
 
 
@@ -51,13 +51,14 @@ void	Cluster::runCluster(){
 		int	connection = acceptConnection(socket);
 
 		// Read from the connection
+		
 		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
 		if (bytesRead < 0)
 			return; //TODO: manage error
-		std::cout << "Request: " << buffer;
-		Request request(buffer); //Add server and socket
-		request.parseRequest(); //
+		Request request(buffer, &server); //Add server and socket
+		request.parseRequest();
+	 
 		//request.manageRequest(); 
 
 		/////////////////////////////

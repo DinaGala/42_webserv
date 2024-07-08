@@ -1,6 +1,7 @@
 #include "Request.hpp"
 
-Request::Request(const std::string & buffer) : _buffer(buffer), _body(""), _status(INITIAL_STATUS) {
+Request::Request(const std::string & buffer, Server *server) : _buffer(buffer), _body(""), _status(INITIAL_STATUS), _server(server){
+	
 		//TODO: Remain body?? new object?
 }
 
@@ -18,8 +19,6 @@ Request::~Request() {
 
 void	Request::parseRequest() {
 	try {
-		
-		std::cout << "buffer:\n" << _buffer << std:: endl << std::endl;
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
 		}
@@ -37,19 +36,21 @@ void	Request::parseRequest() {
 
 /*----------------- PARSING REQUEST LINE -----------------*/
 void	Request::parseRequestLine() {
+	std::cout << "REQUEST: " << std::endl << _buffer << std::endl << "----end Request---" << std::endl;
 
 	size_t posBuffer = _buffer.find("\r\n");
-	if (posBuffer == std::string::npos)
+	if (posBuffer == std::string::npos){
+		std::cout << "not complete request line: " << std::endl;
 		return ;
-		//throw std::runtime_error("Error parsing Request: no request line");
-
-	createRequestLineVector(_body.substr(0, posBuffer));
+	}
+	createRequestLineVector(_buffer.substr(0, posBuffer));
 	if (_requestLine.size() != 3)
 		throw std::runtime_error("Error parsing Request: wrong request line");
 
-	std::vector<std::string> requestVect = createValidRequestVector(); //TODO: use ServerConfig
-	std::vector<std::string>::iterator it = std::find(requestVect.begin(), requestVect.end(), _requestLine.front()); 
-	if (it == requestVect.end()) 
+	std::vector<std::string> allowedMethodsVect = _server->getAllowedMethods();
+	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
+	
+	if (it == allowedMethodsVect.end())
 		throw std::runtime_error("Error parsing Request: no metod allowed"); //_errorCode = 405;
 	
 	//TODO: PARSE ROOT _firstLine ??
@@ -62,10 +63,12 @@ void	Request::parseRequestLine() {
 }
 
 void Request::createRequestLineVector(std::string requestLineStr){
+	std::cout << "request line: " << requestLineStr << std::endl;
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
 		this->_requestLine.push_back(element);
+		std::cout << "element req line " << element << std::endl;
 	}
 }
 
