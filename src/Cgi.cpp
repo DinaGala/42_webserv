@@ -61,7 +61,9 @@ void	Cgi::addPair(const std::string &ext, const std::string &cmd)
 	this->_pairs[ext] = cmd;
 }
 
-//from map to char **
+/////////////////////// TRANSFORMATIONS FROM C++ TO C //////////////////////////
+
+//from map<std::string, std::string> to char **
 char	**Cgi::_getEnv(void)
 {
 	char	**mat;
@@ -103,6 +105,7 @@ char	**Cgi::_getEnv(void)
 	return (mat);
 }
 
+//from vector<std::string> to char **
 char	**Cgi::vecToMat(const std::vector<std::string> &vec)
 {
 	char	**mat;
@@ -138,6 +141,11 @@ char	**Cgi::vecToMat(const std::vector<std::string> &vec)
 	return (mat);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////// PARSING SETTERS///////////////////////////////////
+
 void	Cgi::_setQueryString(std::vector<std::string>::iterator it,
 							std::vector<std::string>::iterator end)
 {
@@ -165,6 +173,8 @@ void	Cgi::_setPathInfo(std::vector<std::string>::iterator it,
 	}
 	this->_env["PATH_INFO"].erase(this->_env["PATH_INFO"].size() - 1);
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void	Cgi::_searchFile(std::vector<std::string> vec)
 {
@@ -245,6 +255,8 @@ std::vector<std::string> Cgi::getArgs(void)
 		return (args);
 }
 
+/////////////////////////////// EXECUTION //////////////////////////////////////
+
 void	Cgi::_childProcess(int *req, int *cgi)
 {
 	char	**args = this->vecToMat(this->getArgs());
@@ -296,3 +308,4 @@ std::string	Cgi::executeCgi(void)
 		error(this->_socket, "CGI", "empty response");
 	return (cgi_response);
 }
+//////////////////////////////////////////////////////////////////////////////////
