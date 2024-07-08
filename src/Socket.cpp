@@ -2,7 +2,7 @@
 
 Socket::Socket() {
 	//TODO: configFile
-	setIpAddress("");
+	setIpAddress("127.0.0.1");
 	setPort(8080);
 }
 
