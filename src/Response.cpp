@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-////// Static Assets
+//////////////////////// STATIC ASSETS ////////////////////////////////////////
 
 /*std::map<int, std::string> Response::initStatus()
 {
@@ -46,7 +46,8 @@ std::map<int, std::string> Response::initStatus()
 }
 
 std::map<int, std::string> Response::_status = Response::initStatus();
-///////
+
+//////////////////////////////////////////////////////////////////////////////
 
 Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _code(0)
 {}
@@ -70,6 +71,7 @@ Response	&Response::operator=(const Response &r)
 	return (*this);
 }
 
+//////////////////////// SETTERS ///////////////////////////////////////////
 void	Response::setBody(const std::string &msg)
 {
 	this->_body += msg;
@@ -94,7 +96,9 @@ void	Response::setMethod(const std::string &meth)
 {
 	this->_method = meth;
 }
+///////////////////////////////////////////////////////////////////////////
 
+//parses Cgi's response: separates headers from body
 void	Response::_parseCgiResponse(void)
 {
 	std::string::size_type	found = this->_response.find("\n\n");
@@ -109,13 +113,6 @@ void	Response::_parseCgiResponse(void)
 	}
 	this->_body = this->_response.substr(found + 2, this->_response.size());
 	this->_response = this->_response.substr(0, found) + "\n";
-	for (int i = 0; this->_response[i]; i++)
-	{
-		if ((this->_response[i] < 32 || this->_response[i] == 127)
-		&& this->_response[i] != '\n' && this->_response[i] != '\t'
-		&& this->_response[i] != '\r')
-			this->_response.erase(i, 1);
-	}
 }
 
 //writes and returns the server's response
@@ -127,7 +124,6 @@ std::string	&Response::getResponse(int code)
 			return (this->sendError(404), this->_response);
 		if (access(this->_cgi_path.c_str(), X_OK))
 			return (this->sendError(403), this->_response);
-		std::cout << "getResponse(123)" << "|" << _cgi_path << "|" << std::endl;
 		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
 		this->_response = cgi.executeCgi();
@@ -141,16 +137,18 @@ std::string	&Response::getResponse(int code)
 			return (sendError(error), this->_response);
 	}
 	if (!this->_body.empty())
-		this->_response += "Content-Length: " + toString(this->_body.size()) + "\n\n";
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 	this->_response.insert(0, this->putStatusLine(code));
 	return (this->_response);
 }
 
+/////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
+
 //puts status line in the response
 std::string	Response::putStatusLine(int code)
 {
-	return ("HTTP/1.1 " + toString(code) + "\r\n");
+	return ("HTTP/1.1 " + ft_itoa(code) + "\r\n");
 }
 
 //puts general header in the response: date, server, keep-alive and connection
@@ -160,8 +158,8 @@ void	Response::putGeneralHeaders(void)
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
 	this->_response += "Server: " + _servname + "\r\n";
-	this->_response += "Keep-Alive: timeout=" + toString(this->_timeout);
-	this->_response += ", max=" + toString(this->_maxconnect) + "\r\n";
+	this->_response += "Keep-Alive: timeout=" + ft_itoa(this->_timeout);
+	this->_response += ", max=" + ft_itoa(this->_maxconnect) + "\r\n";
 	if (this->_connection)
 		this->_response += "Connection: close\r\n";
 	else
@@ -198,12 +196,14 @@ bool	Response::putPostHeaders(const std::string &file)
 	return (0);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 //puts file content in body string. If something's wrong, returns error code
 int	Response::fileToBody(const std::string &path)
 {
 	if (access(path.c_str(), F_OK))//if given error page doesn't exist
 		return (404);
-	else if (access(path.c_str(), R_OK))//if given error page doesn't have the rights
+	else if (access(path.c_str(), R_OK))//if server doesn't have the right to read
 		return (403);
 	std::ifstream	rdfile(path.c_str());
 	if (!rdfile.is_open())
@@ -214,21 +214,21 @@ int	Response::fileToBody(const std::string &path)
 	return (0);
 }
 
-//makes error response. If there's an error with the error page,
-// a severe internal server error page is sent
+//makes error response. If there's an error creating the response,
+// a severe internal server error page is sent (505)
 void	Response::sendError(int code)
 {
-	this->_response = "Content-Type: text/html\n";
+	this->_response = "Content-Type: text/html\r\n";
 	int error = fileToBody(this->_status.at(code));
-	if (error && fileToBody(this->_status.at(error)))
+	if (error && fileToBody(this->_status.at(error)))//true if we have a double error
 	{
-		this->_response += "Content-Length: 75\n";
+		this->_response += "Content-Length: 75\r\n";
 		this->_response += "\n<html><body><h1>505</h1>"
 							"<h2>Severe Internal Server Error</h2></body></html>";
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
 		return ;
 	}
 	this->_response.insert(0, this->putStatusLine(code));
-	this->_response += "Content-Length: " + toString(this->_body.size()) + "\n\n";
+	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
 }
