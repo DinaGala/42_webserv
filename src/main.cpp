@@ -1,4 +1,3 @@
-
 #include "Utils.hpp"
 
 int main(int ac, char **av){
@@ -8,10 +7,10 @@ int main(int ac, char **av){
 			throw std::invalid_argument("Wrong amount of arguments: introduce only one config file or nothing");
 		Cluster clusterC;
 
-		clusterC.setUpCluster(int ac, char **av);
+		clusterC.setUpCluster(ac, av);
 		clusterC.runCluster();
 	}
-	catch (const std::exception e){
+	catch (const std::exception & e){
 		std::cerr << e.what() << std::endl;
 	}
 	return (0);

@@ -9,16 +9,16 @@ Cluster::~Cluster() {
 void	Cluster::setUpCluster(int ac, char **av){
 	if (ac == 2) {
         _sconf = Parse::configParse(av[1]);
-		//	std::cout << sconf;
+			std::cout << _sconf;
 	}
 	else if (ac == 1)
 	{
         _sconf = Parse::configParse();
-		//	std::cout << sconf;
+			std::cout << _sconf;
 	}	
 	
 
-	
+
 	this->_nServers = 1; //TODO: pending configFIle
 	this->_nSockets = 1; //TODO: pending configFIle
 
@@ -27,7 +27,7 @@ void	Cluster::setUpCluster(int ac, char **av){
 }
 
 void	Cluster::createServers(){
-	for (unsigned int i=0; i < _nServers; i++) {
+	for (int i=0; i < _nServers; i++) {
 		Server server;
 		server.setUpServer();
 		this->_servers.push_back(server);
@@ -35,7 +35,7 @@ void	Cluster::createServers(){
 }
 
 void	Cluster::createSockets(){
-	for (unsigned int i=0; i < _nSockets; i++) {
+	for (int i=0; i < _nSockets; i++) {
 		Socket socket;
 		socket.setUpSocket();
 		this->_sockets.push_back(socket);
@@ -54,6 +54,8 @@ void	Cluster::runCluster(){
 		// Read from the connection
 		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
+		if (bytesRead < 0)
+			return; //TODO: manage error
 		std::cout << "Request: " << buffer;
 		Request request(buffer); //Add server and socket
 		request.parseRequest(); //

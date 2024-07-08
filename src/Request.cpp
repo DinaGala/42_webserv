@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request(const std::string & buffer) : _buffer(buffer), _status(INITIAL_STATUS), _body("") {
+Request::Request(const std::string & buffer) : _buffer(buffer), _body(""), _status(INITIAL_STATUS) {
 		//TODO: Remain body?? new object?
 }
 
@@ -131,7 +131,7 @@ void	Request::parseBody(){
 }
 
 void	Request::parseBodyByContentLength() { 
-	int contentLength = ft_atoi(_headers.find("Content-Length")->second);
+	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
 	
 	if (_buffer.size() > contentLength ) {  //TODO: manage remain body?? Adria - create new request with remain body
 		throw std::runtime_error("Error parsing Request: Body Length greater than Content length header param");
@@ -140,7 +140,7 @@ void	Request::parseBodyByContentLength() {
 		throw std::runtime_error("Error parsing Request: Body Length greater than Max body size");
 	}
 	while (_body.length() < contentLength && _buffer.length() > 0) {
-		_body.push_back(_buffer(0));
+		_body.push_back(_buffer[0]);
 		_buffer.erase(0);
 	}
 	if (_body.length() == contentLength) {
@@ -159,7 +159,7 @@ Mozilla\r\n
 void	Request::parseBodyByChunked(){
 	std::string			line;
 	int					sizeChunk = 0;
-	int					length;
+	//int					length;
 	size_t				posEndSIze;
 
 	posEndSIze = _buffer.find("\r\n");

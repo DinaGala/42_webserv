@@ -16,7 +16,7 @@ OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
 $(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
-	$(CPP) $(FLAGS) -I ./ -c $< -o $@
+	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
 
 all: dir $(NAME)
 

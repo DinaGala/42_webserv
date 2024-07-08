@@ -44,7 +44,7 @@ class Cluster {
 		Cluster();
 		~Cluster();
 
-		void	setUpCluster();
+		void	setUpCluster(int ac, char **av);
 		void 	runCluster();
 
 		void	createServers();

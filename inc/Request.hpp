@@ -38,7 +38,7 @@ class Request {
 		void 	createRequestLineVector(std::string requestLineStr);
 		void	addHeaderToMap(std::string line);
 
-		void	parseBodyByContentLenght();
+		void	parseBodyByContentLength();
 		void	parseBodyByChunked();
 		void	parseBodyByMultipartFormData();
 
