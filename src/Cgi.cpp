@@ -56,11 +56,6 @@ void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std:
 	this->_env["SERVER_NAME"] = serv;
 }
 
-void	Cgi::addPair(const std::string &ext, const std::string &cmd)
-{
-	this->_pairs[ext] = cmd;
-}
-
 /////////////////////// TRANSFORMATIONS FROM C++ TO C //////////////////////////
 
 //from map<std::string, std::string> to char **
@@ -106,7 +101,7 @@ char	**Cgi::_getEnv(void)
 }
 
 //from vector<std::string> to char **
-char	**Cgi::vecToMat(const std::vector<std::string> &vec)
+char	**Cgi::_vecToMat(const std::vector<std::string> &vec)
 {
 	char	**mat;
 	size_t	len = vec.size();
@@ -259,7 +254,7 @@ std::vector<std::string> Cgi::getArgs(void)
 
 void	Cgi::_childProcess(int *req, int *cgi)
 {
-	char	**args = this->vecToMat(this->getArgs());
+	char	**args = this->_vecToMat(this->getArgs());
 	char	**env = this->_getEnv();
 	if (close(req[1]) || close(cgi[0]))
 		error(this->_socket, "close", "failed to close pipe in child process");
@@ -271,14 +266,14 @@ void	Cgi::_childProcess(int *req, int *cgi)
 	error(this->_socket, "execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 }
 
-std::string	Cgi::executeCgi(void)
+bool	Cgi::executeCgi(std::string &cgi_response, int timeout)
 {
 	pid_t	pid;
 	int		status;
 	int		req[2], cgi[2];
-	std::string	cgi_response;
 	char buffer[1024];
 	ssize_t count;
+	std::time_t	epoch = std::time(NULL);
 
 	if (pipe(req) || pipe(cgi))
 		error(this->_socket, "pipe", "unable to create a pipe");
@@ -293,8 +288,17 @@ std::string	Cgi::executeCgi(void)
 		std::cerr << "Error: close" << std::endl;
 	if (close(req[1]))
 		error(this->_socket, "close", "failed to close pipe");
-	if (waitpid(pid, &status, 0) == -1)
-		error(this->_socket, "waitpid", "something went wrong");
+	while (1)
+	{
+		std::time_t now = std::time(NULL);
+		if (now - epoch > timeout)
+			return (1);
+		int wait = waitpid(pid, &status, WNOHANG);
+		if (wait)
+			error(this->_socket, "waitpid", "something went wrong");
+		if (WIFEXITED(status))
+			break ;
+	}
 	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
 	{
 		if (count == -1)
@@ -306,6 +310,5 @@ std::string	Cgi::executeCgi(void)
 		error(this->_socket, "close", "failed to close pipe");
 	if (cgi_response == "")
 		error(this->_socket, "CGI", "empty response");
-	return (cgi_response);
+	return (0);
 }
-//////////////////////////////////////////////////////////////////////////////////

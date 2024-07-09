@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include "Cgi.hpp"
 #include "Utils.hpp"
+#include "Request.hpp"
+
+class Request;
 
 class	Response
 {
@@ -32,8 +35,8 @@ class	Response
 		void		setMethod(const std::string &meth);
 
 	private:
-		static std::map<int, std::string>	_status;
-		static std::map<int, std::string>	initStatus();
+		static std::map<int, std::pair<std::string, std::string> >	_status;
+		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
@@ -50,6 +53,7 @@ class	Response
 		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
+		Request		*_request;
 };
 
 #endif

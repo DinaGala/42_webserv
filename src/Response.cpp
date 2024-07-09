@@ -24,28 +24,29 @@
 	return (error);
 }*/
 
-std::map<int, std::string> Response::initStatus()
+std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 {
-	std::map<int, std::string> error;
+	std::map<int, std::pair<std::string, std::string> > error;
 
-	error[100] = "errors/100.html";
-	error[200] = "errors/200.html";
-	error[201] = "errors/201.html";
-	error[204] = "errors/204.html";
-	error[302] = "errors/302.html";
-	error[400] = "errors/400.html";
-	error[403] = "errors/403.html";
-	error[404] = "errors/404.html";
-	error[405] = "errors/405.html";
-	error[406] = "errors/406.html";
-	error[408] = "errors/408.html";
-	error[411] = "errors/411.html";
-	error[500] = "errors/500.html";
-	error[501] = "errors/501.html";
+	error[100] = std::make_pair("Continue", "");
+	error[200] = std::make_pair("OK", "");
+	error[201] = std::make_pair("Created", "");
+	error[204] = std::make_pair("No Content", "");
+	error[302] = std::make_pair("Found", "");
+	error[400] = std::make_pair("Bad Request", "errors/400.html");
+	error[403] = std::make_pair("Forbidden", "errors/403.html");
+	error[404] = std::make_pair("Not Found", "errors/404.html");
+	error[405] = std::make_pair("Method Not Allowed", "errors/405.html");
+	error[406] = std::make_pair("Not Acceptable", "errors/406.html");
+	error[408] = std::make_pair("Request Timeout", "errors/408.html");
+	error[411] = std::make_pair("Length Required", "errors/411.html");
+	error[500] = std::make_pair("Internal Server Error", "errors/500.html");
+	error[501] = std::make_pair("Not Implemented", "errors/501.html");
+	error[504] = std::make_pair("Gateway Timeout", "errors/504.html");
 	return (error);
 }
 
-std::map<int, std::string> Response::_status = Response::initStatus();
+std::map<int, std::pair<std::string, std::string> > Response::_status = Response::_initStatus();
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -126,7 +127,8 @@ std::string	&Response::getResponse(int code)
 			return (this->sendError(403), this->_response);
 		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
-		this->_response = cgi.executeCgi();
+		if (cgi.executeCgi(this->_response, this->_timeout))
+			return (sendError(504), this->_response);
 		this->_parseCgiResponse();
 	}
 	this->putGeneralHeaders();
@@ -219,8 +221,8 @@ int	Response::fileToBody(const std::string &path)
 void	Response::sendError(int code)
 {
 	this->_response = "Content-Type: text/html\r\n";
-	int error = fileToBody(this->_status.at(code));
-	if (error && fileToBody(this->_status.at(error)))//true if we have a double error
+	int error = fileToBody(this->_status.at(code).second);
+	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
 	{
 		this->_response += "Content-Length: 75\r\n";
 		this->_response += "\n<html><body><h1>505</h1>"
