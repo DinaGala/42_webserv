@@ -48,7 +48,8 @@ void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std:
 	//this->_url = "http://localhost:8080/cgi-bin/random_number";
 	//this->_url = "http://localhost:8080/cgi-bin/test.py";
 	//this->_url = "http://localhost:8080/cgi-bin/watch.js";
-	this->_url = "http://localhost:8080/cgi-bin/watched.js";
+	//this->_url = "http://localhost:8080/cgi-bin/watched.js";
+	this->_url = "http://localhost:8080/cgi-bin/timeout";
 	std::vector<std::string> vec = this->_parseUrl(this->_url);
 	this->_searchFile(vec);
 	//this->_searchFile(this->_parseUrl(this->_url));
@@ -294,7 +295,7 @@ bool	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		if (now - epoch > timeout)
 			return (1);
 		int wait = waitpid(pid, &status, WNOHANG);
-		if (wait)
+		if (wait == -1)
 			error(this->_socket, "waitpid", "something went wrong");
 		if (WIFEXITED(status))
 			break ;

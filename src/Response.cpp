@@ -50,7 +50,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _code(0)
+Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10), _maxconnect(10), _connection(false), _code(0)
 {}
 
 Response::Response(const Response &r)
@@ -124,7 +124,10 @@ std::string	&Response::getResponse(int code)
 		if (access(this->_cgi_path.c_str(), F_OK))
 			return (this->sendError(404), this->_response);
 		if (access(this->_cgi_path.c_str(), X_OK))
+		{
+			std::cout << "getResponse " << this->_cgi_path.c_str() << std::endl;
 			return (this->sendError(403), this->_response);
+		}
 		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
 		if (cgi.executeCgi(this->_response, this->_timeout))

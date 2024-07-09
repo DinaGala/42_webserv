@@ -65,7 +65,7 @@ void	Cluster::runCluster(){
 		///////// RESPONSE /////////
 		///////////////////////////
 		Response	rsp;
-		rsp.setCgiPath("cgi-bin/random_number.c");
+		rsp.setCgiPath("cgi-bin/random_number");
 		rsp.setMethod("GET");
 		rsp.setSocket((int)socket.getSockfd());
 		std::string response = rsp.getResponse(200);
