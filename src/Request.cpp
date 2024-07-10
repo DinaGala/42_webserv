@@ -1,8 +1,30 @@
 #include "Request.hpp"
 
-Request::Request(const std::string & buffer, Server *server) : _buffer(buffer), _body(""), _status(INITIAL_STATUS), _server(server){
+Request::Request(const std::string & buffer, Socket *socket) : _buffer(buffer), _body(""), _status(INITIAL_STATUS), _socket(socket){
+	//TODO: Remain body?? new object?
+
+
+	//1. estic mirant be el socket? 			OK!
+	//2. el socket te el server ben associat?   OK!
+	//3. el server te els metodes guardats? 	OK!
 	
-		//TODO: Remain body?? new object?
+	
+	//Server *serv = _socket->getServer();
+	
+	//std::cout << "CHECK SEVER ADRESS: " << _socketgetServer() << std::endl;
+	std::cout << "CHECK IP: " << _socket->getServer().getIp() << std::endl;
+	
+	//std::cout << "CHECK PORT of SOCKET: " << _socket->getPort() << std::endl;
+	
+	//std::cout << "CHECK IP from serv: " << serv->getIp() << std::endl;
+	
+	//Server *server = _socket->getServer();
+	//std::vector<std::string> allowedMethodsVect = server->getAllowedMethods();
+	//std::cout << "CHECK IP vol2: " << server->getMaxBodySize() << std::endl;
+	//std::vector<std::string> allowedMethodsVect = _socket->getServer()->getAllowedMethods();
+	/*for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
+		std::cout << "Method allowed" << *ittt << std::endl;
+	}*/
 }
 
 Request::~Request() {
@@ -46,8 +68,16 @@ void	Request::parseRequestLine() {
 	createRequestLineVector(_buffer.substr(0, posBuffer));
 	if (_requestLine.size() != 3)
 		throw std::runtime_error("Error parsing Request: wrong request line");
+	
+	std::cout << "Paass[49]"<< std::endl;
+	
+	std::vector<std::string> allowedMethodsVect = _socket->getServer().getAllowedMethods();
 
-	std::vector<std::string> allowedMethodsVect = _server->getAllowedMethods();
+	std::cout << "Paass[53]"<< std::endl;
+
+	for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
+		std::cout << "Method allowed" << *ittt << std::endl;
+	}
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	
 	if (it == allowedMethodsVect.end())
@@ -63,24 +93,15 @@ void	Request::parseRequestLine() {
 }
 
 void Request::createRequestLineVector(std::string requestLineStr){
-	std::cout << "request line: " << requestLineStr << std::endl;
+	std::cout << "REQUEST LINE: " << requestLineStr << std::endl;
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
 		this->_requestLine.push_back(element);
-		std::cout << "element req line " << element << std::endl;
+		std::cout << "PARAMS REQ LINE " << element << std::endl;
 	}
+	std::cout << "----END request line -----"<< std::endl;
 }
-
-//Pending to use configFile method allowed vector
-std::vector<std::string>  Request::createValidRequestVector(){
-	std::vector<std::string> requestVect;
-	requestVect.push_back("GET");
-	requestVect.push_back("POST");
-	requestVect.push_back("DELETE");
-	return requestVect;
-}
-
 
 //----------------- PARSING HEADERS -----------------
 /*POST /submit-form HTTP/1.1\r\n

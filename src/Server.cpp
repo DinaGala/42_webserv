@@ -21,7 +21,7 @@ const std::vector<int> Server::getPort() const
 	return (_ports);
 }
 
-const std::vector<std::string> 		Server::getAllowedMethods() const
+const std::vector<std::string> Server::getAllowedMethods() const
 {
 	return (_allowedMethods);
 }

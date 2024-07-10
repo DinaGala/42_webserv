@@ -19,8 +19,8 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	createServers();
 	createSockets();
-	std::cout << "---- Num servers " << _servers.size();
-	std::cout << " | Num sockets " << _sockets.size() << "-------" << std::endl;
+	std::cout << "----Num servers " << _servers.size();
+	std::cout << " | Num sockets " << _sockets.size() << "----" << std::endl;
 }
 
 void	Cluster::createServers(){
@@ -35,7 +35,7 @@ void	Cluster::createSockets(){
 		Server server = (Server)*itServers;
 		std::vector<int> ports = server.getPort();
 		for (std::vector<int>::iterator itPorts = ports.begin(); itPorts != ports.end(); itPorts++) {
-			Socket socket(server, *itPorts);
+			Socket socket(*itServers, *itPorts);
 			socket.setUpSocket();
 			this->_sockets.push_back(socket);
 		}
@@ -56,7 +56,7 @@ void	Cluster::runCluster(){
 		int bytesRead = read(connection, buffer, 100);
 		if (bytesRead < 0)
 			return; //TODO: manage error
-		Request request(buffer, &server); //Add server and socket
+		Request request(buffer, &socket); //Add server and socket
 		request.parseRequest();
 	 
 		//request.manageRequest(); 

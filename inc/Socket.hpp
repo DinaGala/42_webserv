@@ -1,21 +1,23 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
-# include "Cluster.hpp"
+# include "Utils.hpp"
 
-class Server;
+
 
 class Socket {
 	private:
-		long				_sockfd;
-		std::string			_ipAddress;
+		Server				&_server;		
 		int					_port;
+		std::string			_ipAddress;
+
+		long				_sockfd;
 		struct sockaddr_in	_sockaddr;
 		std::vector<int>	_nClients; //TODO: pending multiplexing
-		Server				*_server;
+
 	
 	public:
-		Socket(Server server, int port);
+		Socket(Server &server, int port);
 		~Socket();
 
 		void	setUpSocket();
@@ -29,7 +31,9 @@ class Socket {
 
 		long				getSockfd() const;
 		struct sockaddr_in	getSockaddr() const;
-		Server				*getServer() const;
+		Server 			&getServer() const;
+		const std::string 				getIp() const;
+		int			getPort() const;
 
 };
 

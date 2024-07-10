@@ -1,9 +1,18 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server server, int port) {
-	//TODO: configFile
-	setIpAddress(server.getIp());
-	setPort(port);
+Socket::Socket(Server &server, int port) : _server(server), _port(port){
+	_ipAddress = server.getIp();
+	//_server = server;
+
+	/*std::vector<std::string> allowedMethodsVect = this->getServer()->getAllowedMethods();
+	for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
+		std::cout << "Method allowed in socket FROM SERVER: " << *ittt << std::endl;
+	}
+	std::cout << "IP in socket FROM SERVER: " << _server->getIp() << std::endl;
+
+
+	std::cout << "CHECK SEVER ADRESS in SOCKET: " << this->getServer() << std::endl;
+	std::cout << "CHECK IP in SOCKET: " << this->getServer()->getIp() << std::endl;*/
 }
 
 Socket::~Socket() {
@@ -84,6 +93,16 @@ struct sockaddr_in Socket::getSockaddr() const {
 	return(_sockaddr);
 }
 
-Server* Socket::getServer() const {
+Server &Socket::getServer() const {
 	return(_server);
+}
+
+const std::string Socket::getIp() const
+{
+	return (_ipAddress);
+}
+
+int Socket::getPort() const
+{
+	return (_port);
 }
