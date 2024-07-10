@@ -47,9 +47,9 @@ void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std:
 	//this->_url = url;
 	//this->_url = "http://localhost:8080/cgi-bin/random_number";
 	//this->_url = "http://localhost:8080/cgi-bin/test.py";
-	//this->_url = "http://localhost:8080/cgi-bin/watch.js";
-	//this->_url = "http://localhost:8080/cgi-bin/watched.js";
-	this->_url = "http://localhost:8080/cgi-bin/timeout";
+	this->_url = "http://localhost:8080/cgi-bin/watch.js";
+	//this->_url = "http://localhost:8080/cgi-bin/watched.js"; // 404
+	//this->_url = "http://localhost:8080/cgi-bin/timeout"; // 504
 	std::vector<std::string> vec = this->_parseUrl(this->_url);
 	this->_searchFile(vec);
 	//this->_searchFile(this->_parseUrl(this->_url));
@@ -244,7 +244,7 @@ std::vector<std::string> Cgi::getArgs(void)
 		{
 			ext = this->_env["SCRIPT_NAME"].substr(found);
 			if (this->_pairs.find(ext) == this->_pairs.end())
-				error(this->_socket, "cgi", "extension " + ext + " not allowed");
+				return (args);
 			args.push_back(this->_pairs[ext]);
 		}
 		args.push_back(this->_env["SCRIPT_NAME"]);
@@ -255,8 +255,13 @@ std::vector<std::string> Cgi::getArgs(void)
 
 void	Cgi::_childProcess(int *req, int *cgi)
 {
-	char	**args = this->_vecToMat(this->getArgs());
-	char	**env = this->_getEnv();
+	char	**args;
+	char	**env;
+	std::vector<std::string>	vec = this->getArgs();
+	if (vec.size() == 0)
+		exit(400);
+	args = this->_vecToMat(this->getArgs());
+	env = this->_getEnv();
 	if (close(req[1]) || close(cgi[0]))
 		error(this->_socket, "close", "failed to close pipe in child process");
 	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
@@ -264,10 +269,11 @@ void	Cgi::_childProcess(int *req, int *cgi)
 	if (close(req[0]) || close(cgi[1]))
 		error(this->_socket, "close", "failed to close pipe in child process");
 	execve(args[0], args, env);
+	exit(1);
 	error(this->_socket, "execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 }
 
-bool	Cgi::executeCgi(std::string &cgi_response, int timeout)
+int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 {
 	pid_t	pid;
 	int		status;
@@ -285,17 +291,14 @@ bool	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		error(this->_socket, "fork", "unable to create a new process");
 	if (pid == 0)
 		this->_childProcess(req, cgi);
-	if (close(req[0]) || close(cgi[1]))
-		std::cerr << "Error: close" << std::endl;
-	if (close(req[1]))
+	if (close(req[0]) || close(cgi[1]) || close(req[1]))
 		error(this->_socket, "close", "failed to close pipe");
 	while (1)
 	{
 		std::time_t now = std::time(NULL);
 		if (now - epoch > timeout)
 			return (1);
-		int wait = waitpid(pid, &status, WNOHANG);
-		if (wait == -1)
+		if (waitpid(pid, &status, WNOHANG) == -1)
 			error(this->_socket, "waitpid", "something went wrong");
 		if (WIFEXITED(status))
 			break ;
@@ -309,7 +312,5 @@ bool	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	}
 	if (close(cgi[0]))
 		error(this->_socket, "close", "failed to close pipe");
-	if (cgi_response == "")
-		error(this->_socket, "CGI", "empty response");
-	return (0);
+	return (WEXITSTATUS(status));
 }

@@ -23,7 +23,7 @@ class	Cgi
 	public:
 		Cgi(int port, const std::string &method, int socket);
 		~Cgi();
-		bool	executeCgi(std::string &response, int timeout);
+		int		executeCgi(std::string &response, int timeout);
 		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s);
 
 
