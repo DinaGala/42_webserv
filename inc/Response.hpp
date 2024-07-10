@@ -22,6 +22,7 @@ class	Response
 		void		setBody(const std::string &msg);
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
+		//void		setStatus(const std::map<int, std::pair<std::string, std::string> > &status);
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
@@ -37,6 +38,7 @@ class	Response
 	private:
 		static std::map<int, std::pair<std::string, std::string> >	_status;
 		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		//std::map<int, std::pair<std::string, std::string> >	*_status;
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
@@ -49,11 +51,12 @@ class	Response
 		int				_maxconnect; //tmp
 		bool			_connection; //tmp
 		unsigned int	_code;
+		Request			*_request;
 
 		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
-		Request		*_request;
+		void		_handlePost(void);
 };
 
 #endif

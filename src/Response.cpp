@@ -32,6 +32,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 	error[200] = std::make_pair("OK", "");
 	error[201] = std::make_pair("Created", "");
 	error[204] = std::make_pair("No Content", "");
+	error[301] = std::make_pair("Moved Permanently", "");
 	error[302] = std::make_pair("Found", "");
 	error[400] = std::make_pair("Bad Request", "errors/400.html");
 	error[403] = std::make_pair("Forbidden", "errors/403.html");
@@ -50,7 +51,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10), _maxconnect(10), _connection(false), _code(0)
+Response::Response(): _path("./html/form.html"), _servname("webserv"), _timeout(10), _maxconnect(10), _connection(false), _code(0)
 {}
 
 Response::Response(const Response &r)
@@ -97,6 +98,11 @@ void	Response::setMethod(const std::string &meth)
 {
 	this->_method = meth;
 }
+/*
+void	Response::setStatus(const std::map<int, std::pair<std::string, std::string> > &status)
+{
+	this->_status = &status;
+}*/
 ///////////////////////////////////////////////////////////////////////////
 
 //parses Cgi's response: separates headers from body
@@ -104,9 +110,9 @@ void	Response::_parseCgiResponse(void)
 {
 	std::string::size_type	found = this->_response.find("\n\n");
 
-	if (found == std::string::npos)
+	if (found == std::string::npos)// if not \n\n
 		found = this->_response.find("\r\n\r\n");
-	if (found == std::string::npos)
+	if (found == std::string::npos)// if not \r\n\r\n => cgi's response is full body
 	{
 		this->_body = this->_response;
 		this->_response = "";
@@ -119,32 +125,35 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::getResponse(int code)
 {
+	this->_cgi_path = ""; // TMP DELETE
 	if (this->_cgi_path.empty() == false) // if there's cgi
 	{
-		if (access(this->_cgi_path.c_str(), F_OK))
+		if (access(this->_cgi_path.c_str(), F_OK)) // if cgi exists
 			return (this->sendError(404), this->_response);
-		if (access(this->_cgi_path.c_str(), X_OK))
-		{
-			std::cout << "getResponse " << this->_cgi_path.c_str() << std::endl;
+		if (access(this->_cgi_path.c_str(), X_OK)) // if cgi is executable
 			return (this->sendError(403), this->_response);
-		}
 		Cgi	cgi(8080, this->_method, this->_socket);
 		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
-		if (cgi.executeCgi(this->_response, this->_timeout))
-			return (sendError(504), this->_response);
+		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
+		if (cgi_status == 1)
+			std::cerr << "Error: cgi: extension not allowed" << std::endl;
+		if (cgi_status) // if cgi returns status != 0 -> error
+			return (sendError(cgi_status), this->_response);
 		this->_parseCgiResponse();
 	}
+	if (this->_method == "POST")
+		this->_handlePost();
 	this->putGeneralHeaders();
-	if (this->_body == "" && this->_path.empty() == false)
+	if (this->_body == "" && !this->_path.empty())// if no body but path
 	{
 		int error = this->fileToBody(this->_path);
 		if (error)
 			return (sendError(error), this->_response);
 	}
-	if (!this->_body.empty())
+	if (!this->_body.empty())// if body
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
-	this->_response += this->_body;
-	this->_response.insert(0, this->putStatusLine(code));
+	this->_response += this->_body;// add body to response
+	this->_response.insert(0, this->putStatusLine(code));// put status line
 	return (this->_response);
 }
 
@@ -170,6 +179,12 @@ void	Response::putGeneralHeaders(void)
 	else
 		this->_response += "Connection: keep-alive\r\n";
 }
+
+void	Response::_handlePost()
+{
+	
+}
+
 
 //checks mime type + adds specific POST headers in the response
 bool	Response::putPostHeaders(const std::string &file)
