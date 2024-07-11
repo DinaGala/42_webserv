@@ -53,10 +53,11 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 Response::Response() 
 {
-	this->_method = "GET";
+	this->_method = "POST";
 	this->_path = "cgi-bin/test.py";
 	this->_path = "./html/form.html";
 	this->_path = "http://localhost:8080/cgi-bin/test.py";
+	this->_path = "./cgi-bin/form_post.py";
 	this->_servname = "webserv";
 	this->_timeout = 10;
 	this->_maxconnect = 10;
@@ -64,8 +65,8 @@ Response::Response()
 	this->_code = 0;
 	this->_host = "localhost:8080";
 	this->_port = 8080;
-	this->_cgi = false;
 	this->_cgi = true;
+	this->_cgi = false;
 }
 
 Response::Response(const Response &r)
@@ -176,8 +177,8 @@ std::string	&Response::getResponse(int code)
 			return (sendError(cgi_status), this->_response);
 		this->_parseCgiResponse();
 	}
-	//if (this->_method == "POST")
-	//	this->_handlePost();
+	if (this->_method == "POST")
+		return (this->_handlePost(), this->_response);
 	this->putGeneralHeaders();
 	if (this->_body == "" && !this->_path.empty())// if no body but path
 	{
@@ -195,6 +196,17 @@ std::string	&Response::getResponse(int code)
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
+
+void	Response::_handlePost()
+{
+	std::cout << "\033[1;32mHANDLEPOST\033[0m" << std::endl;
+	Cgi	post(this->_port, this->_method, this->_socket);
+	post.setEnvVars(this->_path, this->_host, this->_servname);
+	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
+	std::cout << "\033[1;32mhandlePost: path " << this->_path << " status " << cgi_status << "\033[0m" << std::endl;
+	if (cgi_status)
+		this->sendError(cgi_status);
+}
 
 //puts status line in the response
 std::string	Response::putStatusLine(int code)
@@ -216,17 +228,6 @@ void	Response::putGeneralHeaders(void)
 	else
 		this->_response += "Connection: keep-alive\r\n";
 }
-
-void	Response::_handlePost()
-{
-	std::cout << "\033[1;31mHANDLEPOST\033[0m" << std::endl;
-	Cgi	post(this->_port, this->_method, this->_socket);
-	post.setEnvVars(this->_path, this->_host, this->_servname);
-	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
-	if (cgi_status == 1)
-		this->sendError(400);
-}
-
 
 //checks mime type + adds specific POST headers in the response
 bool	Response::putPostHeaders(const std::string &file)

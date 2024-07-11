@@ -242,15 +242,16 @@ std::vector<std::string>	Cgi::_parseUrl(const std::string &url)
 std::vector<std::string> Cgi::getArgs(void)
 {
 		std::vector<std::string> args;
-		std::string::size_type found = this->_env["SCRIPT_NAME"].find(".");
+		std::string::size_type found = this->_env["SCRIPT_NAME"].find_last_of(".");
 		std::string	ext;
 
 		if (found != std::string::npos)
 		{
 			ext = this->_env["SCRIPT_NAME"].substr(found);
+			std::cerr << "\033[1;31m getArgs ext " << ext << "\033[1;31m" << std::endl;
 			if (this->_pairs.find(ext) == this->_pairs.end())
 			{
-				std::cerr << "\033[1;31mgetArgs args size()" << args.size()<< "\033[0m" << std::endl;
+				std::cerr << "\033[1;31mgetArgs args size " << args.size()<< "\033[0m" << std::endl;
 				return (args);
 			}
 			args.push_back(this->_pairs[ext]);
@@ -272,7 +273,7 @@ void	Cgi::_childProcess(int *req, int *cgi)
 	std::vector<std::string>	vec = this->getArgs();
 	std::cerr << "\033[1;31mchildProcess vec.size()" << vec.size()<< "\033[0m" << std::endl;
 	if (vec.size() == 0)
-		exit(4);
+		exit(40);
 	args = this->_vecToMat(this->getArgs());
 	env = this->_getEnv();
 	if (close(req[1]) || close(cgi[0]))
@@ -328,5 +329,5 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	}
 	if (close(cgi[0]))
 		error(this->_socket, "close", "failed to close pipe");
-	return (WEXITSTATUS(status) * 100);
+	return (WEXITSTATUS(status) * 10);
 }
