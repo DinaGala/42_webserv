@@ -51,12 +51,26 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response(): _path("./html/form.html"), _servname("webserv"), _timeout(10), _maxconnect(10), _connection(false), _code(0)
-{}
+Response::Response() 
+{
+	this->_method = "GET";
+	this->_path = "cgi-bin/test.py";
+	this->_path = "./html/form.html";
+	this->_path = "http://localhost:8080/cgi-bin/test.py";
+	this->_servname = "webserv";
+	this->_timeout = 10;
+	this->_maxconnect = 10;
+	this->_connection = false;
+	this->_code = 0;
+	this->_host = "localhost:8080";
+	this->_port = 8080;
+	this->_cgi = false;
+	this->_cgi = true;
+}
 
 Response::Response(const Response &r)
 {
-	this->_cgi_path = r._cgi_path;
+	this->_path = r._path;
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
@@ -66,7 +80,7 @@ Response::~Response() {}
 
 Response	&Response::operator=(const Response &r)
 {
-	this->_cgi_path = r._cgi_path;
+	this->_path = r._path;
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
@@ -81,7 +95,7 @@ void	Response::setBody(const std::string &msg)
 
 void	Response::setCgiPath(const std::string &cgi)
 {
-	this->_cgi_path = cgi;
+	this->_path = cgi;
 }
 
 void	Response::setCode(const int &code)
@@ -105,6 +119,28 @@ void	Response::setStatus(const std::map<int, std::pair<std::string, std::string>
 }*/
 ///////////////////////////////////////////////////////////////////////////
 
+std::string	Response::_parseUrl(const std::string &url)
+{
+	std::string::size_type	found = url.find(this->_host);
+	std::string::size_type	next;
+	std::string str;
+
+	if (found != std::string::npos)
+		found += this->_host.size() + 1;
+	else
+		found = 0;
+	next = url.find("?", found);
+	if (next != std::string::npos)
+	{
+		this->_reqbody = url.substr(next, url.size());
+		str = url.substr(found, next);
+	}
+	else
+		str = url.substr(found);
+	std::cout << "\033[1;31mparseUrl: Parsed OK!\033[0m" << std::endl;
+	return (str);
+}
+
 //parses Cgi's response: separates headers from body
 void	Response::_parseCgiResponse(void)
 {
@@ -125,27 +161,28 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::getResponse(int code)
 {
-	this->_cgi_path = ""; // TMP DELETE
-	if (this->_cgi_path.empty() == false) // if there's cgi
+	this->_path = this->_parseUrl(this->_path);
+	if (this->_cgi) // if there's cgi
 	{
-		if (access(this->_cgi_path.c_str(), F_OK)) // if cgi exists
+		if (access(this->_path.c_str(), F_OK)) // if cgi exists
 			return (this->sendError(404), this->_response);
-		if (access(this->_cgi_path.c_str(), X_OK)) // if cgi is executable
+		if (access(this->_path.c_str(), X_OK)) // if cgi is executable
 			return (this->sendError(403), this->_response);
-		Cgi	cgi(8080, this->_method, this->_socket);
-		cgi.setEnvVars(this->_cgi_path, "localhost", "serv_name");
+		Cgi	cgi(this->_port, this->_method, this->_socket);
+		cgi.setEnvVars(this->_path, this->_host, this->_servname);
 		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
-		if (cgi_status == 1)
-			std::cerr << "Error: cgi: extension not allowed" << std::endl;
+		std::cout << "\033[1;32mgetResponse: cgi status"<< cgi_status << "\033[0m" << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
 			return (sendError(cgi_status), this->_response);
 		this->_parseCgiResponse();
 	}
-	if (this->_method == "POST")
-		this->_handlePost();
+	//if (this->_method == "POST")
+	//	this->_handlePost();
 	this->putGeneralHeaders();
 	if (this->_body == "" && !this->_path.empty())// if no body but path
 	{
+		std::cout << "getResponse: path " << this->_path << std::endl;
+		std::cout << "getResponse: body " << this->_body << std::endl;
 		int error = this->fileToBody(this->_path);
 		if (error)
 			return (sendError(error), this->_response);
@@ -162,7 +199,7 @@ std::string	&Response::getResponse(int code)
 //puts status line in the response
 std::string	Response::putStatusLine(int code)
 {
-	return ("HTTP/1.1 " + ft_itoa(code) + "\r\n");
+	return ("HTTP/1.1 " + ft_itoa(code) + " " + this->_status[code].first + "\r\n");
 }
 
 //puts general header in the response: date, server, keep-alive and connection
@@ -182,7 +219,12 @@ void	Response::putGeneralHeaders(void)
 
 void	Response::_handlePost()
 {
-	
+	std::cout << "\033[1;31mHANDLEPOST\033[0m" << std::endl;
+	Cgi	post(this->_port, this->_method, this->_socket);
+	post.setEnvVars(this->_path, this->_host, this->_servname);
+	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
+	if (cgi_status == 1)
+		this->sendError(400);
 }
 
 

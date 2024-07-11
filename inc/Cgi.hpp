@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <ctime>
+#include "Utils.hpp"
 
 //It needs:
 // port, server, method, host
@@ -37,14 +38,14 @@ class	Cgi
 		Cgi();
 		Cgi(const Cgi &c);
 		Cgi		&operator=(const Cgi &c);
-		void	_searchFile(std::vector<std::string> vec);
+		//void	_searchFile(std::vector<std::string> vec);
 		void	_setPathInfo(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
 		void	_setQueryString(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
 		void	_childProcess(int *fdreq, int *fdcgi);
 		char	**_getEnv(void);
 		char	**_vecToMat(const std::vector<std::string> &vec);
 		std::vector<std::string>	getArgs(void);
-		std::vector<std::string>	_parseUrl(const std::string &url);
+		//std::vector<std::string>	_parseUrl(const std::string &url);
 };
 
 #endif

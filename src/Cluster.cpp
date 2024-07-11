@@ -56,7 +56,7 @@ void	Cluster::runCluster(){
 		if (bytesRead < 0)
 			return; //TODO: manage error
 		buffer[bytesRead] = '\0';
-		std::cout << "Request: " << buffer;
+	//	std::cout << "Request: " << buffer;
 		Request request(buffer); //Add server and socket
 		request.parseRequest(); //
 		//request.manageRequest(); 
@@ -66,7 +66,6 @@ void	Cluster::runCluster(){
 		///////////////////////////
 		Response	rsp;
 		//rsp.setCgiPath("cgi-bin/random_number");
-		rsp.setMethod("GET");
 		rsp.setSocket((int)socket.getSockfd());
 		std::string response = rsp.getResponse(200);
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;

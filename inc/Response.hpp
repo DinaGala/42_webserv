@@ -42,14 +42,17 @@ class	Response
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
-		std::string		_cgi_path;
+		//std::string		_cgi_path;
 		std::string		_path; //tmp
 		std::string		_servname; //tmp
 		std::string		_method; //tmp
+		std::string		_host; //tmp
 		int				_socket; //tmp
+		int				_port; //tmp
 		int				_timeout; //tmp
 		int				_maxconnect; //tmp
 		bool			_connection; //tmp
+		bool			_cgi; //tmp
 		unsigned int	_code;
 		Request			*_request;
 
@@ -57,6 +60,7 @@ class	Response
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
 		void		_handlePost(void);
+		std::string	_parseUrl(const std::string &url);
 };
 
 #endif
