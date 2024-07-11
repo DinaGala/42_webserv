@@ -5,9 +5,6 @@
 
 class Server;
 class Socket;
-class Request;
-class Response;
-
 
 class Cluster {
 	private:

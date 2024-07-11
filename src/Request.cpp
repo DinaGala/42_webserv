@@ -1,33 +1,25 @@
 #include "Request.hpp"
 
-Request::Request(const std::string & buffer, Socket *socket) : _buffer(buffer), _body(""), _status(INITIAL_STATUS), _socket(socket){
-	//TODO: Remain body?? new object?
-
-
-	//1. estic mirant be el socket? 			OK!
-	//2. el socket te el server ben associat?   OK!
-	//3. el server te els metodes guardats? 	OK!
-	
-	
-	//Server *serv = _socket->getServer();
-	
-	//std::cout << "CHECK SEVER ADRESS: " << _socketgetServer() << std::endl;
-	std::cout << "CHECK IP: " << _socket->getServer().getIp() << std::endl;
-	
-	//std::cout << "CHECK PORT of SOCKET: " << _socket->getPort() << std::endl;
-	
-	//std::cout << "CHECK IP from serv: " << serv->getIp() << std::endl;
-	
-	//Server *server = _socket->getServer();
-	//std::vector<std::string> allowedMethodsVect = server->getAllowedMethods();
-	//std::cout << "CHECK IP vol2: " << server->getMaxBodySize() << std::endl;
-	//std::vector<std::string> allowedMethodsVect = _socket->getServer()->getAllowedMethods();
-	/*for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
-		std::cout << "Method allowed" << *ittt << std::endl;
-	}*/
+Request::Request(const std::string& buffer, Socket& socket) : _buffer(buffer), _status(INITIAL_STATUS), _socket(socket){
+	initParamsRequest();
 }
 
 Request::~Request() {
+}
+
+void	Request::initParamsRequest() {
+	_requestLine.clear();
+	_headers.clear();
+	_body = "";
+	_errorCode = 200; //TODO: error code default?????
+	_maxBodySize = _socket.getServer().getMaxBodySize();
+	_errorPages = _socket.getServer().getErrorPages();
+	_index =  "";
+	_autoIndex = _socket.getServer().getAutoIndex();
+	_allowUpload = false;
+	_uploadDir = "";
+	_return = "";
+	_cgiConf = _socket.getServer().getCgiConf();
 }
 
 /*	REQUEST LINE: method | URI and protocol | version
@@ -36,9 +28,7 @@ Request::~Request() {
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
 
-
 /*----------------- PARSING REQUEST LINE -----------------*/
-
 void	Request::parseRequest() {
 	try {
 		if (_status == INITIAL_STATUS){
@@ -58,8 +48,6 @@ void	Request::parseRequest() {
 
 /*----------------- PARSING REQUEST LINE -----------------*/
 void	Request::parseRequestLine() {
-	std::cout << "REQUEST: " << std::endl << _buffer << std::endl << "----end Request---" << std::endl;
-
 	size_t posBuffer = _buffer.find("\r\n");
 	if (posBuffer == std::string::npos){
 		std::cout << "not complete request line: " << std::endl;
@@ -71,7 +59,7 @@ void	Request::parseRequestLine() {
 	
 	std::cout << "Paass[49]"<< std::endl;
 	
-	std::vector<std::string> allowedMethodsVect = _socket->getServer().getAllowedMethods();
+	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
 
 	std::cout << "Paass[53]"<< std::endl;
 
@@ -103,7 +91,8 @@ void Request::createRequestLineVector(std::string requestLineStr){
 	std::cout << "----END request line -----"<< std::endl;
 }
 
-//----------------- PARSING HEADERS -----------------
+/*----------------- PARSING HEADERS -----------------*/
+
 /*POST /submit-form HTTP/1.1\r\n
 Host: www.example.com\r\n
 User-Agent: Mozilla/5.0\r\n
@@ -240,4 +229,66 @@ uint64_t	Request::convertStrToHex(std::string line){
 	return result;
 }
 
+// _____________  GETTERS _____________ 
 
+const Socket&  Request::getSocket() const {
+	return (_socket);
+}
+
+const std::map<int, std::string>& Request::getErrorPages() const {
+	return (_errorPages);
+}
+
+const std::string& Request::getIndex() const {
+	return (_index);
+}
+
+bool Request::getAutoIndex() const {
+	return (_autoIndex);
+}
+
+bool Request::getAllowUpload() const {
+	return (_allowUpload);
+}
+
+const std::string& 	Request::getUploadDir() const {
+	return (_uploadDir);
+}
+
+const std::string& 	Request::getReturn() const {
+	return (_return);
+}
+
+const std::map<std::string, std::string>&  Request::getCgiConf() const {
+	return (_cgiConf);
+}
+
+// _____________  SETTERS _____________ 
+
+void Request::setErrorPages(const std::map<int, std::string>&  errorPages) {
+	_errorPages = errorPages;
+}
+
+void Request::setIndex(const std::string& index) {
+	_index = index;
+}
+
+void Request::setAutoIndex(bool autoindex) {
+	_autoIndex = autoindex;
+}
+
+void Request::setAllowUpload(bool allowUpload) {
+	_allowUpload = allowUpload;
+}
+
+void Request::setUploadDir(const std::string& uploadDir) {
+	_uploadDir = uploadDir;
+}
+
+void Request::setReturn(const std::string& alias) {
+	_return = alias;
+}
+
+void Request::setCgiConf(const std::map<std::string, std::string>& cgiConf) {
+	_cgiConf = cgiConf;
+}

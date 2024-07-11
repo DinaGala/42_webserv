@@ -1,18 +1,12 @@
 #include "Socket.hpp"
 
 Socket::Socket(Server &server, int port) : _server(server), _port(port){
-	_ipAddress = server.getIp();
-	//_server = server;
+	//_ipAddress = server.getIpAdress();
 
-	/*std::vector<std::string> allowedMethodsVect = this->getServer()->getAllowedMethods();
-	for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
-		std::cout << "Method allowed in socket FROM SERVER: " << *ittt << std::endl;
-	}
-	std::cout << "IP in socket FROM SERVER: " << _server->getIp() << std::endl;
+	//std::cout << "IP ADRESS " << _ipAddress << " PORT: " << _port << std::endl;
 
-
-	std::cout << "CHECK SEVER ADRESS in SOCKET: " << this->getServer() << std::endl;
-	std::cout << "CHECK IP in SOCKET: " << this->getServer()->getIp() << std::endl;*/
+	setIpAddress("127.0.0.1");
+	setPort(8080);
 }
 
 Socket::~Socket() {
@@ -46,8 +40,8 @@ void	Socket::initSocket() {
 	in_port_t      sin_port;   // port in network byte order
 	struct in_addr sin_addr;   // internet address
 	};
-*/
-/*BIND
+
+  BIND
 	int bind(int sockfd, const sockaddr *addr, socklen_t addrlen);
 	bind - assign an IP address and port to the socket.
 */
@@ -89,20 +83,18 @@ long	Socket::getSockfd() const {
 	return(_sockfd);
 }
 
-struct sockaddr_in Socket::getSockaddr() const {
+const struct sockaddr_in& Socket::getSockaddr() const {
 	return(_sockaddr);
 }
 
-Server &Socket::getServer() const {
+const Server& Socket::getServer() const {
 	return(_server);
 }
 
-const std::string Socket::getIp() const
-{
+const std::string& Socket::getIpAdress() const {
 	return (_ipAddress);
 }
 
-int Socket::getPort() const
-{
+int Socket::getPort() const {
 	return (_port);
 }

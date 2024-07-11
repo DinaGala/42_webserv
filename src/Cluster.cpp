@@ -1,6 +1,6 @@
 #include "Cluster.hpp"
 
-Cluster::Cluster() {	
+Cluster::Cluster() {
 }
 
 Cluster::~Cluster() {
@@ -15,12 +15,9 @@ void	Cluster::setUpCluster(int ac, char **av){
 	{
         _sconf = Parse::configParse();
 			std::cout << _sconf;
-	}	
-	
+	}
 	createServers();
 	createSockets();
-	std::cout << "----Num servers " << _servers.size();
-	std::cout << " | Num sockets " << _sockets.size() << "----" << std::endl;
 }
 
 void	Cluster::createServers(){
@@ -28,18 +25,28 @@ void	Cluster::createServers(){
 		Server server(*it);
 		this->_servers.push_back(server);
 	}
+	std::cout << "----Num servers " << _servers.size();
 }
 
 void	Cluster::createSockets(){
-	for (std::vector<Server>::iterator itServers = _servers.begin(); itServers != _servers.end(); itServers++) {
-		Server server = (Server)*itServers;
-		std::vector<int> ports = server.getPort();
-		for (std::vector<int>::iterator itPorts = ports.begin(); itPorts != ports.end(); itPorts++) {
-			Socket socket(*itServers, *itPorts);
+
+	Server server(_sconf[0]);
+	
+	for (int i=0; i < 1; i++) {
+		Socket socket(server, 8080);
+		socket.setUpSocket();
+		this->_sockets.push_back(socket);
+	}
+
+	/*for (size_t i = 0; i < _servers.size(); i++) {
+		std::vector<int> ports = _servers[i].getPort();
+		for (size_t j = 0; j < ports.size(); j++) {
+			Socket socket(_servers[i], ports[j]);
 			socket.setUpSocket();
 			this->_sockets.push_back(socket);
 		}
-	}
+	}*/
+	std::cout << " | Num sockets " << _sockets.size() << "----" << std::endl;
 }
 
 
@@ -49,14 +56,15 @@ void	Cluster::runCluster(){
 
 	while (1){ //manage signals
 		int	connection = acceptConnection(socket);
-
 		// Read from the connection
-		
 		char buffer[1000];
 		int bytesRead = read(connection, buffer, 100);
 		if (bytesRead < 0)
 			return; //TODO: manage error
-		Request request(buffer, &socket); //Add server and socket
+
+		std::cout << "REQUEST: " << std::endl << buffer << std::endl << "----end Request---" << std::endl;
+
+		Request request(buffer, socket); //Add server and socket
 		request.parseRequest();
 	 
 		//request.manageRequest(); 
