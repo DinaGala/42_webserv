@@ -198,6 +198,28 @@ std::string	&Response::getResponse(int code)
 	return (this->_response);
 }
 
+void	Response::_handleDelete()
+{
+	if (access(this->_path.c_str(), F_OK))
+	{
+		this->sendError(404);
+		return ;
+	}
+	if (access(this->_path.c_str(), W_OK))
+	{
+		this->sendError(403);
+		return ;
+	}
+	if (std::remove(this->_path.c_str()))
+	{
+		this->sendError(500);
+		return ;
+	}
+	this->putStatusLine(204); // Success + No Content
+	this->putGeneralHeaders;
+}
+
+
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
 
 //>1. GET form

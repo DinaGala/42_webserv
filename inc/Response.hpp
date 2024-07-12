@@ -60,6 +60,7 @@ class	Response
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
 		void		_handlePost(void);
+		void		_handleDelete(void);
 		std::string	_parseUrl(const std::string &url);
 };
 
