@@ -55,9 +55,10 @@ Response::Response()
 {
 	this->_method = "POST";
 	this->_path = "cgi-bin/test.py";
+	this->_path = "./cgi-bin/form_post.py"; // not found
+	this->_path = "http://localhost:8080/cgi-bin/post_req.sh";
+	this->_path = "./cgi-bin/post_test.js";
 	this->_path = "./html/form.html";
-	this->_path = "http://localhost:8080/cgi-bin/test.py";
-	this->_path = "./cgi-bin/form_post.py";
 	this->_servname = "webserv";
 	this->_timeout = 10;
 	this->_maxconnect = 10;
@@ -163,6 +164,10 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::getResponse(int code)
 {
 	this->_path = this->_parseUrl(this->_path);
+	if (this->_method == "POST")
+		return (this->_handlePost(), this->_response);
+	else if (this->_method == "DELETE")
+		return (this->_response);
 	if (this->_cgi) // if there's cgi
 	{
 		if (access(this->_path.c_str(), F_OK)) // if cgi exists
@@ -177,8 +182,6 @@ std::string	&Response::getResponse(int code)
 			return (sendError(cgi_status), this->_response);
 		this->_parseCgiResponse();
 	}
-	if (this->_method == "POST")
-		return (this->_handlePost(), this->_response);
 	this->putGeneralHeaders();
 	if (this->_body == "" && !this->_path.empty())// if no body but path
 	{
@@ -197,9 +200,33 @@ std::string	&Response::getResponse(int code)
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
 
+//>1. GET form
+//< return html form
+//>2. POST form(?) + body
+//< return No Content + html form / No Content + html submission confirmation
+
 void	Response::_handlePost()
 {
 	std::cout << "\033[1;32mHANDLEPOST\033[0m" << std::endl;
+	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
+	{
+		this->sendError(404);
+		return ;
+	}
+	if (access(this->_path.c_str(), X_OK)) // if file is executable = 0
+	{
+		int error = fileToBody(this->_path);
+		if (error)
+			sendError(error);
+		else
+		{
+			this->putGeneralHeaders();
+			this->_response.insert(0, this->putStatusLine(200));// put status line
+			this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
+			this->_response += this->_body;
+		}
+		return ;
+	}
 	Cgi	post(this->_port, this->_method, this->_socket);
 	post.setEnvVars(this->_path, this->_host, this->_servname);
 	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
@@ -282,6 +309,9 @@ int	Response::fileToBody(const std::string &path)
 void	Response::sendError(int code)
 {
 	this->_response = "Content-Type: text/html\r\n";
+	//std::cout << "\033[1;33msendError code " << code /*<< " error "*/ << std::endl;
+	if (this->_status.find(code) == this->_status.end())
+		code = 500;
 	int error = fileToBody(this->_status.at(code).second);
 	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
 	{

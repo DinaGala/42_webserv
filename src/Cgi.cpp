@@ -282,6 +282,10 @@ void	Cgi::_childProcess(int *req, int *cgi)
 		error(this->_socket, "dup2", "failed to redirect fd in child process");
 	if (close(req[0]) || close(cgi[1]))
 		error(this->_socket, "close", "failed to close pipe in child process");
+	std::cerr << "\033[1;34mCHILDPROCESS" << std::endl;
+	for (int i = 0; args[i]; i++)
+		std::cerr << i << ". " << args[i] << std::endl;
+	std::cerr << "\033[0m";
 	execve(args[0], args, env);
 	std::cerr << "\033[1;31mCHILDPROCESS" << std::endl;
 	for (int i = 0; args[i]; i++)
