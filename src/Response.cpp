@@ -164,11 +164,13 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::getResponse(int code)
 {
 	this->_path = this->_parseUrl(this->_path);
-	if (this->_method == "POST")
-		return (this->_handlePost(), this->_response);
+	if (this->_method == "GET")
+		this->handleGet();
+	else if (this->_method == "POST")
+		this->_handlePost();
 	else if (this->_method == "DELETE")
-		return (this->_response);
-	if (this->_cgi) // if there's cgi
+		this->_handleDelete();
+	/*if (this->_cgi) // if there's cgi
 	{
 		if (access(this->_path.c_str(), F_OK)) // if cgi exists
 			return (this->sendError(404), this->_response);
@@ -179,7 +181,7 @@ std::string	&Response::getResponse(int code)
 		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
 		std::cout << "\033[1;32mgetResponse: cgi status"<< cgi_status << "\033[0m" << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
-			return (sendError(cgi_status), this->_response);
+			return (this->sendError(cgi_status), this->_response);
 		this->_parseCgiResponse();
 	}
 	this->putGeneralHeaders();
@@ -189,23 +191,53 @@ std::string	&Response::getResponse(int code)
 		std::cout << "getResponse: body " << this->_body << std::endl;
 		int error = this->fileToBody(this->_path);
 		if (error)
-			return (sendError(error), this->_response);
+			return (this->sendError(error), this->_response);
 	}
 	if (!this->_body.empty())// if body
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;// add body to response
-	this->_response.insert(0, this->putStatusLine(code));// put status line
+	this->_response.insert(0, this->putStatusLine(code));// put status line*/
 	return (this->_response);
+}
+
+////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
+
+void	Response::_handleGet()
+{
+	if (this->_cgi) // if there's cgi
+	{
+		if (access(this->_path.c_str(), F_OK)) // if cgi exists
+			return (this->sendError(404), this->_response);
+		if (access(this->_path.c_str(), X_OK)) // if cgi is executable
+			return (this->sendError(403), this->_response);
+		Cgi	cgi(this->_port, this->_method, this->_socket);
+		cgi.setEnvVars(this->_path, this->_host, this->_servname);
+		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
+		if (cgi_status) // if cgi returns status != 0 -> error
+			return (this->sendError(cgi_status), this->_response);
+		this->_parseCgiResponse();
+	}
+	else //if not cgi
+	{
+		int error = this->fileToBody(this->_path);
+		if (error)
+			return (this->sendError(error), this->_response);
+	}
+	this->putGeneralHeaders();
+	if (!this->_body.empty())// if body
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
+	this->_response += this->_body;// add body to response
+	this->_response.insert(0, this->putStatusLine(code));// put status line
 }
 
 void	Response::_handleDelete()
 {
-	if (access(this->_path.c_str(), F_OK))
+	if (access(this->_path.c_str(), F_OK))// file not found
 	{
 		this->sendError(404);
 		return ;
 	}
-	if (access(this->_path.c_str(), W_OK))
+	if (access(this->_path.c_str(), W_OK))// no permissions
 	{
 		this->sendError(403);
 		return ;
@@ -219,9 +251,6 @@ void	Response::_handleDelete()
 	this->putGeneralHeaders;
 }
 
-
-/////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
-
 //>1. GET form
 //< return html form
 //>2. POST form(?) + body
@@ -232,7 +261,8 @@ void	Response::_handlePost()
 	std::cout << "\033[1;32mHANDLEPOST\033[0m" << std::endl;
 	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
 	{
-		this->sendError(404);
+		std::ofstream	newfile(this->_path);
+		newfile << this->_reqbody << std::endl;
 		return ;
 	}
 	if (access(this->_path.c_str(), X_OK)) // if file is executable = 0
@@ -256,6 +286,10 @@ void	Response::_handlePost()
 	if (cgi_status)
 		this->sendError(cgi_status);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
 
 //puts status line in the response
 std::string	Response::putStatusLine(int code)
