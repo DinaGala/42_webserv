@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 15:07:33 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:29 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/09 20:19:07 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,22 +152,21 @@ bool    Parse::hostNameCheck(std::string host)
 
 bool    Parse::ipCheck(std::string host)
 {
-	int dot = 0;
-	int num = 0;
-
-	for (int i = 0; host[i]; i++)
+	std::vector<std::string>	ip = ft_split(host, ".");
+	if (ip.size() != 4)
+		return (false);
+	for (std::vector<std::string>::iterator it = ip.begin(); it != ip.end(); it++)
 	{
-		if (host[i] == '.' && num != 0)
-		{
-			dot++;
-			num = 0;
+		if ((*it).length() < 1 || (*it).length() > 3)
+			return (false);
+		try {
+			int num = ft_atopi(*it);
+			if (num > 255)
+				throw std::invalid_argument("");
 		}
-		else if (std::isdigit(host[i]))
-			num = num * 10 + (host[i] - 48);
-		else
+		catch(const std::exception& e) {
 			return (false);
-		if (num > 255)
-			return (false);
+		}
 	}
 	return (true);
 }
