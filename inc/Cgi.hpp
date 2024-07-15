@@ -25,7 +25,7 @@ class	Cgi
 		Cgi(int port, const std::string &method, int socket);
 		~Cgi();
 		int		executeCgi(std::string &response, int timeout);
-		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s);
+		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s, const std::string &query);
 
 
 	private:

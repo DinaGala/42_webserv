@@ -41,13 +41,14 @@ Cgi	&Cgi::operator=(const Cgi &c)
 	return ((void)c, *this);
 }
 
-void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std::string &serv)
+void	Cgi::setEnvVars(const std::string &url, const std::string &host, const std::string &serv, const std::string &query)
 {
 	(void)url;
 	this->_url = url;
 	this->_env["HTTP_HOST"] = host;
 	this->_env["SERVER_NAME"] = serv;
 	this->_env["SCRIPT_NAME"] = this->_url;
+	this->_env["QUERY_STRING"] = query;
 	//this->_url = "http://localhost:8080/cgi-bin/random_number";
 	//this->_url = "http://localhost:8080/cgi-bin/test.py";
 	//this->_url = "http://localhost:8080/cgi-bin/watch.js";
@@ -285,12 +286,13 @@ void	Cgi::_childProcess(int *req, int *cgi)
 	std::cerr << "\033[1;34mCHILDPROCESS" << std::endl;
 	for (int i = 0; args[i]; i++)
 		std::cerr << i << ". " << args[i] << std::endl;
+	std::cerr << "\033[1;33mQUERY_STRING: " << this->_env["QUERY_STRING"] << std::endl;
 	std::cerr << "\033[0m";
 	execve(args[0], args, env);
-	std::cerr << "\033[1;31mCHILDPROCESS" << std::endl;
+	/*std::cerr << "\033[1;31mCHILDPROCESS" << std::endl;
 	for (int i = 0; args[i]; i++)
 		std::cerr << i << ". " << args[i] << std::endl;
-	std::cerr << "\033[0m";
+	std::cerr << "\033[0m";*/
 	error(this->_socket, "execve", "failed to execute" + this->_env["SCRIPT_NAME"]);
 }
 
@@ -324,7 +326,7 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		if (WIFEXITED(status))
 			break ;
 	}
-	while ((count = read(cgi[0], buffer, sizeof(buffer))) != 0)
+	while ((count = read(cgi[0], buffer, sizeof(buffer) - 1)) != 0)
 	{
 		if (count == -1)
 			error(this->_socket, "read", "couldn't read cgi's respone");
