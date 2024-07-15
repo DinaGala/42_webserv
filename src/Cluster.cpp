@@ -49,10 +49,8 @@ void	Cluster::runCluster(){
 		int bytesRead = read(connection, buffer, 3000);
 		if (bytesRead < 0)
 			return; //TODO: manage error
-		Request request(buffer, socket);
-		request.parseRequest();
-
-
+		Request request(socket);
+		request.parseRequest(buffer);
 
 		/////////////////////////////
 		///////// RESPONSE /////////
