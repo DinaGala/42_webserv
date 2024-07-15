@@ -67,6 +67,7 @@ Response::Response(Request &req): _code(200), _req(req)
 	this->_port = 8080;
 	this->_cgi = true;
 	this->_cgi = false;
+	this->_reqbody = "This is a temporary variable";
 }
 
 Response::Response(const Response &r): _req(r._req)
@@ -158,33 +159,6 @@ std::string	&Response::getResponse(int code)
 		this->_handlePost();
 	else if (this->_req.getMethod() == "DELETE")
 		this->_handleDelete();
-	/*if (this->_cgi) // if there's cgi
-	{
-		if (access(this->_req.getPath().c_str(), F_OK)) // if cgi exists
-			return (this->sendError(404), this->_response);
-		if (access(this->_req.getPath().c_str(), X_OK)) // if cgi is executable
-			return (this->sendError(403), this->_response);
-		Cgi	cgi(this->_port, this->_req.getMethod(), this->_socket);
-		cgi.setEnvVars(this->_req.getPath(), this->_host, this->_servname);
-		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
-		std::cout << "\033[1;32mgetResponse: cgi status"<< cgi_status << "\033[0m" << std::endl;
-		if (cgi_status) // if cgi returns status != 0 -> error
-			return (this->sendError(cgi_status), this->_response);
-		this->_parseCgiResponse();
-	}
-	this->putGeneralHeaders();
-	if (this->_body == "" && !this->_req.getPath().empty())// if no body but path
-	{
-		std::cout << "getResponse: path " << this->_req.getPath() << std::endl;
-		std::cout << "getResponse: body " << this->_body << std::endl;
-		int error = this->fileToBody(this->_req.getPath());
-		if (error)
-			return (this->sendError(error), this->_response);
-	}
-	if (!this->_body.empty())// if body
-		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
-	this->_response += this->_body;// add body to response
-	this->_response.insert(0, this->putStatusLine(code));// put status line*/
 	return (this->_response);
 }
 
@@ -258,16 +232,23 @@ void	Response::_handleDelete()
 
 void	Response::_handlePost()
 {
-	if (access(this->_req.getPath().c_str(), F_OK)) // if file exists = 0 (upload?)
+	std::cout << "\033[32;1mREQ_PATH " << this->_req.getPath() << "\033[0m" << std::endl;
+	if (this->_req.getPath() == "/submit-form")
+	{
+		this->_response = this->putStatusLine(200);
+		this->putGeneralHeaders();
+		this->_response += "\n\n<html><body>Form submitted!</body></html>";
+	}
+	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
 	{
 		std::ofstream	newfile(this->_req.getPath().c_str());
 		newfile << this->_reqbody << std::endl;
 		newfile.close();
 		return ;
 	}
-	if (access(this->_req.getPath().c_str(), X_OK)) // if file is executable = 0
+	if (access(this->_path.c_str(), X_OK)) // if file is executable = 0
 	{
-		int error = fileToBody(this->_req.getPath());
+		int error = fileToBody(this->_path);
 		if (error)
 			sendError(error);
 		else
@@ -280,7 +261,7 @@ void	Response::_handlePost()
 		return ;
 	}
 	Cgi	post(this->_port, this->_req.getMethod(), this->_socket);
-	post.setEnvVars(this->_req.getPath(), this->_host, this->_servname);
+	post.setEnvVars(this->_path, this->_host, this->_servname);
 	int	cgi_status = post.executeCgi(this->_response, TIMEOUT); // execute cgi
 	if (cgi_status)
 		this->sendError(cgi_status);
@@ -303,12 +284,14 @@ void	Response::putGeneralHeaders(void)
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
 	this->_response += "Server: " + _servname + "\r\n";
-	this->_response += "Keep-Alive: timeout=" + ft_itoa(TIMEOUT);
-	this->_response += ", max=" + ft_itoa(MAXCONNECT) + "\r\n";
 	if (this->_connection)
 		this->_response += "Connection: close\r\n";
 	else
+	{
 		this->_response += "Connection: keep-alive\r\n";
+		this->_response += "Keep-Alive: timeout=" + ft_itoa(TIMEOUT);
+		this->_response += ", max=" + ft_itoa(MAXCONNECT) + "\r\n";
+	}
 }
 
 //checks mime type + adds specific POST headers in the response
