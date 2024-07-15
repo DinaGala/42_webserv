@@ -139,7 +139,6 @@ std::string	Response::_parseUrl(const std::string &url)
 	}
 	else
 		str = url.substr(found);
-	std::cout << "\033[1;31mparseUrl: Parsed OK!\033[0m" << std::endl;
 	return (str);
 }
 
@@ -258,7 +257,6 @@ void	Response::_handleDelete()
 
 void	Response::_handlePost()
 {
-	std::cout << "\033[1;32mHANDLEPOST\033[0m" << std::endl;
 	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
 	{
 		std::ofstream	newfile(this->_path);
@@ -282,7 +280,6 @@ void	Response::_handlePost()
 	Cgi	post(this->_port, this->_method, this->_socket);
 	post.setEnvVars(this->_path, this->_host, this->_servname);
 	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
-	std::cout << "\033[1;32mhandlePost: path " << this->_path << " status " << cgi_status << "\033[0m" << std::endl;
 	if (cgi_status)
 		this->sendError(cgi_status);
 }
@@ -365,7 +362,6 @@ int	Response::fileToBody(const std::string &path)
 void	Response::sendError(int code)
 {
 	this->_response = "Content-Type: text/html\r\n";
-	//std::cout << "\033[1;33msendError code " << code /*<< " error "*/ << std::endl;
 	if (this->_status.find(code) == this->_status.end())
 		code = 500;
 	int error = fileToBody(this->_status.at(code).second);
