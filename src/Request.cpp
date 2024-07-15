@@ -2,6 +2,8 @@
 
 Request::Request(const std::string& buffer, Socket& socket) : _buffer(buffer), _status(INITIAL_STATUS), _socket(socket){
 	initParamsRequest();
+	std::cout << "REQUEST -------------" << std::endl;
+	std::cout << _buffer << std::endl;
 }
 
 Request::~Request() {
@@ -11,8 +13,9 @@ void	Request::initParamsRequest() {
 	_requestLine.clear();
 	_headers.clear();
 	_body = "";
-	_errorCode = 200; //TODO: error code default?????
+	_errorCode = 200; //TODO: error code default?
 	_maxBodySize = _socket.getServer().getMaxBodySize();
+	_allowedMethods = _socket.getServer().getAllowedMethods();
 	_errorPages = _socket.getServer().getErrorPages();
 	_index =  "";
 	_autoIndex = _socket.getServer().getAutoIndex();
@@ -41,7 +44,8 @@ void	Request::parseRequest() {
 			parseBody(); //TODO: Timeout
 		}
 	} catch (const std::exception & e){
-		_errorCode = 400;
+		if (_errorCode == 200)
+			_errorCode = 400;
 		std::cerr << e.what() << std::endl;
 	}
 }
@@ -49,46 +53,44 @@ void	Request::parseRequest() {
 /*----------------- PARSING REQUEST LINE -----------------*/
 void	Request::parseRequestLine() {
 	size_t posBuffer = _buffer.find("\r\n");
-	if (posBuffer == std::string::npos){
-		std::cout << "not complete request line: " << std::endl;
+	if (posBuffer == std::string::npos)
 		return ;
-	}
 	createRequestLineVector(_buffer.substr(0, posBuffer));
-	if (_requestLine.size() != 3)
-		throw std::runtime_error("Error parsing Request: wrong request line");
-	
-	std::cout << "Paass[49]"<< std::endl;
-	
-	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
 
-	std::cout << "Paass[53]"<< std::endl;
-
-	for (std::vector<std::string>::iterator ittt = allowedMethodsVect.begin(); ittt != allowedMethodsVect.end(); ++ittt) {
-		std::cout << "Method allowed" << *ittt << std::endl;
-	}
-	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
-	
-	if (it == allowedMethodsVect.end())
-		throw std::runtime_error("Error parsing Request: no metod allowed"); //_errorCode = 405;
-	
-	//TODO: PARSE ROOT _firstLine ??
-
-	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1"))
-		throw std::runtime_error("Error parsing Request: bat http version");
+	checkUrlPath();
+	checkProtocolHttp();
+	checkAllowMethod(); //TOD: Pending update methods allowed of location
 
 	_status = REQUEST_LINE_PARSED;
 	_buffer.erase(0, posBuffer + 2); //remove used buffer (request line)
 }
 
 void Request::createRequestLineVector(std::string requestLineStr){
-	std::cout << "REQUEST LINE: " << requestLineStr << std::endl;
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
 		this->_requestLine.push_back(element);
-		std::cout << "PARAMS REQ LINE " << element << std::endl;
 	}
-	std::cout << "----END request line -----"<< std::endl;
+	if (_requestLine.size() != 3)
+		throw std::runtime_error("Error parsing Request: wrong request line");
+}
+
+void Request::checkUrlPath(){
+
+}
+
+void Request::checkAllowMethod(){
+	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
+	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
+	if (it == allowedMethodsVect.end()) {
+		_errorCode = 405;
+		throw std::runtime_error("Error parsing Request: no metod allowed");
+	}
+}
+
+void Request::checkProtocolHttp(){
+	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1"))
+		throw std::runtime_error("Error parsing Request: bat http version");
 }
 
 /*----------------- PARSING HEADERS -----------------*/
@@ -118,7 +120,7 @@ void	Request::parseHeaders() {
 void	Request::addHeaderToMap(std::string line){
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
-		throw std::runtime_error("Error parsing Request: no ':' in header");
+		throw std::runtime_error("Error parsing Request: bas headers");
 	
 	std::string name = line.substr(0, posColon);
 	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
@@ -149,7 +151,7 @@ void	Request::parseBodyByContentLength() {
 	if (_buffer.size() > contentLength ) {  //TODO: manage remain body?? Adria - create new request with remain body
 		throw std::runtime_error("Error parsing Request: Body Length greater than Content length header param");
 	}
-	if (contentLength > 2000) { //TODO: update with server server.getMaxBodySize()
+	if (contentLength > _maxBodySize) {
 		throw std::runtime_error("Error parsing Request: Body Length greater than Max body size");
 	}
 	while (_body.length() < contentLength && _buffer.length() > 0) {
@@ -172,7 +174,6 @@ Mozilla\r\n
 void	Request::parseBodyByChunked(){
 	std::string			line;
 	int					sizeChunk = 0;
-	//int					length;
 	size_t				posEndSIze;
 
 	posEndSIze = _buffer.find("\r\n");
@@ -188,7 +189,7 @@ void	Request::parseBodyByChunked(){
 			return;
 		if (_buffer.find("\r\n", posEndSIze + 2 + sizeChunk) == std::string::npos)
 			throw std::runtime_error("Error parsing Request: Transfre encoding it is not okay");
-		if (_buffer.substr(posEndSIze + 2, sizeChunk).length() + _body.length() > 2000) //TODO: update with server server.getMaxBodySize()
+		if (_buffer.substr(posEndSIze + 2, sizeChunk).length() + _body.length() > _maxBodySize)
 			throw std::runtime_error("Error parsing Request: Body is too large");
 		
 		_body = _body + _buffer.substr(posEndSIze + 2, sizeChunk);
@@ -233,6 +234,10 @@ uint64_t	Request::convertStrToHex(std::string line){
 
 const Socket&  Request::getSocket() const {
 	return (_socket);
+}
+
+const std::vector<std::string>& Request::getAllowedMethods() const{
+	return (_allowedMethods);
 }
 
 const std::map<int, std::string>& Request::getErrorPages() const {

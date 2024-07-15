@@ -20,6 +20,7 @@ class Request {
 		int									_errorCode;
 
 		size_t 								_maxBodySize;
+		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
 		std::string 						_index;
 		bool 								_autoIndex;
@@ -33,20 +34,25 @@ class Request {
 		~Request();
 		void	initParamsRequest();
 		void	parseRequest();
+		
 		void	parseRequestLine();
 		void	parseHeaders();
 		void	parseBody();
+		
 		void 	createRequestLineVector(std::string requestLineStr);
+		void 	checkUrlPath();
+		void	checkProtocolHttp();
+		void 	checkAllowMethod();
 		void	addHeaderToMap(std::string line);
-
+		
 		void	parseBodyByContentLength();
 		void	parseBodyByChunked();
 
-		std::vector<std::string>	createValidRequestVector();
 		bool 						isStringOfDigits(std::string line);
 		uint64_t					convertStrToHex(std::string line);
 		
 		const Socket&								getSocket() const;
+		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
 		const std::string& 							getIndex() const; //LOCATION
 		bool 										getAutoIndex() const;
@@ -55,6 +61,7 @@ class Request {
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
 
+		
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);
 		void 		setAutoIndex(bool autoIndex);
@@ -62,6 +69,6 @@ class Request {
 		void 		setUploadDir(const std::string& uploadDir);
 		void 		setReturn(const std::string& alias);
 		void 		setCgiConf(const std::map<std::string, std::string>& cgiConf);
-
+		void 		setAllowMethod(const std::string& method);
 };
 #endif
