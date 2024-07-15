@@ -1,10 +1,19 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
+#ifndef TIMEOUT
+# define TIMEOUT 10
+#endif
+
+#ifndef MAXCONNECT
+# define MAXCONNECT 10
+#endif
+
 #include <map>
 #include <string>
 #include <ctime>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <unistd.h>
 #include "Cgi.hpp"
@@ -16,7 +25,7 @@ class Request;
 class	Response
 {
 	public:
-		Response();
+		Response(Request &req);
 		~Response();
 		//SET VARS
 		void		setBody(const std::string &msg);
@@ -40,6 +49,7 @@ class	Response
 		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 		//std::map<int, std::pair<std::string, std::string> >	*_status;
 		std::string		_body;
+		std::string		_query;
 		std::string		_reqbody;
 		std::string		_response;
 		//std::string		_cgi_path;
@@ -54,7 +64,7 @@ class	Response
 		bool			_connection; //tmp
 		bool			_cgi; //tmp
 		unsigned int	_code;
-		Request			*_request;
+		Request			&_req;
 
 		Response(const Response &r);
 		Response	&operator=(const Response &r);

@@ -51,28 +51,27 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response() 
+Response::Response(Request &req): _code(200), _req(req) 
 {
-	this->_method = "POST";
-	this->_path = "cgi-bin/test.py";
-	this->_path = "./cgi-bin/form_post.py"; // not found
-	this->_path = "http://localhost:8080/cgi-bin/post_req.sh";
-	this->_path = "./cgi-bin/post_test.js";
-	this->_path = "./html/form.html";
+	//this->_req.getMethod() = "POST";
+	//this->_req.getPath() = "cgi-bin/test.py";
+	//this->_req.getPath() = "./cgi-bin/form_post.py"; // not found
+	//this->_req.getPath() = "http://localhost:8080/cgi-bin/post_req.sh";
+	//this->_req.getPath() = "./cgi-bin/post_test.js";
+	//this->_req.getPath() = "./html/form.html";
 	this->_servname = "webserv";
-	this->_timeout = 10;
-	this->_maxconnect = 10;
+	//this->_timeout = 10;
+	//this->_maxconnect = 10;
 	this->_connection = false;
-	this->_code = 0;
 	this->_host = "localhost:8080";
 	this->_port = 8080;
 	this->_cgi = true;
 	this->_cgi = false;
 }
 
-Response::Response(const Response &r)
+Response::Response(const Response &r): _req(r._req)
 {
-	this->_path = r._path;
+	//this->_req.setPath(r._req.getPath());
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
@@ -82,10 +81,7 @@ Response::~Response() {}
 
 Response	&Response::operator=(const Response &r)
 {
-	this->_path = r._path;
-	this->_response = r._response;
-	this->_body = r._body;
-	this->_code = r._code;
+	(void)r;
 	return (*this);
 }
 
@@ -95,30 +91,11 @@ void	Response::setBody(const std::string &msg)
 	this->_body += msg;
 }
 
-void	Response::setCgiPath(const std::string &cgi)
-{
-	this->_path = cgi;
-}
-
 void	Response::setCode(const int &code)
 {
 	this->_code = code;
 }
 
-void	Response::setSocket(int sock)
-{
-	this->_socket = sock;
-}
-
-void	Response::setMethod(const std::string &meth)
-{
-	this->_method = meth;
-}
-/*
-void	Response::setStatus(const std::map<int, std::pair<std::string, std::string> > &status)
-{
-	this->_status = &status;
-}*/
 ///////////////////////////////////////////////////////////////////////////
 
 std::string	Response::_parseUrl(const std::string &url)
@@ -134,11 +111,12 @@ std::string	Response::_parseUrl(const std::string &url)
 	next = url.find("?", found);
 	if (next != std::string::npos)
 	{
-		this->_reqbody = url.substr(next, url.size());
+		this->_query = url.substr(next, url.size());
 		str = url.substr(found, next);
 	}
 	else
 		str = url.substr(found);
+	str.insert(0, ".");
 	return (str);
 }
 
@@ -162,21 +140,32 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::getResponse(int code)
 {
-	this->_path = this->_parseUrl(this->_path);
-	if (this->_method == "GET")
-		this->handleGet();
-	else if (this->_method == "POST")
+	//if (this->_req.getCode() == 301)
+	this->_path = this->_parseUrl(this->_req.getPath());
+	if (code == 301)
+	{
+		this->putStatusLine(301);
+		this->putGeneralHeaders();
+		return (this->_response);
+	}
+	else if (code > 301)
+		return (this->sendError(code), this->_response);
+	std::cout << "\033[33;1mMETHOD: " << this->_req.getMethod() << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
+	if (this->_req.getMethod() == "GET")
+		this->_handleGet();
+	else if (this->_req.getMethod() == "POST")
 		this->_handlePost();
-	else if (this->_method == "DELETE")
+	else if (this->_req.getMethod() == "DELETE")
 		this->_handleDelete();
 	/*if (this->_cgi) // if there's cgi
 	{
-		if (access(this->_path.c_str(), F_OK)) // if cgi exists
+		if (access(this->_req.getPath().c_str(), F_OK)) // if cgi exists
 			return (this->sendError(404), this->_response);
-		if (access(this->_path.c_str(), X_OK)) // if cgi is executable
+		if (access(this->_req.getPath().c_str(), X_OK)) // if cgi is executable
 			return (this->sendError(403), this->_response);
-		Cgi	cgi(this->_port, this->_method, this->_socket);
-		cgi.setEnvVars(this->_path, this->_host, this->_servname);
+		Cgi	cgi(this->_port, this->_req.getMethod(), this->_socket);
+		cgi.setEnvVars(this->_req.getPath(), this->_host, this->_servname);
 		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
 		std::cout << "\033[1;32mgetResponse: cgi status"<< cgi_status << "\033[0m" << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
@@ -184,11 +173,11 @@ std::string	&Response::getResponse(int code)
 		this->_parseCgiResponse();
 	}
 	this->putGeneralHeaders();
-	if (this->_body == "" && !this->_path.empty())// if no body but path
+	if (this->_body == "" && !this->_req.getPath().empty())// if no body but path
 	{
-		std::cout << "getResponse: path " << this->_path << std::endl;
+		std::cout << "getResponse: path " << this->_req.getPath() << std::endl;
 		std::cout << "getResponse: body " << this->_body << std::endl;
-		int error = this->fileToBody(this->_path);
+		int error = this->fileToBody(this->_req.getPath());
 		if (error)
 			return (this->sendError(error), this->_response);
 	}
@@ -206,48 +195,60 @@ void	Response::_handleGet()
 	if (this->_cgi) // if there's cgi
 	{
 		if (access(this->_path.c_str(), F_OK)) // if cgi exists
-			return (this->sendError(404), this->_response);
+		{
+			this->sendError(404);
+			return ;
+		}
 		if (access(this->_path.c_str(), X_OK)) // if cgi is executable
-			return (this->sendError(403), this->_response);
-		Cgi	cgi(this->_port, this->_method, this->_socket);
+		{
+			this->sendError(403);
+			return ;
+		}
+		Cgi	cgi(this->_port, this->_req.getMethod(), this->_socket);
 		cgi.setEnvVars(this->_path, this->_host, this->_servname);
-		int	cgi_status = cgi.executeCgi(this->_response, this->_timeout); // execute cgi
+		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		if (cgi_status) // if cgi returns status != 0 -> error
-			return (this->sendError(cgi_status), this->_response);
+		{
+			this->sendError(cgi_status);
+			return ;
+		}
 		this->_parseCgiResponse();
 	}
 	else //if not cgi
 	{
 		int error = this->fileToBody(this->_path);
 		if (error)
-			return (this->sendError(error), this->_response);
+		{
+			this->sendError(error);
+			return ;
+		}
 	}
 	this->putGeneralHeaders();
 	if (!this->_body.empty())// if body
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;// add body to response
-	this->_response.insert(0, this->putStatusLine(code));// put status line
+	this->_response.insert(0, this->putStatusLine(this->_code));// put status line
 }
 
 void	Response::_handleDelete()
 {
-	if (access(this->_path.c_str(), F_OK))// file not found
+	if (access(this->_req.getPath().c_str(), F_OK))// file not found
 	{
 		this->sendError(404);
 		return ;
 	}
-	if (access(this->_path.c_str(), W_OK))// no permissions
+	if (access(this->_req.getPath().c_str(), W_OK))// no permissions
 	{
 		this->sendError(403);
 		return ;
 	}
-	if (std::remove(this->_path.c_str()))
+	if (std::remove(this->_req.getPath().c_str()))
 	{
 		this->sendError(500);
 		return ;
 	}
 	this->putStatusLine(204); // Success + No Content
-	this->putGeneralHeaders;
+	this->putGeneralHeaders();
 }
 
 //>1. GET form
@@ -257,15 +258,16 @@ void	Response::_handleDelete()
 
 void	Response::_handlePost()
 {
-	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
+	if (access(this->_req.getPath().c_str(), F_OK)) // if file exists = 0 (upload?)
 	{
-		std::ofstream	newfile(this->_path);
+		std::ofstream	newfile(this->_req.getPath().c_str());
 		newfile << this->_reqbody << std::endl;
+		newfile.close();
 		return ;
 	}
-	if (access(this->_path.c_str(), X_OK)) // if file is executable = 0
+	if (access(this->_req.getPath().c_str(), X_OK)) // if file is executable = 0
 	{
-		int error = fileToBody(this->_path);
+		int error = fileToBody(this->_req.getPath());
 		if (error)
 			sendError(error);
 		else
@@ -277,9 +279,9 @@ void	Response::_handlePost()
 		}
 		return ;
 	}
-	Cgi	post(this->_port, this->_method, this->_socket);
-	post.setEnvVars(this->_path, this->_host, this->_servname);
-	int	cgi_status = post.executeCgi(this->_response, this->_timeout); // execute cgi
+	Cgi	post(this->_port, this->_req.getMethod(), this->_socket);
+	post.setEnvVars(this->_req.getPath(), this->_host, this->_servname);
+	int	cgi_status = post.executeCgi(this->_response, TIMEOUT); // execute cgi
 	if (cgi_status)
 		this->sendError(cgi_status);
 }
@@ -301,8 +303,8 @@ void	Response::putGeneralHeaders(void)
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
 	this->_response += "Server: " + _servname + "\r\n";
-	this->_response += "Keep-Alive: timeout=" + ft_itoa(this->_timeout);
-	this->_response += ", max=" + ft_itoa(this->_maxconnect) + "\r\n";
+	this->_response += "Keep-Alive: timeout=" + ft_itoa(TIMEOUT);
+	this->_response += ", max=" + ft_itoa(MAXCONNECT) + "\r\n";
 	if (this->_connection)
 		this->_response += "Connection: close\r\n";
 	else

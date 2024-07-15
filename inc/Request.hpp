@@ -60,6 +60,8 @@ class Request {
 		const std::string& 							getUploadDir() const; //LOCATION
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
+		const std::string&                          getMethod() const;
+        const std::string&                          getPath() const;
 
 		
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);

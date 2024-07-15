@@ -268,6 +268,13 @@ const std::map<std::string, std::string>&  Request::getCgiConf() const {
 	return (_cgiConf);
 }
 
+const std::string&  Request::getMethod() const {
+    return (_requestLine[0]);
+}
+const std::string&  Request::getPath() const {
+    return (_requestLine[1]);
+}
+
 // _____________  SETTERS _____________ 
 
 void Request::setErrorPages(const std::map<int, std::string>&  errorPages) {
