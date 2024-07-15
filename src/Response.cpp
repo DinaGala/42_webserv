@@ -62,11 +62,11 @@ Response::Response(Request &req): _code(200), _req(req)
 	this->_servname = "webserv";
 	//this->_timeout = 10;
 	//this->_maxconnect = 10;
-	this->_connection = false;
+	this->_connection = true;
 	this->_host = "localhost:8080";
 	this->_port = 8080;
-	this->_cgi = true;
 	this->_cgi = false;
+	this->_cgi = true;
 	this->_reqbody = "This is a temporary variable";
 }
 
@@ -112,7 +112,7 @@ std::string	Response::_parseUrl(const std::string &url)
 	next = url.find("?", found);
 	if (next != std::string::npos)
 	{
-		this->_query = url.substr(next, url.size());
+		this->_query = url.substr(next + 1, url.size());
 		str = url.substr(found, next);
 	}
 	else
@@ -179,7 +179,7 @@ void	Response::_handleGet()
 			return ;
 		}
 		Cgi	cgi(this->_port, this->_req.getMethod(), this->_socket);
-		cgi.setEnvVars(this->_path, this->_host, this->_servname);
+		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		if (cgi_status) // if cgi returns status != 0 -> error
 		{
@@ -261,7 +261,7 @@ void	Response::_handlePost()
 		return ;
 	}
 	Cgi	post(this->_port, this->_req.getMethod(), this->_socket);
-	post.setEnvVars(this->_path, this->_host, this->_servname);
+	post.setEnvVars(this->_path, this->_host, this->_servname, this->_query);
 	int	cgi_status = post.executeCgi(this->_response, TIMEOUT); // execute cgi
 	if (cgi_status)
 		this->sendError(cgi_status);
