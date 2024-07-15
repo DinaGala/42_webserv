@@ -27,12 +27,26 @@
 # include <cctype>
 # include <functional>
 # include <climits>
+# include <fcntl.h>
 
+# include <sys/socket.h> // For socket functions
+# include <netinet/in.h> // For sockaddr_in
+# include <cstdlib> // For exit() and EXIT_FAILURE 
+# include <unistd.h>
+# include <cerrno>
+# include <sys/types.h>
+# include <arpa/inet.h>
+#include <sstream>
+#include <stdexcept> // For standard exceptions
 
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
 # include "Parse.hpp"
 # include "Cluster.hpp"
+# include "Server.hpp"
+# include "Socket.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
 
 # define MAX_BODY_SIZE 2000000000 //2GB
 # define DEFAULT_BODY_SIZE 10000000 //10MB
