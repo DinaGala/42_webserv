@@ -305,8 +305,8 @@ const std::string& Request::getQuery() const {
 	return (_query);
 }
 
-const std::string&	Request::getPath() const {
-	return (_path);
+const std::string&  Request::getPath() const {
+    return (_requestLine[1]);
 }
 
 int	Request::getCode() const {
