@@ -1,19 +1,20 @@
 #include "Request.hpp"
 
-Request::Request(const std::string& buffer, Socket& socket) : _buffer(buffer), _status(INITIAL_STATUS), _socket(socket){
+Request::Request(Socket& socket) : _status(INITIAL_STATUS), _socket(socket){
 	initParamsRequest();
-	std::cout << "REQUEST -------------" << std::endl;
-	std::cout << _buffer << std::endl;
 }
 
 Request::~Request() {
 }
 
 void	Request::initParamsRequest() {
+	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
 	_body = "";
-	_errorCode = 200; //TODO: error code default?
+	_query = "";
+	_path = "";
+	_code = 200;
 	_maxBodySize = _socket.getServer().getMaxBodySize();
 	_allowedMethods = _socket.getServer().getAllowedMethods();
 	_errorPages = _socket.getServer().getErrorPages();
@@ -22,17 +23,26 @@ void	Request::initParamsRequest() {
 	_allowUpload = false;
 	_uploadDir = "";
 	_return = "";
+	_cgi = false;
 	_cgiConf = _socket.getServer().getCgiConf();
+	_serverNames = _socket.getServer().getServerNames();
+	_connectionKeepAlive = true;
 }
 
-/*	REQUEST LINE: method | URI and protocol | version
+//TODO: Accepted content: Accept: text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
+
+/*	REQUEST LINE: method | URI | and protocolversion
 	HEADERS: A series of key-value pairs, each on its own line.
 	BLANK LINE: A line with no content, indicating the end of the headers.
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
 
 /*----------------- PARSING REQUEST LINE -----------------*/
-void	Request::parseRequest() {
+void	Request::parseRequest(const std::string& buffer) {
+	_buffer = _buffer + buffer;
+	std::cout << "REQUEST -------------" << std::endl;
+	std::cout << _buffer << std::endl;
+	
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -44,8 +54,8 @@ void	Request::parseRequest() {
 			parseBody(); //TODO: Timeout
 		}
 	} catch (const std::exception & e){
-		if (_errorCode == 200)
-			_errorCode = 400;
+		if (_code == 200)
+			_code = 400;
 		std::cerr << e.what() << std::endl;
 	}
 }
@@ -57,7 +67,7 @@ void	Request::parseRequestLine() {
 		return ;
 	createRequestLineVector(_buffer.substr(0, posBuffer));
 
-	checkUrlPath();
+	checkPath();
 	checkProtocolHttp();
 	checkAllowMethod(); //TOD: Pending update methods allowed of location
 
@@ -75,15 +85,34 @@ void Request::createRequestLineVector(std::string requestLineStr){
 		throw std::runtime_error("Error parsing Request: wrong request line");
 }
 
-void Request::checkUrlPath(){
+void Request::checkPath(){
+/*std::string	Response::_parseUrl(const std::string &url)
+{
+	std::string::size_type	found = url.find(this->_host);
+	std::string::size_type	next;
+	std::string str;
 
+	if (found != std::string::npos)
+		found += this->_host.size() + 1;
+	else
+		found = 0;
+	next = url.find("?", found);
+	if (next != std::string::npos)
+	{
+		this->_reqbody = url.substr(next, url.size());
+		str = url.substr(found, next);
+	}
+	else
+		str = url.substr(found);
+	return (str);
+}*/
 }
 
 void Request::checkAllowMethod(){
 	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
-		_errorCode = 405;
+		_code = 405;
 		throw std::runtime_error("Error parsing Request: no metod allowed");
 	}
 }
@@ -115,6 +144,34 @@ void	Request::parseHeaders() {
 	/*for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		std::cout << it->first << " :: " << it->second << std::endl;
 	}*/
+	if (_status == HEADERS_PARSED){
+		checkConnectionKeepAlive();
+		checkAcceptedContent();
+	}
+}
+
+void	Request::checkConnectionKeepAlive() {
+	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close") {
+		_connectionKeepAlive = false;
+	}
+}
+
+void	Request::checkAcceptedContent() {
+	if (_headers.find("Accept") != _headers.end()) {
+		std::vector<std::string> acceptCont= ft_split(_headers.find("Accept")->second, ";");
+		for (unsigned int i=0; i < acceptCont.size(); i++) {
+			size_t posComma = acceptCont[i].find('/');
+			if (posComma == std::string::npos)
+				throw std::runtime_error("Error parsing Request: bas headers");
+			std::string type = trim(acceptCont[i].substr(0, posComma));
+			std::string subtype = trim(acceptCont[i].substr(posComma + 1, acceptCont[i].length() - posComma -1));
+			size_t posSemicolon = acceptCont[i].find(';');
+			if (posSemicolon != std::string::npos) {
+				subtype = subtype.substr(0, posSemicolon);
+			}
+			_acceptedContent.insert(std::make_pair(type, subtype));
+		}
+	}
 }
 
 void	Request::addHeaderToMap(std::string line){
@@ -236,6 +293,30 @@ const Socket&  Request::getSocket() const {
 	return (_socket);
 }
 
+const std::map<std::string, std::string>& Request::getHeaders() const{
+	return (_headers);
+}
+
+const std::string& Request::getBody() const {
+	return (_body);
+}
+
+const std::string& Request::getQuery() const {
+	return (_query);
+}
+
+const std::string&	Request::getPath() const {
+	return (_path);
+}
+
+int	Request::getCode() const {
+	return (_code);
+}
+
+size_t	Request::getMaxBodySize() const {
+	return (_maxBodySize);
+}
+
 const std::vector<std::string>& Request::getAllowedMethods() const{
 	return (_allowedMethods);
 }
@@ -264,15 +345,28 @@ const std::string& 	Request::getReturn() const {
 	return (_return);
 }
 
+bool Request::getCgi() const {
+	return (_cgi);
+}
+
 const std::map<std::string, std::string>&  Request::getCgiConf() const {
 	return (_cgiConf);
 }
 
-const std::string&  Request::getMethod() const {
-    return (_requestLine[0]);
+const std::string&	Request::getMethod() const {
+	return (_requestLine[0]);
 }
-const std::string&  Request::getPath() const {
-    return (_requestLine[1]);
+
+const std::vector<std::string>& Request::getServerNames() const{
+	return (_serverNames);
+}
+
+bool Request::getConnectionKeepAlive() const {
+	return (_connectionKeepAlive);
+}
+
+const std::multimap<std::string, std::string>&	Request::getAcceptedContent() const {
+	return (_acceptedContent);
 }
 
 // _____________  SETTERS _____________ 
