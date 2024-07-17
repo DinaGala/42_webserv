@@ -2,6 +2,8 @@
 
 int main(int ac, char **av){
 
+	//(void)ac;
+	//(void)av;
 	try {
 		if (ac > 2)
 			throw std::invalid_argument("Wrong amount of arguments: introduce only one config file or nothing");
