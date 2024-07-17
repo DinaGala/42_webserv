@@ -62,11 +62,10 @@ Response::Response(Request &req): _code(200), _req(req)
 	this->_servname = "webserv";
 	//this->_timeout = 10;
 	//this->_maxconnect = 10;
-	this->_connection = true;
+	this->_keep_alive = true;
 	this->_host = "localhost:8080";
 	this->_port = 8080;
 	this->_cgi = false;
-	this->_cgi = true;
 	this->_reqbody = "This is a temporary variable";
 }
 
@@ -97,27 +96,47 @@ void	Response::setCode(const int &code)
 	this->_code = code;
 }
 
+std::vector<std::string>	Response::_setCgi(std::string &path)
+{
+	std::vector<std::string>	args;
+	if (access(path.c_str(), X_OK) == 0) //if executable
+	{
+		args.push_back("./" + path);
+		this->_cgi = true;
+		return (args);
+	}
+	std::string::size_type	found = path.find_last_of(".");
+	std::map<std::string, std::string>	config = this->_req.getCgiConf();
+	std::string	ext;
+	if (found != std::string::npos)// if there's extension
+	ext = path.substr(found);
+	if (config.find(ext) != config.end()) //if it's not allowed
+	{
+		this->_cgi = true;
+		args.push_back(config[ext]);
+	}
+	args.push_back(path);
+	return (args);
+}
 ///////////////////////////////////////////////////////////////////////////
 
 std::string	Response::_parseUrl(const std::string &url)
 {
-	std::string::size_type	found = url.find(this->_host);
-	std::string::size_type	next;
+	std::string::size_type	found = 0;
+	std::string::size_type	query;
 	std::string str;
 
-	if (found != std::string::npos)
-		found += this->_host.size() + 1;
-	else
-		found = 0;
-	next = url.find("?", found);
-	if (next != std::string::npos)
+	query = url.find("?", found);
+	if (query != std::string::npos) // if there's a ?
 	{
-		this->_query = url.substr(next + 1, url.size());
-		str = url.substr(found, next);
+		this->_query = url.substr(query + 1, url.size());
+		str = url.substr(found, query);
 	}
 	else
-		str = url.substr(found);
+		str = url;
 	str.insert(0, ".");
+	if (access(str.c_str(), X_OK) == 0)
+		this->_cgi = true;
 	return (str);
 }
 
@@ -143,6 +162,7 @@ std::string	&Response::getResponse(int code)
 {
 	//if (this->_req.getCode() == 301)
 	this->_path = this->_parseUrl(this->_req.getPath());
+	this->_cgiargs = this->_setCgi(this->_path);
 	if (code == 301)
 	{
 		this->putStatusLine(301);
@@ -168,18 +188,14 @@ void	Response::_handleGet()
 {
 	if (this->_cgi) // if there's cgi
 	{
-		if (access(this->_path.c_str(), F_OK)) // if cgi exists
+		if (access(this->_path.c_str(), F_OK)) // if cgi exists = 0
 		{
 			this->sendError(404);
 			return ;
 		}
-		if (access(this->_path.c_str(), X_OK)) // if cgi is executable
-		{
-			this->sendError(403);
-			return ;
-		}
-		Cgi	cgi(this->_port, this->_req.getMethod(), this->_socket);
-		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query);
+		std::cout << "\033[1;34mGET: path " << this->_path << "\033[0m" << std::endl;
+		Cgi	cgi(this->_socket, this->_req);
+		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query, this->_cgiargs);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		if (cgi_status) // if cgi returns status != 0 -> error
 		{
@@ -230,44 +246,68 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
+bool	Response::_createFile(void)
+{
+	struct stat	is_dir;
+	std::string	filename = "new_file.tmp";
+	filename.insert(0, this->_req.getUploadDir());
+	if (stat("uploaded", &is_dir))
+			return (this->sendError(500), 1);
+	if (!S_ISDIR(is_dir.st_mode))// if it doesn't exist
+		std::system("mkdir uploaded");
+	//std::ofstream	newfile(this->_req.getFilename());
+	std::ofstream	newfile(filename.c_str());
+	if (!newfile.is_open())// creating/opening file failed
+			return (this->sendError(500), 1);
+	//newfile << this->_req.body;
+	newfile << this->_body;
+	return (0);
+}
+
 void	Response::_handlePost()
 {
-	std::cout << "\033[32;1mREQ_PATH " << this->_req.getPath() << "\033[0m" << std::endl;
 	if (this->_req.getPath() == "/submit-form")
 	{
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
 		this->_response += "\n\n<html><body>Form submitted!</body></html>";
 	}
-	if (access(this->_path.c_str(), F_OK)) // if file exists = 0 (upload?)
+	else if (this->_req.getPath() == "/upload")
 	{
-		std::ofstream	newfile(this->_req.getPath().c_str());
-		newfile << this->_reqbody << std::endl;
-		newfile.close();
-		return ;
-	}
-	if (access(this->_path.c_str(), X_OK)) // if file is executable = 0
-	{
-		int error = fileToBody(this->_path);
-		if (error)
-			sendError(error);
-		else
+		if (this->_req.getAllowUpload())
 		{
-			this->putGeneralHeaders();
-			this->_response.insert(0, this->putStatusLine(200));// put status line
-			this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
-			this->_response += this->_body;
+			this->sendError(403);
+			return ;
 		}
-		return ;
+		if (this->_createFile())
+			return ;
+		this->_response = this->putStatusLine(201);
+		this->putGeneralHeaders();
+		this->putPostHeaders("new_file.tmp");
+		//this->putPostHeaders(this->_req.getFilename());
 	}
-	Cgi	post(this->_port, this->_req.getMethod(), this->_socket);
-	post.setEnvVars(this->_path, this->_host, this->_servname, this->_query);
-	int	cgi_status = post.executeCgi(this->_response, TIMEOUT); // execute cgi
-	if (cgi_status)
-		this->sendError(cgi_status);
+	else
+		this->sendError(501);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+//checks if it's all accepted (*/*). If it's not, it checks if type is accepted
+//(in text/html, text is type and html is subtype). If type is accepted, checks if
+//subtype is accepted or it's *
+bool	Response::_isNotAccepted(std::string mime)
+{
+	if (mime == "*/*")
+		return (0);
+	std::string::size_type	found = mime.find("/");
+	if (found == std::string::npos)
+		return (1);
+	const std::multimap<std::string, std::string> mp = this->_req.getAcceptedContent();
+	std::multimap<std::string, std::string>::const_iterator it = mp.find(mime.substr(0, found));
+	if (it != mp.end() && (it->second == mime.substr(found + 1) || mime.substr(found + 1) == "*"))
+		return (0);
+	return (1);
+}
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
 
@@ -284,7 +324,7 @@ void	Response::putGeneralHeaders(void)
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
 	this->_response += "Server: " + _servname + "\r\n";
-	if (this->_connection)
+	if (!this->_keep_alive)
 		this->_response += "Connection: close\r\n";
 	else
 	{
@@ -310,17 +350,30 @@ bool	Response::putPostHeaders(const std::string &file)
 		if (line.find(ext) != std::string::npos)
 			break ;
 	}
-	this->_response += "Location: /"; //PROBABLY NOT THIS ONE
+	//this->_response += "Location: " + this->_req.getUploadDir();
+	this->_response += "Location: /"; //TMP
 	if (line == "" || mime.eof())
 	{
 		if (access(file.c_str(), X_OK)) // if not executable
-			this->_response += "Content-Type: text/plain\r\n";
+		{
+			if (this->_isNotAccepted("text/plain"))
+				return (this->sendError(406), 1);
+			else
+				this->_response += "Content-Type: text/plain\r\n";
+		}
 		else
-			this->_response += "Content-Type: application/octet-stream\r\n";
+		{
+			if (this->_isNotAccepted("application/octet-stream"))
+				return (this->sendError(406), 1);
+			else
+				this->_response += "Content-Type: application/octet-stream\r\n";
+		}
 		return (0);
 	}
-	this->_response += "Content-Type: ";
-	this->_response += line.substr(line.find_first_not_of("\t \n\v\r", ext.size())) + "\r\n";
+	line = line.substr(line.find_first_not_of("\t \n\v\r", ext.size()));
+	if (this->_isNotAccepted(line))
+		return (this->sendError(406), 1);
+	this->_response += "Content-Type: " + line + "\r\n";
 	return (0);
 }
 
@@ -346,18 +399,19 @@ int	Response::fileToBody(const std::string &path)
 // a severe internal server error page is sent (505)
 void	Response::sendError(int code)
 {
-	this->_response = "Content-Type: text/html\r\n";
 	if (this->_status.find(code) == this->_status.end())
 		code = 500;
 	int error = fileToBody(this->_status.at(code).second);
 	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
 	{
-		this->_response += "Content-Length: 75\r\n";
-		this->_response += "\n<html><body><h1>505</h1>"
-							"<h2>Severe Internal Server Error</h2></body></html>";
+		this->_response += "Content-Length: 22\r\n\r\n";
+		//this->_response += "\n<html><body><h1>505</h1>"
+		//					"<h2>Severe Internal Server Error</h2></body></html>";
+		this->_response += "Severe Internal Error\n";
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
 		return ;
 	}
+	this->_response = "Content-Type: text/html\r\n";
 	this->_response.insert(0, this->putStatusLine(code));
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
