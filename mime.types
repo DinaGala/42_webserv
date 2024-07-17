@@ -25,3 +25,11 @@
 .sh		application/x-sh
 .tar	application/x-tar
 .xml	application/xml
+.cpp	text/x-c++src
+.c++	text/x-c++src
+.hpp	text/x-c++hdr
+.h++	text/x-c++hdr
+.h		text/x-chdr
+.c		text/x-csrc
+.d		text/x-dsrc
+.doc	application/msword
