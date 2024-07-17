@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/02 19:34:32 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/17 16:56:05 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,16 +28,21 @@
 # include <functional>
 # include <climits>
 # include <fcntl.h>
+# include <sys/epoll.h>
+# include <unistd.h>
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
+# include <netdb.h>
+# include <netinet/in.h>
 # include <cstdlib> // For exit() and EXIT_FAILURE 
 # include <unistd.h>
 # include <cerrno>
 # include <sys/types.h>
 # include <arpa/inet.h>
-#include <sstream>
-#include <stdexcept> // For standard exceptions
+# include <netinet/in.h>
+# include <sstream>
+# include <stdexcept> // For standard exceptions
 
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"

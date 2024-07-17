@@ -1,6 +1,7 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server &server, int port) : _server(server), _port(port){
+Socket::Socket(Server &server, int port) : _server(server), _port(port)
+{
 	_ipAddress = server.getIpAdress();
 }
 
@@ -9,20 +10,44 @@ Socket::~Socket() {
 
 void	Socket::setUpSocket(){
 	initSocket();
-	bindSocket();
-	listenConnection();
+//	bindSocket();
+//	listenConnection();
 }
 
 /*SOCKET
 	int socket(int domain, int type, int protocol);
 	DOMAIN: communication domain - protocolos family  that socket will belong to. 
 	AF_INET - IPv4 Internet protocols */
-void	Socket::initSocket() {
-	this->_sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->_sockfd == -1) {
-		std::cout << "Failed to create socket. errno: " << errno << std::endl;
-		exit(EXIT_FAILURE);
-	}
+void	Socket::initSocket() 
+{
+	struct addrinfo hints, *servinfo, *p;
+	std::string errmsg;
+ //   int _fd;
+
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; //SURE???
+
+    if (getaddrinfo(_ipAddress.c_str(), ft_itoa(_port).c_str(), &hints, &servinfo) != 0)
+        throw std::runtime_error("Error: getaddrinfo failed: " + errmsg.assign(gai_strerror(errno)));
+    for (p = servinfo; p != NULL; p = p->ai_next) 
+	{
+        _fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (_fd == -1) 
+			continue;
+        if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
+			break;
+        close(_fd);
+    }
+    if (p == NULL)
+        throw std::runtime_error("Error: getaddrinfo failed the conversion for " + _ipAddress + ":" + ft_itoa(_port));
+    freeaddrinfo(servinfo);
+    if (listen(_fd, SOMAXCONN) == -1) // we set our maximum?
+	{
+        close(_fd);
+        throw std::runtime_error("Error: listen failed for " + _ipAddress + ":" + ft_itoa(_port));
+    }
 }
 
 /*SOCKET ADDRESS STRUCTURE 
