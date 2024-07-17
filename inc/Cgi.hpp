@@ -13,6 +13,9 @@
 #include <sys/stat.h>
 #include <ctime>
 #include "Utils.hpp"
+#include "Request.hpp"
+
+class	Request;
 
 //It needs:
 // port, server, method, host
@@ -22,15 +25,15 @@
 class	Cgi
 {
 	public:
-		Cgi(int port, const std::string &method, int socket);
+		Cgi(int socket, Request &rq);
 		~Cgi();
 		int		executeCgi(std::string &response, int timeout);
-		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s, const std::string &query);
+		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s, const std::string &query, std::vector<std::string> &args);
 
 
 	private:
-		std::map<std::string, std::string>	_pairs;
 		std::map<std::string, std::string>	_env;
+		std::vector<std::string>			_args;
 		std::string							_url;
 		std::string							_reqbody;
 		int									_socket;
@@ -44,7 +47,7 @@ class	Cgi
 		void	_childProcess(int *fdreq, int *fdcgi);
 		char	**_getEnv(void);
 		char	**_vecToMat(const std::vector<std::string> &vec);
-		std::vector<std::string>	getArgs(void);
+		//std::vector<std::string>	getArgs(void);
 		//std::vector<std::string>	_parseUrl(const std::string &url);
 };
 
