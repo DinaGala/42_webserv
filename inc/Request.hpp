@@ -65,6 +65,8 @@ class Request {
 		void	manageMultipartForm();
 		void	getBoundary();
 		void	saveMultipartHeaders();
+		void	updateMultipartBody();
+		void	saveFileName();
 
 		bool 						isStringOfDigits(std::string line);
 		uint64_t					convertStrToHex(std::string line);

@@ -27,6 +27,8 @@ void	Request::initParamsRequest() {
 	_cgiConf = _socket.getServer().getCgiConf();
 	_serverNames = _socket.getServer().getServerNames();
 	_connectionKeepAlive = true;
+	_boundary = "";
+	_fileName = "";
 }
 
 //TODO: Accepted content: Accept: text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
@@ -182,7 +184,7 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 	if (posColon == std::string::npos) 
 		throw std::runtime_error("Error parsing Request: bas headers");
 	
-	std::string name = line.substr(0, posColon);
+	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
 
 	map.insert(std::make_pair(name, value));
@@ -210,9 +212,9 @@ void	Request::parseBody(){
 void	Request::manageMultipartForm(){
 	if (_headers.find("Content-Type") != _headers.end() && !_headers.find("Content-Type")->second.empty() && _headers.find("Content-Type")->second.find("multipart/form-data")) {
 		getBoundary();
-		//saveMultipartHeaders(boundry);
-		//saveFileName();
-		//cleanMultipartBody();
+		saveMultipartHeaders();
+		updateMultipartBody();
+		saveFileName();
 	}
 } 
 
@@ -221,28 +223,54 @@ void	Request::getBoundary() {
 	size_t pos = content.find("boundary=");
 	if (pos == std::string::npos) 
 		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
-	
 	_boundary = content.substr(pos+9, content.length() - (pos+9));
 }
 
 void	Request::saveMultipartHeaders() {
-	size_t pos = _body.find("--" + _boundary + "\r\n");
+	size_t pos = _body.find("--" + _boundary);
 	if (pos == std::string::npos)
 		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
 	
-	size_t startPos= (pos + "--" + _boundary + "\r\n").length();
-	
+	size_t startPos = _boundary.length() + pos + 4; //4 - \r\n + initial --
 	while (_body.find("\r\n", startPos) != std::string::npos){
 		std::string line = _body.substr(startPos, _body.find("\r\n", startPos) - startPos);
-		if (line.size() == 0)  //end of headers >> line = "\r\n"
+		if (line.size() == 0)  
 			break;
 		else 
 			addHeaderToMap(line, _multipartHeaders);
-		startPos = startPos + _body.find("\r\n", startPos+2);
+		startPos = _body.find("\r\n", startPos) + 2; 
 	}
-	
+		
+	if (_multipartHeaders.find("Content-Type") == _multipartHeaders.end() || _multipartHeaders.find("Content-Disposition") == _multipartHeaders.end())
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	/*for (std::map<std::string, std::string>::iterator it = _multipartHeaders.begin(); it != _multipartHeaders.end(); ++it) {
+		std::cout << it->first << " :: " << it->second << std::endl;
+	}*/
 }
 
+void	Request::updateMultipartBody() {
+	size_t startBody = _body.find("\r\n\r\n") + 4;
+	if (startBody == std::string::npos)
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+
+	size_t finishBody = _body.find(_boundary + "--", startBody);
+	
+	if (finishBody == std::string::npos)
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	_body.erase(finishBody);
+	_body.erase(0, startBody);
+}
+
+//Content-Disposition: form-data; name="file"; filename="example.txt"
+void	Request::saveFileName() {
+	std::string content = _multipartHeaders.find("Content-Disposition")->second;
+	size_t auxPos = content.find("filename");
+	if (auxPos == std::string::npos)
+		return;
+	size_t initFilename = content.find('\"', auxPos);
+	size_t endFilename = content.find('\"', initFilename + 1);
+	_fileName = content.substr(initFilename + 1, endFilename - initFilename);
+}
 
 void	Request::parseBodyByContentLength() { 
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
@@ -261,7 +289,6 @@ void	Request::parseBodyByContentLength() {
 		_status = BODY_PARSED;
 	
 }
-
 
 /*Chunked Transfer Encoding
 7\r\n
