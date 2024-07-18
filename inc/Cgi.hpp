@@ -25,7 +25,7 @@ class	Request;
 class	Cgi
 {
 	public:
-		Cgi(int socket, Request &rq);
+		Cgi(int socket, const Request &rq);
 		~Cgi();
 		int		executeCgi(std::string &response, int timeout);
 		void	setEnvVars(const std::string &u, const std::string &h, const std::string &s, const std::string &query, std::vector<std::string> &args);

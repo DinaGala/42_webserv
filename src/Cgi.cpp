@@ -10,7 +10,7 @@ static void	error(int sock, const char *ft, const std::string &msg)
 
 Cgi::Cgi() {}
 
-Cgi::Cgi(int socket, Request &rq): _socket(socket)
+Cgi::Cgi(int socket, const Request &rq): _socket(socket)
 {
 	this->_env["SERVER_SOFTWARE"] = "webserver";
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
