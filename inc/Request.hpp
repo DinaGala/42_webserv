@@ -4,7 +4,8 @@
 #define INITIAL_STATUS 0
 #define REQUEST_LINE_PARSED 1
 #define HEADERS_PARSED 2
-#define FINISH_PARSED 3
+#define BODY_PARSED 3
+#define FINISH_PARSED 4
 
 # include "Utils.hpp"
 
@@ -35,6 +36,11 @@ class Request {
 		bool								_connectionKeepAlive;
 		std::multimap<std::string, std::string>	_acceptedContent;
 
+		std::string							_boundary;
+		std::map<std::string, std::string>	_multipartHeaders;
+		std::string							_fileName;
+
+
 	public:
         Request(Socket& socket);
 		~Request();
@@ -49,12 +55,18 @@ class Request {
 		void 	checkPath();
 		void	checkProtocolHttp();
 		void 	checkAllowMethod();
-		void	addHeaderToMap(std::string line);
+		void	addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
 		void	checkConnectionKeepAlive();
 		
 		void	parseBodyByContentLength();
 		void	parseBodyByChunked();
 		void	checkAcceptedContent();
+
+		void	manageMultipartForm();
+		void	getBoundary();
+		void	saveMultipartHeaders();
+		void	updateMultipartBody();
+		void	saveFileName();
 
 		bool 						isStringOfDigits(std::string line);
 		uint64_t					convertStrToHex(std::string line);
@@ -80,6 +92,8 @@ class Request {
 		const std::vector<std::string>&				getServerNames() const; //LOCATION
 		bool										getConnectionKeepAlive() const;
 		const std::multimap<std::string, std::string>&	getAcceptedContent() const;
+		const std::map<std::string, std::string>&	getMultipartHeaders() const;
+		const std::string& 							getFileName() const;
 
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);

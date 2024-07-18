@@ -27,6 +27,8 @@ void	Request::initParamsRequest() {
 	_cgiConf = _socket.getServer().getCgiConf();
 	_serverNames = _socket.getServer().getServerNames();
 	_connectionKeepAlive = true;
+	_boundary = "";
+	_fileName = "";
 }
 
 //TODO: Accepted content: Accept: text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
@@ -57,6 +59,8 @@ void	Request::parseRequest(const std::string& buffer) {
 		if (_code == 200)
 			_code = 400;
 		std::cerr << e.what() << std::endl;
+		_status = FINISH_PARSED;
+		
 	}
 }
 
@@ -137,7 +141,7 @@ void	Request::parseHeaders() {
 			break;
 		}
 		else {
-			addHeaderToMap(line);
+			addHeaderToMap(line, _headers);
 			_buffer.erase(0, line.size() + 2);
 		}
 	}
@@ -158,14 +162,15 @@ void	Request::checkConnectionKeepAlive() {
 
 void	Request::checkAcceptedContent() {
 	if (_headers.find("Accept") != _headers.end()) {
-		std::vector<std::string> acceptCont= ft_split(_headers.find("Accept")->second, ";");
-		for (unsigned int i=0; i < acceptCont.size(); i++) {
-			size_t posComma = acceptCont[i].find('/');
-			if (posComma == std::string::npos)
+		std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
+		for (unsigned int i=0; i < acceptVec.size(); i++) {
+			size_t posSlash = acceptVec[i].find('/');
+			if (posSlash == std::string::npos)
 				throw std::runtime_error("Error parsing Request: bas headers");
-			std::string type = trim(acceptCont[i].substr(0, posComma));
-			std::string subtype = trim(acceptCont[i].substr(posComma + 1, acceptCont[i].length() - posComma -1));
-			size_t posSemicolon = acceptCont[i].find(';');
+			std::string type = trim(acceptVec[i].substr(0, posSlash));
+			std::string subtype = trim(acceptVec[i].substr(posSlash + 1, acceptVec[i].length() - posSlash -1));
+			
+			size_t posSemicolon = subtype.find(';');
 			if (posSemicolon != std::string::npos) {
 				subtype = subtype.substr(0, posSemicolon);
 			}
@@ -174,32 +179,97 @@ void	Request::checkAcceptedContent() {
 	}
 }
 
-void	Request::addHeaderToMap(std::string line){
+void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map){
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
 		throw std::runtime_error("Error parsing Request: bas headers");
 	
-	std::string name = line.substr(0, posColon);
+	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
 
-	_headers.insert(std::make_pair(name, value));
+	map.insert(std::make_pair(name, value));
 }
 
 
 //----------------- PARSING BODY -----------------
 void	Request::parseBody(){
-
+	if (_headers.find("Transfer-Encoding") == _headers.end() && _headers.find("Content-Length") == _headers.end()) {
+		_status = FINISH_PARSED;
+		return ;
+	}	
 	if (_headers.find("Transfer-Encoding") != _headers.end()) {
-		if (_headers.find("Transfer-Encoding")->second != "chunked")
+		if (_headers.find("Transfer-Encoding")->second.empty() || _headers.find("Transfer-Encoding")->second != "chunked")
 			throw std::runtime_error("Error parsing Request: wrong Transfer-Encoding value parameter");
 		parseBodyByChunked();
 	}
-	else if (_headers.find("Content-Length") != _headers.end()) {
+	else if (_headers.find("Content-Length") != _headers.end())
 		parseBodyByContentLength();
+	if (_status == BODY_PARSED)
+		manageMultipartForm();
+	_status = FINISH_PARSED;
+}
+
+void	Request::manageMultipartForm(){
+	if (_headers.find("Content-Type") != _headers.end() && !_headers.find("Content-Type")->second.empty() && _headers.find("Content-Type")->second.find("multipart/form-data")) {
+		getBoundary();
+		saveMultipartHeaders();
+		updateMultipartBody();
+		saveFileName();
 	}
-	else {
-		_status = FINISH_PARSED;
+} 
+
+void	Request::getBoundary() {
+	std::string content = _headers.find("Content-Type")->second;
+	size_t pos = content.find("boundary=");
+	if (pos == std::string::npos) 
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	_boundary = content.substr(pos+9, content.length() - (pos+9));
+}
+
+void	Request::saveMultipartHeaders() {
+	size_t pos = _body.find("--" + _boundary);
+	if (pos == std::string::npos)
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	
+	size_t startPos = _boundary.length() + pos + 4; //4 - \r\n + initial --
+	while (_body.find("\r\n", startPos) != std::string::npos){
+		std::string line = _body.substr(startPos, _body.find("\r\n", startPos) - startPos);
+		if (line.size() == 0)  
+			break;
+		else 
+			addHeaderToMap(line, _multipartHeaders);
+		startPos = _body.find("\r\n", startPos) + 2; 
 	}
+		
+	if (_multipartHeaders.find("Content-Type") == _multipartHeaders.end() || _multipartHeaders.find("Content-Disposition") == _multipartHeaders.end())
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	/*for (std::map<std::string, std::string>::iterator it = _multipartHeaders.begin(); it != _multipartHeaders.end(); ++it) {
+		std::cout << it->first << " :: " << it->second << std::endl;
+	}*/
+}
+
+void	Request::updateMultipartBody() {
+	size_t startBody = _body.find("\r\n\r\n") + 4;
+	if (startBody == std::string::npos)
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+
+	size_t finishBody = _body.find(_boundary + "--", startBody);
+	
+	if (finishBody == std::string::npos)
+		throw std::runtime_error("Error parsing Request: wrong Content-Type parameter");
+	_body.erase(finishBody);
+	_body.erase(0, startBody);
+}
+
+//Content-Disposition: form-data; name="file"; filename="example.txt"
+void	Request::saveFileName() {
+	std::string content = _multipartHeaders.find("Content-Disposition")->second;
+	size_t auxPos = content.find("filename");
+	if (auxPos == std::string::npos)
+		return;
+	size_t initFilename = content.find('\"', auxPos);
+	size_t endFilename = content.find('\"', initFilename + 1);
+	_fileName = content.substr(initFilename + 1, endFilename - initFilename);
 }
 
 void	Request::parseBodyByContentLength() { 
@@ -215,11 +285,10 @@ void	Request::parseBodyByContentLength() {
 		_body.push_back(_buffer[0]);
 		_buffer.erase(0);
 	}
-	if (_body.length() == contentLength) {
-		_status = FINISH_PARSED;
-	}
+	if (_body.length() == contentLength)
+		_status = BODY_PARSED;
+	
 }
-
 
 /*Chunked Transfer Encoding
 7\r\n
@@ -254,7 +323,7 @@ void	Request::parseBodyByChunked(){
 	}
 
 	if (sizeChunk == 0) {
-		_status = FINISH_PARSED;
+		_status = BODY_PARSED;
 		_headers.find("Transfer-Encoding")->second = ""; //remove chunked
 		size_t length = _body.length();
 		_headers.insert(std::make_pair("Content-Length", ft_itoa(length)));
@@ -367,6 +436,14 @@ bool Request::getConnectionKeepAlive() const {
 
 const std::multimap<std::string, std::string>&	Request::getAcceptedContent() const {
 	return (_acceptedContent);
+}
+
+const std::map<std::string, std::string>& Request::getMultipartHeaders() const{
+	return (_multipartHeaders);
+}
+
+const std::string&	Request::getFileName() const {
+	return (_fileName);
 }
 
 // _____________  SETTERS _____________ 

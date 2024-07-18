@@ -11,7 +11,7 @@ class Socket {
 		long				_sockfd;
 		struct sockaddr_in	_sockaddr;
 		std::vector<int>	_nClients; //TODO: pending multiplexing
-
+		
 	
 	public:
 		Socket(Server& server, int port);

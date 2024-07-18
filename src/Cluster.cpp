@@ -44,6 +44,8 @@ void	Cluster::runCluster(){
 	Socket socket = _sockets[0]; //TODO: identify socket
 
 	while (1){ //manage signals
+		
+		
 		int	connection = acceptConnection(socket);
 
 		char buffer[3000];
