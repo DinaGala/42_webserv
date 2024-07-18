@@ -30,6 +30,8 @@ std::map<std::string, std::string> Response::_status = Response::initStatus();
 Response::Response(): _path("./html/test.html"), _servname("webserv"), _timeout(10000), _maxconnect(10), _connection(false), _code(0)
 {}
 
+
+
 Response::Response(const Response &r)
 {
 	this->_cgi_path = r._cgi_path;

@@ -12,7 +12,7 @@ class Request {
 	private:
 		std::string							_buffer;
 		int									_status;	
-		Socket&								_socket;
+		Server&								_serv;
 		
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
@@ -28,10 +28,17 @@ class Request {
 		std::string 						_uploadDir;
 		std::string 						_return; //TODO: is it necessary to add boolean?
 		std::map<std::string, std::string> 	_cgiConf;
+
+		Request();
 		
 	public:
-        Request(const std::string& buffer, Socket& socket);
+     //   Request(const std::string& buffer, Socket& socket);
 		~Request();
+	//	Request();
+		Request(Server& serv);
+		Request& operator=(const Request& src); //TODO to finish
+		Request(const Request& src); //TODO to finish
+
 		void	initParamsRequest();
 		void	parseRequest();
 		
@@ -51,7 +58,8 @@ class Request {
 		bool 						isStringOfDigits(std::string line);
 		uint64_t					convertStrToHex(std::string line);
 		
-		const Socket&								getSocket() const;
+	//	const Socket&								getSocket() const;
+		const Server&								getServ() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
 		const std::string& 							getIndex() const; //LOCATION

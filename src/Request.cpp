@@ -1,28 +1,50 @@
 #include "Request.hpp"
 
-Request::Request(const std::string& buffer, Socket& socket) : _buffer(buffer), _status(INITIAL_STATUS), _socket(socket){
+// Request::Request(const std::string& buffer, Socket& socket) : _buffer(buffer), _status(INITIAL_STATUS), _socket(socket){
+// 	initParamsRequest();
+// 	std::cout << "REQUEST -------------" << std::endl;
+// 	std::cout << _buffer << std::endl;
+// }
+
+Request::Request(Server& serv): _serv(serv)
+{
 	initParamsRequest();
 	std::cout << "REQUEST -------------" << std::endl;
-	std::cout << _buffer << std::endl;
+//	std::cout << _buffer << std::endl;
 }
 
 Request::~Request() {
 }
 
+Request& Request::operator=(const Request& src)
+{
+	_serv = src._serv;
+//	FINISH
+//	empty = src.empty;
+	return (*this);
+}
+
+Request::Request(const Request& src): _serv(src._serv)
+{
+	*this = src;
+}
+
 void	Request::initParamsRequest() {
+	
+	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
 	_body = "";
 	_errorCode = 200; //TODO: error code default?
-	_maxBodySize = _socket.getServer().getMaxBodySize();
-	_allowedMethods = _socket.getServer().getAllowedMethods();
-	_errorPages = _socket.getServer().getErrorPages();
+	_maxBodySize = _serv.getMaxBodySize();
+	_allowedMethods = _serv.getAllowedMethods();
+	_errorPages = _serv.getErrorPages();
 	_index =  "";
-	_autoIndex = _socket.getServer().getAutoIndex();
+	_autoIndex = _serv.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
 	_return = "";
-	_cgiConf = _socket.getServer().getCgiConf();
+	_cgiConf = _serv.getCgiConf();
 }
 
 /*	REQUEST LINE: method | URI and protocol | version
@@ -80,7 +102,7 @@ void Request::checkUrlPath(){
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
+	std::vector<std::string> allowedMethodsVect = _serv.getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
 		_errorCode = 405;
@@ -232,8 +254,12 @@ uint64_t	Request::convertStrToHex(std::string line){
 
 // _____________  GETTERS _____________ 
 
-const Socket&  Request::getSocket() const {
-	return (_socket);
+// const Socket&  Request::getSocket() const {
+// 	return (_socket);
+// }
+
+const Server&  Request::getServ() const {
+	return (_serv);
 }
 
 const std::vector<std::string>& Request::getAllowedMethods() const{

@@ -14,6 +14,9 @@ class	Response
 	public:
 		Response();
 		~Response();
+
+		Response(const Response &r);
+		Response	&operator=(const Response &r);
 		//SET VARS
 		void		setBody(const std::string &msg);
 		void		setCgiPath(const std::string &cgi);
@@ -46,8 +49,6 @@ class	Response
 		bool			_connection; //tmp
 		unsigned int	_code;
 
-		Response(const Response &r);
-		Response	&operator=(const Response &r);
 		std::string	_toString(std::string::size_type n);
 		void		_parseCgiResponse(void);
 };

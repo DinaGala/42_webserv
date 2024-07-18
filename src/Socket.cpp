@@ -1,24 +1,54 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server &server, int port) : _server(server), _port(port)
+Socket::Socket(Server &server, int portFd, bool master): _server(server), _req(server), _master(master)
 {
 	_ipAddress = server.getIpAdress();
+	if (master)
+		initMaster(portFd);
+	else
+		initClient(portFd);
+	setNonBlocking();
 }
 
 Socket::~Socket() {
 }
 
-void	Socket::setUpSocket(){
-	initSocket();
-//	bindSocket();
-//	listenConnection();
+Socket& Socket::operator=(const Socket& src)
+{
+	_server = src._server;
+	_port = src._port;
+	_ipAddress = src._ipAddress;
+	_fd = src._fd;
+	_master = src._master;
+	_nClients = src._nClients;
+	_req = src._req;
+	_resp = src._resp;
+	return (*this);
+}
+
+Socket::Socket(const Socket& src): _server(src._server), _req(src._server)
+{
+	*this = src;
+}
+
+
+void	Socket::setNonBlocking()
+{
+	// Get current socket flags
+	int flags = fcntl(_fd, F_GETFL, 0);  
+	if (flags == -1) 
+		throw std::runtime_error("Error: fcntl get flags failed for " + _ipAddress + ":" + ft_itoa(_port));
+	
+	// Set non-blocking flag
+	if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("Error: fcntl set non blocking failed for " + _ipAddress + ":" + ft_itoa(_port));
 }
 
 /*SOCKET
 	int socket(int domain, int type, int protocol);
 	DOMAIN: communication domain - protocolos family  that socket will belong to. 
 	AF_INET - IPv4 Internet protocols */
-void	Socket::initSocket() 
+void	Socket::initMaster() 
 {
 	struct addrinfo hints, *servinfo, *p;
 	std::string errmsg;
@@ -43,11 +73,20 @@ void	Socket::initSocket()
     if (p == NULL)
         throw std::runtime_error("Error: getaddrinfo failed the conversion for " + _ipAddress + ":" + ft_itoa(_port));
     freeaddrinfo(servinfo);
-    if (listen(_fd, SOMAXCONN) == -1) // we set our maximum?
+    
+	if (listen(_fd, MAX_CON) == -1) // we set our maximum?
 	{
         close(_fd);
         throw std::runtime_error("Error: listen failed for " + _ipAddress + ":" + ft_itoa(_port));
     }
+
+	// NOT SURE ABOUT IT
+	int opt = 1;
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
+	{
+		close(_fd);
+        throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+	}
 }
 
 /*SOCKET ADDRESS STRUCTURE 
@@ -66,28 +105,28 @@ void	Socket::initSocket()
 	bind - assign an IP address and port to the socket.
 */
 
-void	Socket::bindSocket(){
-	_sockaddr.sin_family = AF_INET;
-    _sockaddr.sin_addr.s_addr = inet_addr(this->_ipAddress.c_str()); //tansform address to binary
-	_sockaddr.sin_port = htons(this->_port); // htons is necessary to convert a number to network byte order
+// void	Socket::bindSocket(){
+// 	_sockaddr.sin_family = AF_INET;
+//     _sockaddr.sin_addr.s_addr = inet_addr(this->_ipAddress.c_str()); //tansform address to binary
+// 	_sockaddr.sin_port = htons(this->_port); // htons is necessary to convert a number to network byte order
 
-	if (bind(this->_sockfd, (struct sockaddr*)&this->_sockaddr, sizeof(this->_sockaddr)) < 0) {
-		std::cout << "Failed to bind to port 9999. errno: " << errno << std::endl;
-		exit(EXIT_FAILURE);
-	}
-}
+// 	if (bind(this->_sockfd, (struct sockaddr*)&this->_sockaddr, sizeof(this->_sockaddr)) < 0) {
+// 		std::cout << "Failed to bind to port 9999. errno: " << errno << std::endl;
+// 		exit(EXIT_FAILURE);
+// 	}
+// }
 
 /*LISTEN 
 	int listen(int sockfd, int backlog);
 	mark the socket as a passive socket, the Socket indicates that it is ready to accept connections
 	backlog - maximum number of connections that will be queued before connections start being refused.
 */
-void	Socket::listenConnection(){
-	if (listen(this->_sockfd, 10000) < 0) {  //max num of connections??
-		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-		exit(EXIT_FAILURE);
-	}
-}
+// void	Socket::listenConnection(){
+// 	if (listen(this->_sockfd, 10000) < 0) {  //max num of connections??
+// 		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
+// 		exit(EXIT_FAILURE);
+// 	}
+// }
 
 //SETTERS
 void	Socket::setIpAddress(const std::string & ipAddress){
@@ -100,12 +139,16 @@ void	Socket::setPort(const int port){
 
 //GETTERS
 long	Socket::getSockfd() const {
-	return(_sockfd);
+	return(_fd);
 }
 
-const struct sockaddr_in& Socket::getSockaddr() const {
-	return(_sockaddr);
+bool	Socket::getMaster() const {
+	return(_master);
 }
+
+// const struct sockaddr_in& Socket::getSockaddr() const {
+// 	return(_sockaddr);
+// }
 
 const Server& Socket::getServer() const {
 	return(_server);
