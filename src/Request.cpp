@@ -14,6 +14,7 @@ void	Request::initParamsRequest() {
 	_body = "";
 	_query = "";
 	_path = "";
+	_root = "";
 	_code = 200;
 	_maxBodySize = _socket.getServer().getMaxBodySize();
 	_allowedMethods = _socket.getServer().getAllowedMethods();
@@ -25,10 +26,11 @@ void	Request::initParamsRequest() {
 	_return = "";
 	_cgi = false;
 	_cgiConf = _socket.getServer().getCgiConf();
-	_serverNames = _socket.getServer().getServerNames();
+	_serverNames = _socket.getServer().getServerName();
 	_connectionKeepAlive = true;
 	_boundary = "";
 	_fileName = "";
+	_location = false;
 }
 
 //TODO: Accepted content: Accept: text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
@@ -39,7 +41,7 @@ void	Request::initParamsRequest() {
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
 
-/*----------------- PARSING REQUEST LINE -----------------*/
+/*----------------- PARSING REQUEST -----------------*/
 void	Request::parseRequest(const std::string& buffer) {
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
@@ -55,12 +57,16 @@ void	Request::parseRequest(const std::string& buffer) {
 		if (_status == HEADERS_PARSED){
 			parseBody(); //TODO: Timeout
 		}
+		if (_status == FINISH_PARSED){
+			std::cout << "FINISH REQUEST PARSING" << std::endl;
+			requestValidations();
+		}
+
 	} catch (const std::exception & e){
 		if (_code == 200)
 			_code = 400;
 		std::cerr << e.what() << std::endl;
 		_status = FINISH_PARSED;
-		
 	}
 }
 
@@ -70,10 +76,6 @@ void	Request::parseRequestLine() {
 	if (posBuffer == std::string::npos)
 		return ;
 	createRequestLineVector(_buffer.substr(0, posBuffer));
-
-	checkPath();
-	checkProtocolHttp();
-	checkAllowMethod(); //TOD: Pending update methods allowed of location
 
 	_status = REQUEST_LINE_PARSED;
 	_buffer.erase(0, posBuffer + 2); //remove used buffer (request line)
@@ -87,43 +89,6 @@ void Request::createRequestLineVector(std::string requestLineStr){
 	}
 	if (_requestLine.size() != 3)
 		throw std::runtime_error("Error parsing Request: wrong request line");
-}
-
-void Request::checkPath(){
-/*std::string	Response::_parseUrl(const std::string &url)
-{
-	std::string::size_type	found = url.find(this->_host);
-	std::string::size_type	next;
-	std::string str;
-
-	if (found != std::string::npos)
-		found += this->_host.size() + 1;
-	else
-		found = 0;
-	next = url.find("?", found);
-	if (next != std::string::npos)
-	{
-		this->_reqbody = url.substr(next, url.size());
-		str = url.substr(found, next);
-	}
-	else
-		str = url.substr(found);
-	return (str);
-}*/
-}
-
-void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
-	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
-	if (it == allowedMethodsVect.end()) {
-		_code = 405;
-		throw std::runtime_error("Error parsing Request: no metod allowed");
-	}
-}
-
-void Request::checkProtocolHttp(){
-	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1"))
-		throw std::runtime_error("Error parsing Request: bat http version");
 }
 
 /*----------------- PARSING HEADERS -----------------*/
@@ -166,7 +131,7 @@ void	Request::checkAcceptedContent() {
 		for (unsigned int i=0; i < acceptVec.size(); i++) {
 			size_t posSlash = acceptVec[i].find('/');
 			if (posSlash == std::string::npos)
-				throw std::runtime_error("Error parsing Request: bas headers");
+				throw std::runtime_error("Error parsing Request: bad headers");
 			std::string type = trim(acceptVec[i].substr(0, posSlash));
 			std::string subtype = trim(acceptVec[i].substr(posSlash + 1, acceptVec[i].length() - posSlash -1));
 			
@@ -182,7 +147,7 @@ void	Request::checkAcceptedContent() {
 void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map){
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
-		throw std::runtime_error("Error parsing Request: bas headers");
+		throw std::runtime_error("Error parsing Request: bad headers");
 	
 	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
@@ -190,8 +155,7 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 	map.insert(std::make_pair(name, value));
 }
 
-
-//----------------- PARSING BODY -----------------
+/*----------------- PARSING BODY -----------------*/
 void	Request::parseBody(){
 	if (_headers.find("Transfer-Encoding") == _headers.end() && _headers.find("Content-Length") == _headers.end()) {
 		_status = FINISH_PARSED;
@@ -356,6 +320,120 @@ uint64_t	Request::convertStrToHex(std::string line){
 	return result;
 }
 
+/*----------------- VALIDTATE REQUEST -----------------*/
+
+void Request::requestValidations(){
+	checkPath();
+	checkProtocolHttp();
+	checkAllowMethod(); //TOD: Pending update methods allowed of location
+	updatePath();
+}
+ 
+void Request::updatePath() {
+	std::string str = _requestLine[1];
+	if (_requestLine[0] == "GET"){
+		if (_query != ""){
+			str = str.substr(0, str.find("?", 0));
+		}
+		str.insert(0, ".");
+		if (access(str.c_str(), X_OK) == 0)
+			this->_cgi = true;
+	} 
+	else if (_requestLine[0] == "POST" && _return != ""){
+		_path = _return;
+		_code = 305;
+	}
+}
+
+void Request::checkPath() {
+	std::string remainedStr = checkQuery();
+	size_t nLoc = checkLocation(remainedStr);
+	if (_location) 
+		updateInfoLocation(nLoc);
+		
+	
+	/*std::string url = _requestLine[1];
+	
+	std::string::size_type	found = 0;
+	std::string::size_type	posQuery;
+	std::string str;
+
+	posQuery = url.find("?", found);
+	if (posQuery != std::string::npos) {
+		_query = url.substr(posQuery + 1, url.size() - posQuery);
+		str = url.substr(0, posQuery);
+	}
+	else
+		str = url;
+	str.insert(0, ".");
+	if (access(str.c_str(), X_OK) == 0)
+		this->_cgi = true;*/
+}
+
+std::string Request::checkQuery() {
+	std::string url = _requestLine[1];
+	std::string::size_type	posQuery;
+
+	posQuery = url.find("?");
+	if (posQuery != std::string::npos) {
+		_query = url.substr(posQuery + 1, url.size() - posQuery);
+		return (url.substr(0, posQuery));
+	}
+	return url;
+}
+
+size_t Request::checkLocation(std::string & path) {
+	std::vector<LocationConfig> vecLocations = _socket.getServer().getLocationConfig();
+	size_t 	posLoc = 0;
+	size_t	nEqualLocs = 0;
+	size_t 	j=0;
+
+	std::vector<std::string> vecPath = ft_split(path, "/");
+	
+	for (size_t i=0; i < vecLocations.size(); i++) {
+		std::vector<std::string> pathLoc = ft_split(vecLocations[i].getUri(), "/");
+		for (j = 0; j < pathLoc.size(); j++) {
+			if (vecPath[j] != pathLoc[j])
+				break;
+		}
+		if (j > nEqualLocs) {
+			posLoc = i;
+			nEqualLocs = j;
+			_location = true;
+		}
+	}
+	return posLoc;
+}
+
+void	Request::updateInfoLocation(size_t nLoc) {
+ 	std::vector<LocationConfig> vecLocations = _socket.getServer().getLocationConfig();
+    LocationConfig location = vecLocations[nLoc];
+
+	_root = vecLocations[nLoc].getRoot();
+	_allowedMethods = vecLocations[nLoc].getAllowedMethods();
+	_errorPages = vecLocations[nLoc].getErrorPages();
+	_index =  vecLocations[nLoc].getIndex();
+	_autoIndex = vecLocations[nLoc].getAutoIndex();
+	_allowUpload = vecLocations[nLoc].getAllowUpload();
+	_uploadDir = vecLocations[nLoc].getUploadDir();
+	_return = vecLocations[nLoc].getReturn();
+	_cgiConf = vecLocations[nLoc].getCgiConf();
+}
+
+void Request::checkAllowMethod(){
+	std::vector<std::string> allowedMethodsVect = _socket.getServer().getAllowedMethods();
+	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
+	if (it == allowedMethodsVect.end()) {
+		_code = 405;
+		throw std::runtime_error("Error parsing Request: no metod allowed");
+	}
+}
+
+void Request::checkProtocolHttp(){
+	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1"))
+		throw std::runtime_error("Error parsing Request: bat http version");
+}
+
 // _____________  GETTERS _____________ 
 
 const Socket&  Request::getSocket() const {
@@ -376,6 +454,10 @@ const std::string& Request::getQuery() const {
 
 const std::string&  Request::getPath() const {
     return (_requestLine[1]);
+}
+
+const std::string& 	Request::getRoot() const{
+    return (_root);
 }
 
 int	Request::getCode() const {
