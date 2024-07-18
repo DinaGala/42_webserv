@@ -2,28 +2,6 @@
 
 //////////////////////// STATIC ASSETS ////////////////////////////////////////
 
-/*std::map<int, std::string> Response::initStatus()
-{
-	std::map<int, std::string> error;
-
-	error[100] = "Continue";
-	error[200] = "OK";
-	error[201] = "Created";
-	error[204] = "No Content";
-	error[302] = "Found";
-	error[400] = "Bad Request";
-	error[403] = "Forbidden";
-	error[404] = "Not Found";
-	error[405] = "Method Not Allowed";
-	error[406] = "Not Acceptable";
-	error[408] = "Request Timeout";
-	error[411] = "Length Required";
-	error[500] = "Internal Server Error";
-	error[501] = "Not Implemented";
-	error[505] = "HTTP Version Not Supported";
-	return (error);
-}*/
-
 std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 {
 	std::map<int, std::pair<std::string, std::string> > error;
@@ -52,15 +30,6 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 //////////////////////////////////////////////////////////////////////////////
 
 Response::Response(): _cgi(false), _keep_alive(true), _code(200), _req(NULL) {}
-/*
-Response::Response(Request &req): _req(req), _cgi(false), _code(200), _req(NULL)
-{
-	this->_servname = "webserv";
-	this->_keep_alive = true;
-	this->_host = "localhost:8080";
-	this->_port = 8080;
-	this->_reqbody = this->_req->getBody();
-}*/
 
 Response::Response(const Response &r): _req(r._req)
 {
@@ -98,6 +67,11 @@ void	Response::setBody(const std::string &msg)
 void	Response::setCode(const int &code)
 {
 	this->_code = code;
+}
+
+void	Response::setReq(const Request *rqt)
+{
+	this->_req = rqt;
 }
 
 std::vector<std::string>	Response::_setCgi(std::string &path)
@@ -164,12 +138,16 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::getResponse(int code)
 {
+	if (!this->_req)
+		return (this->sendError(500), this->_response);
 	std::string	method = this->_req->getMethod();
 	this->_path = this->_parseUrl(this->_req->getPath());
 	struct stat	file_type;
 
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ PATH: " << this->_req->getCode() << "\033[0m" << std::endl;
 
 	if (this->_req->getCode() == 301)//redirect
 	{
@@ -188,14 +166,16 @@ std::string	&Response::getResponse(int code)
 		{
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_req->getIndex());
+			int code = this->fileToBody(this->_path + this->_req->getIndex());
 			if (code)
 				return (this->sendError(code), this->_response);
 			this->_response += "\n\n" + this->_body;
 			return (this->_response);
 		}
+		else if (this->_req->getAutoIndex())
+			return (this->_makeAutoIndex(), this->_response);
 		else
-			this->_makeAutoIndex();
+			return (this->sendError(403), this->_response);
 	}
 	if (this->_req->getCgi())
 		this->_cgiargs = this->_setCgi(this->_path);
@@ -289,7 +269,7 @@ bool	Response::_createFile(void)
 	newfile << this->_body;
 	return (0);
 }
-
+/*
 void	Response::_handlePost()
 {
 	if (this->_req->getPath() == "/submit-form")
@@ -314,6 +294,30 @@ void	Response::_handlePost()
 	}
 	else
 		this->sendError(501);
+}
+*/
+void	Response::_handlePost()
+{
+	if (this->_req->getFileName() != "")
+	{
+		if (this->_req->getAllowUpload())
+		{
+			this->sendError(403);
+			return ;
+		}
+		if (this->_createFile())
+			return ;
+		this->_response = this->putStatusLine(201);
+		this->putGeneralHeaders();
+		//this->putPostHeaders(this->_req->getFileName());
+		this->putPostHeaders("new_file.tmp");
+	}
+	else
+	{
+		this->_response = this->putStatusLine(200);
+		this->putGeneralHeaders();
+		this->_response += "\n\n<html><body>Form submitted!</body></html>";
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -345,10 +349,18 @@ bool	Response::_isNotAccepted(std::string mime)
 void	Response::_makeAutoIndex(void)
 {
 	struct dirent	*dp;
+	struct stat		status;
 	DIR				*dir;
 	std::string		filename;
 
-	dir = opendir(this->_req->getPath().c_str());
+	if (this->_isNotAccepted("text/html"))
+	{
+		this->sendError(403);
+		return ;
+	}
+	std::string	tmp_path = "." + this->_req->getPath();
+	dir = opendir(tmp_path.c_str());
+	//dir = opendir(this->_req->getPath().c_str());
 	if (!dir)
 	{
 		this->sendError(500);
@@ -359,12 +371,20 @@ void	Response::_makeAutoIndex(void)
 	while ((dp = readdir(dir)) != NULL)
 	{
 		filename = dp->d_name;
-		filename += "/";
-		if (filename == "./" || filename == "../")
+		//filename += "/";
+		if (stat(filename.c_str(), &status))
+		{
+			this->sendError(500);
+			return ; 
+		}
+		if (filename[0] == '.' || (!access(filename.c_str(), X_OK) && !S_ISDIR(status.st_mode)))
 			continue ;
-		this->_body += "<a href= " + filename + ">" + filename + "</a>\n";
+		this->_body += "<p><a href= " + filename + ">" + filename + "</a></p>\n";
 	}
 	this->_body += "</body></html>";
+	this->_response = this->putStatusLine(200);
+	this->putGeneralHeaders();
+	this->_response += "\n\n" + this->_body;
 	return ;
 }
 
@@ -460,6 +480,14 @@ void	Response::sendError(int code)
 {
 	if (this->_status.find(code) == this->_status.end())
 		code = 500;
+	if (this->_isNotAccepted("text/html"))
+	{
+		this->_response = this->putStatusLine(code);
+		this->putGeneralHeaders();
+		this->_response += "Content-Length: " + ft_itoa(this->_status.at(code).first.size()) + "\r\n\n";
+		this->_response += ft_itoa(code) + this->_status.at(code).first;
+		return ;
+	}
 	int error = fileToBody(this->_status.at(code).second);
 	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
 	{

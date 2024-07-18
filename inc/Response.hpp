@@ -34,7 +34,7 @@ class	Response
 		void		setBody(const std::string &msg);
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
-		void		setSocket(int socket);
+		void		setReq(const Request *rqt);
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
@@ -62,7 +62,7 @@ class	Response
 		bool			_keep_alive; //tmp
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
-		Request			*_req;
+		const Request	*_req;
 
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
