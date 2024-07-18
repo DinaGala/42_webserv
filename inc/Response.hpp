@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <dirent.h>
 #include "Cgi.hpp"
 #include "Utils.hpp"
 #include "Request.hpp"
@@ -25,13 +26,15 @@ class Request;
 class	Response
 {
 	public:
-		Response(Request &req);
+		Response();
+		Response(const Response &r);
+		//Response(Request &req);
 		~Response();
 		//SET VARS
 		void		setBody(const std::string &msg);
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
-		//void		setStatus(const std::map<int, std::pair<std::string, std::string> > &status);
+		void		setSocket(int socket);
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
@@ -55,13 +58,12 @@ class	Response
 		std::string		_host; //tmp
 		int				_socket; //tmp
 		int				_port; //tmp
-		bool			_keep_alive; //tmp
 		bool			_cgi; //tmp
+		bool			_keep_alive; //tmp
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
-		Request			&_req;
+		Request			*_req;
 
-		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		void		_parseCgiResponse(void);
 		void		_handleGet(void);
@@ -71,6 +73,7 @@ class	Response
 		std::vector<std::string> _setCgi(std::string &path);
 		bool		_createFile(void);
 		bool		_isNotAccepted(std::string str);
+		void		_makeAutoIndex(void);
 };
 
 #endif

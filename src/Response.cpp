@@ -51,29 +51,33 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response(Request &req): _code(200), _req(req) 
+Response::Response(): _cgi(false), _keep_alive(true), _code(200), _req(NULL) {}
+/*
+Response::Response(Request &req): _req(req), _cgi(false), _code(200), _req(NULL)
 {
-	//this->_req.getMethod() = "POST";
-	//this->_req.getPath() = "cgi-bin/test.py";
-	//this->_req.getPath() = "./cgi-bin/form_post.py"; // not found
-	//this->_req.getPath() = "http://localhost:8080/cgi-bin/post_req.sh";
-	//this->_req.getPath() = "./cgi-bin/post_test.js";
-	//this->_req.getPath() = "./html/form.html";
 	this->_servname = "webserv";
-	//this->_timeout = 10;
-	//this->_maxconnect = 10;
 	this->_keep_alive = true;
 	this->_host = "localhost:8080";
 	this->_port = 8080;
-	this->_cgi = false;
-	this->_reqbody = "This is a temporary variable";
-}
+	this->_reqbody = this->_req->getBody();
+}*/
 
 Response::Response(const Response &r): _req(r._req)
 {
-	//this->_req.setPath(r._req.getPath());
 	this->_response = r._response;
 	this->_body = r._body;
+	this->_code = r._code;
+	this->_query = r._query;
+	this->_reqbody = r._reqbody;
+	this->_path = r._path;
+	this->_servname = r._servname;
+	this->_method = r._method;
+	this->_host = r._host;
+	this->_socket = r._socket;
+	this->_port = r._port;
+	this->_keep_alive = r._keep_alive;
+	this->_cgi = r._cgi;
+	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
 }
 
@@ -106,7 +110,7 @@ std::vector<std::string>	Response::_setCgi(std::string &path)
 		return (args);
 	}
 	std::string::size_type	found = path.find_last_of(".");
-	std::map<std::string, std::string>	config = this->_req.getCgiConf();
+	std::map<std::string, std::string>	config = this->_req->getCgiConf();
 	std::string	ext;
 	if (found != std::string::npos)// if there's extension
 	ext = path.substr(found);
@@ -127,7 +131,7 @@ std::string	Response::_parseUrl(const std::string &url)
 	std::string str;
 
 	query = url.find("?", found);
-	if (query != std::string::npos) // if there's a ?
+	if (query != std::string::npos) // if there's a '?'
 	{
 		this->_query = url.substr(query + 1, url.size());
 		str = url.substr(found, query);
@@ -160,24 +164,46 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::getResponse(int code)
 {
-	//if (this->_req.getCode() == 301)
-	this->_path = this->_parseUrl(this->_req.getPath());
-	this->_cgiargs = this->_setCgi(this->_path);
-	if (code == 301)
+	std::string	method = this->_req->getMethod();
+	this->_path = this->_parseUrl(this->_req->getPath());
+	struct stat	file_type;
+
+	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
+
+	if (this->_req->getCode() == 301)//redirect
 	{
-		this->putStatusLine(301);
+		this->_response = this->putStatusLine(301);
 		this->putGeneralHeaders();
+		this->_response += "Location: " + this->_path + "\r\n";
 		return (this->_response);
 	}
-	else if (code > 301)
+	else if (this->_req->getCode() > 301)
 		return (this->sendError(code), this->_response);
-	std::cout << "\033[33;1mMETHOD: " << this->_req.getMethod() << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
-	if (this->_req.getMethod() == "GET")
+	if (stat(this->_path.c_str(), &file_type))
+		return (this->sendError(500), this->_response);
+	if (S_ISDIR(file_type.st_mode))// if it's a directory
+	{
+		if (this->_req->getIndex() != "")
+		{
+			this->_response = this->putStatusLine(200);
+			this->putGeneralHeaders();
+			int code = this->fileToBody(this->_req->getIndex());
+			if (code)
+				return (this->sendError(code), this->_response);
+			this->_response += "\n\n" + this->_body;
+			return (this->_response);
+		}
+		else
+			this->_makeAutoIndex();
+	}
+	if (this->_req->getCgi())
+		this->_cgiargs = this->_setCgi(this->_path);
+	if (method == "GET")
 		this->_handleGet();
-	else if (this->_req.getMethod() == "POST")
+	else if (method == "POST")
 		this->_handlePost();
-	else if (this->_req.getMethod() == "DELETE")
+	else if (method == "DELETE")
 		this->_handleDelete();
 	return (this->_response);
 }
@@ -194,7 +220,7 @@ void	Response::_handleGet()
 			return ;
 		}
 		std::cout << "\033[1;34mGET: path " << this->_path << "\033[0m" << std::endl;
-		Cgi	cgi(this->_socket, this->_req);
+		Cgi	cgi(this->_socket, *(this->_req));
 		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query, this->_cgiargs);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		if (cgi_status) // if cgi returns status != 0 -> error
@@ -222,17 +248,17 @@ void	Response::_handleGet()
 
 void	Response::_handleDelete()
 {
-	if (access(this->_req.getPath().c_str(), F_OK))// file not found
+	if (access(this->_req->getPath().c_str(), F_OK))// file not found
 	{
 		this->sendError(404);
 		return ;
 	}
-	if (access(this->_req.getPath().c_str(), W_OK))// no permissions
+	if (access(this->_req->getPath().c_str(), W_OK))// no permissions
 	{
 		this->sendError(403);
 		return ;
 	}
-	if (std::remove(this->_req.getPath().c_str()))
+	if (std::remove(this->_req->getPath().c_str()))
 	{
 		this->sendError(500);
 		return ;
@@ -250,31 +276,31 @@ bool	Response::_createFile(void)
 {
 	struct stat	is_dir;
 	std::string	filename = "new_file.tmp";
-	filename.insert(0, this->_req.getUploadDir());
+	filename.insert(0, this->_req->getUploadDir());
 	if (stat("uploaded", &is_dir))
 			return (this->sendError(500), 1);
 	if (!S_ISDIR(is_dir.st_mode))// if it doesn't exist
 		std::system("mkdir uploaded");
-	//std::ofstream	newfile(this->_req.getFilename());
+	//std::ofstream	newfile(this->_req->getFilename());
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
 			return (this->sendError(500), 1);
-	//newfile << this->_req.body;
+	//newfile << this->_req->body;
 	newfile << this->_body;
 	return (0);
 }
 
 void	Response::_handlePost()
 {
-	if (this->_req.getPath() == "/submit-form")
+	if (this->_req->getPath() == "/submit-form")
 	{
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
 		this->_response += "\n\n<html><body>Form submitted!</body></html>";
 	}
-	else if (this->_req.getPath() == "/upload")
+	else if (this->_req->getPath() == "/upload")
 	{
-		if (this->_req.getAllowUpload())
+		if (this->_req->getAllowUpload())
 		{
 			this->sendError(403);
 			return ;
@@ -284,7 +310,7 @@ void	Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders("new_file.tmp");
-		//this->putPostHeaders(this->_req.getFilename());
+		//this->putPostHeaders(this->_req->getFilename());
 	}
 	else
 		this->sendError(501);
@@ -302,11 +328,44 @@ bool	Response::_isNotAccepted(std::string mime)
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)
 		return (1);
-	const std::multimap<std::string, std::string> mp = this->_req.getAcceptedContent();
+	const std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
 	std::multimap<std::string, std::string>::const_iterator it = mp.find(mime.substr(0, found));
 	if (it != mp.end() && (it->second == mime.substr(found + 1) || mime.substr(found + 1) == "*"))
 		return (0);
 	return (1);
+}
+
+//if index.html
+//	show index.html
+//else if autoindex on
+//	show listing
+//else
+//	show 403
+
+void	Response::_makeAutoIndex(void)
+{
+	struct dirent	*dp;
+	DIR				*dir;
+	std::string		filename;
+
+	dir = opendir(this->_req->getPath().c_str());
+	if (!dir)
+	{
+		this->sendError(500);
+		return ;
+	}
+	this->_body = "<html><head><title>INDEX</title><h1>Index of";
+	this->_body += this->_req->getPath() + "</h1></head><body>";
+	while ((dp = readdir(dir)) != NULL)
+	{
+		filename = dp->d_name;
+		filename += "/";
+		if (filename == "./" || filename == "../")
+			continue ;
+		this->_body += "<a href= " + filename + ">" + filename + "</a>\n";
+	}
+	this->_body += "</body></html>";
+	return ;
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
@@ -350,7 +409,7 @@ bool	Response::putPostHeaders(const std::string &file)
 		if (line.find(ext) != std::string::npos)
 			break ;
 	}
-	//this->_response += "Location: " + this->_req.getUploadDir();
+	//this->_response += "Location: " + this->_req->getUploadDir();
 	this->_response += "Location: /"; //TMP
 	if (line == "" || mime.eof())
 	{
@@ -405,8 +464,6 @@ void	Response::sendError(int code)
 	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
 	{
 		this->_response += "Content-Length: 22\r\n\r\n";
-		//this->_response += "\n<html><body><h1>505</h1>"
-		//					"<h2>Severe Internal Server Error</h2></body></html>";
 		this->_response += "Severe Internal Error\n";
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
 		return ;
