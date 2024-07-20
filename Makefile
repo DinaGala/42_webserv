@@ -11,7 +11,7 @@ RM = rm -f
 
 SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp Cluster.cpp Server.cpp Socket.cpp Request.cpp Response.cpp Cgi.cpp
 F_SRC = src/
-F_OBJ = obj/
+F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
