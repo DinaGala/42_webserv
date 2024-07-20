@@ -32,7 +32,7 @@ void	Cluster::createSockets(){
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
-			Socket socket(_servers[i], ports[j], true);
+			Socket socket(_servers[i], ports[j]);
 			this->_sockets.push_back(socket);
 		}
 	}
@@ -49,9 +49,9 @@ void	Cluster::createEpoll()
 	_ev.events = EPOLLIN;
 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		_ev.data.fd = it->getSockfd();
+		_ev.data.fd = it->getSockFd();
 		_ev.data.ptr = &(*it);
-		if (epoll_ctl(_epFd, EPOLL_CTL_ADD, it->getSockfd(), &_ev) == -1) 
+		if (epoll_ctl(_epFd, EPOLL_CTL_ADD, it->getSockFd(), &_ev) == -1) 
 			throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
 	}
 }
@@ -89,7 +89,6 @@ void	Cluster::runCluster(){
 
 
 	}
-
 }
 
 
@@ -102,41 +101,43 @@ void	Cluster::runCluster(){
 	// Grab a connection from the queue
 void	Cluster::acceptConnection(Socket *sock)
 {
-	Socket socket(sock->getServer(), sock->getSockFd(), true);
-			this->_sockets.push_back(socket);
+	std::string errmsg;
+	Socket socket(sock->getServer(), sock);
 	
-	struct sockaddr_in clientAddr;
-	socklen_t clientAddrLen = sizeof(clientAddr);
-	int connection = accept(socket.getSockfd(), (struct sockaddr*)&sockAddress, (socklen_t*)&addrlen);
-	if (connection < 0) {
-		std::cerr << "Failed to grab connection. errno: " << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	_sockets.push_back(socket);
+
+	_ev.events = EPOLLIN;
+	_ev.data.fd = socket.getSockFd();
+	_ev.data.ptr = &socket;
+	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 
+		throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
+
 
 }
 
 void	Cluster::readConnection(Socket *sock)
 {
+		if (sock->getRequest()->getStatus() == FINISH_PARSED)
+			return (modifyEvent(sock, 1));
 
-			char buffer[3000];
-		int bytesRead = read(connection, buffer, 3000);
-		if (bytesRead < 0)
-			return; //TODO: manage error
+		char buffer[BUFFER_SIZE + 1];
+		int bytesRead = read(sock->getSockFd(), buffer, BUFFER_SIZE);
+		if (bytesRead <= 0)
+		{
+			if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client.fd, nullptr) == -1) {
+                                perror("epoll_ctl: EPOLL_CTL_DEL");
+                            }
+            close(sock->getSockFd);
+            _sockets.erase(*sock);
+		}
 
-		request.parseRequest(buffer);
+		buffer[bytesRead] = '\0';
+		sock->getRequest()->parseRequest(buffer);
+		
+		if (sock->getRequest()->getStatus() == FINISH_PARSED)
+			return (modifyEvent(sock, 1));
 
-				/////////////////////////////
-		///////// RESPONSE /////////
-		///////////////////////////
-		Response	rsp;
-		rsp.setCgiPath("a");
-		rsp.setMethod("GET");
-		rsp.setSocket((int)socket.getSockfd());
-		std::string response = rsp.getResponse("200");
-		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
-		///////////////////////////
-		///////////////////////////
-
+		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 
 
 }
@@ -152,6 +153,25 @@ void	Cluster::sendConnection(Socket *sock)
 
 		// Close the connections
 		close(connection);
-	}
+
 	close(socket.getSockfd());
+}
+
+// if flag 0 - to in, 1 - to out
+void	Cluster::modifyEvent(Socket *sock, bool flag)
+{
+	if (flag == 1)
+	{
+		_ev.events = EPOLLOUT;
+		_ev.data.fd = sock->getSockFd();
+		_ev.data.ptr = sock;
+		epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
+	}
+	else
+	{
+		_ev.events = EPOLLIN;
+		_ev.data.fd = sock->getSockFd();
+		_ev.data.ptr = sock;
+		epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
+	}
 }

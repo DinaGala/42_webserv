@@ -1,10 +1,11 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-#define INITIAL_STATUS 0
-#define REQUEST_LINE_PARSED 1
-#define HEADERS_PARSED 2
-#define FINISH_PARSED 3
+# define INITIAL_STATUS 0
+# define REQUEST_LINE_PARSED 1
+# define HEADERS_PARSED 2
+# define FINISH_PARSED 3
+# define K 3
 
 # include "Utils.hpp"
 
@@ -32,6 +33,7 @@ class Request {
 		Request();
 		
 	public:
+	
      //   Request(const std::string& buffer, Socket& socket);
 		~Request();
 	//	Request();
@@ -40,7 +42,7 @@ class Request {
 		Request(const Request& src); //TODO to finish
 
 		void	initParamsRequest();
-		void	parseRequest();
+		void	parseRequest(std::string buffer);
 		
 		void	parseRequestLine();
 		void	parseHeaders();
@@ -68,7 +70,7 @@ class Request {
 		const std::string& 							getUploadDir() const; //LOCATION
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
-
+		const int 									getStatus() const; //LOCATION
 		
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);

@@ -1,12 +1,17 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server &server, int portFd, bool master): _server(server), _req(server), _master(master)
+Socket::Socket(Server &server, int port): _server(server), _req(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
-	if (master)
-		initMaster(portFd);
-	else
-		initClient(portFd);
+	initMaster();
+	setNonBlocking();
+}
+
+Socket::Socket(Server &server, Socket *sock): _server(server), _req(server), _master(false)
+{
+	_ipAddress = server.getIpAdress();
+	_port = sock->getPort();
+	initClient(sock->getSockFd());
 	setNonBlocking();
 }
 
@@ -48,6 +53,7 @@ void	Socket::setNonBlocking()
 	int socket(int domain, int type, int protocol);
 	DOMAIN: communication domain - protocolos family  that socket will belong to. 
 	AF_INET - IPv4 Internet protocols */
+
 void	Socket::initMaster() 
 {
 	struct addrinfo hints, *servinfo, *p;
@@ -86,6 +92,24 @@ void	Socket::initMaster()
 	{
 		close(_fd);
         throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+	}
+}
+
+	/*ACCEPT
+	**int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
+	**addrlen is now a value-result argument. 
+	**It expects a pointer to an int that will be the size of addr. 
+	**After the function is executed, the int refered by addrlen will be set to the size of the peer address.
+	*/
+	// Grab a connection from the queue
+void	Socket::initClient(int masterfd) 
+{
+	struct sockaddr_in clientAddr;
+	socklen_t clientAddrLen = sizeof(clientAddr);
+	_fd = accept(masterfd, (struct sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
+	if (_fd < 0) {
+		std::cerr << "Failed to grab connection. errno: " << std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -137,8 +161,12 @@ void	Socket::setPort(const int port){
 	this->_port = port;
 }
 
+void	Socket::setResponse(std::string response){
+	this->_response = response;
+}
+
 //GETTERS
-long	Socket::getSockfd() const {
+const int	Socket::getSockFd() const {
 	return(_fd);
 }
 
@@ -150,7 +178,11 @@ bool	Socket::getMaster() const {
 // 	return(_sockaddr);
 // }
 
-const Server& Socket::getServer() const {
+// const Server& Socket::getServer() const {
+// 	return(_server);
+// }
+
+Server& Socket::getServer() const {
 	return(_server);
 }
 
@@ -158,6 +190,14 @@ const std::string& Socket::getIpAdress() const {
 	return (_ipAddress);
 }
 
-int Socket::getPort() const {
+const int Socket::getPort() const {
 	return (_port);
+}
+
+Request* Socket::getRequest() {
+	return (&_req);
+}
+
+Response* Socket::getResponse() {
+	return (&_resp);
 }

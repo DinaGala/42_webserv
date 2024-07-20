@@ -54,7 +54,7 @@ void	Request::initParamsRequest() {
 */
 
 /*----------------- PARSING REQUEST LINE -----------------*/
-void	Request::parseRequest() {
+void	Request::parseRequest(std::string buffer) {
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -280,6 +280,10 @@ bool Request::getAutoIndex() const {
 
 bool Request::getAllowUpload() const {
 	return (_allowUpload);
+}
+
+const int Request::getStatus() const {
+	return (_status);
 }
 
 const std::string& 	Request::getUploadDir() const {

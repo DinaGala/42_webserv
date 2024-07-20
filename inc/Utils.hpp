@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/18 17:39:49 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/20 17:53:49 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@
 # define N_SERV_DIR 9
 # define MAX_CON 10
 # define MAX_EVENTS 20
+# define BUFFER_SIZE 1024
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
 

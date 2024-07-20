@@ -30,6 +30,7 @@ class Cluster {
 		void	acceptConnection(Socket *sock);
 		void	readConnection(Socket *sock);
 		void	sendConnection(Socket *sock);
+		void	modifyEvent(Socket *sock, bool flag); // 0 - in, 1 - out
 };
 
 #endif
