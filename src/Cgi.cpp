@@ -240,3 +240,6 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		error(this->_socket, "close", "failed to close pipe");
 	return (WEXITSTATUS(status) * 10);
 }
+//child will exit with the proper error code.
+//values higher than 255 will be modified by exit.
+//To avoid this child will exit with status / 10.
