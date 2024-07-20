@@ -41,7 +41,7 @@ class	Response
 		bool		putPostHeaders(const std::string &file);
 		int			fileToBody(const std::string &path);
 		//SEND RESPONSE
-		std::string	&getResponse(int code);
+		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
 
 	private:
@@ -74,6 +74,7 @@ class	Response
 		bool		_createFile(void);
 		bool		_isNotAccepted(std::string str);
 		void		_makeAutoIndex(void);
+		int			_isDir(const std::string &path) const ;
 };
 
 #endif

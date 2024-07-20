@@ -136,19 +136,12 @@ void	Response::_parseCgiResponse(void)
 }
 
 //writes and returns the server's response
-std::string	&Response::getResponse(int code)
+std::string	&Response::makeResponse(const Request *req)
 {
-	if (!this->_req)
+	if (!req)
 		return (this->sendError(500), this->_response);
-	std::string	method = this->_req->getMethod();
-	this->_path = this->_parseUrl(this->_req->getPath());
-	struct stat	file_type;
-
-	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mREQ PATH: " << this->_req->getCode() << "\033[0m" << std::endl;
-
+	else
+		this->_req = req;
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -157,26 +150,15 @@ std::string	&Response::getResponse(int code)
 		return (this->_response);
 	}
 	else if (this->_req->getCode() > 301)
-		return (this->sendError(code), this->_response);
-	if (stat(this->_path.c_str(), &file_type))
-		return (this->sendError(500), this->_response);
-	if (S_ISDIR(file_type.st_mode))// if it's a directory
-	{
-		if (this->_req->getIndex() != "")
-		{
-			this->_response = this->putStatusLine(200);
-			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_path + this->_req->getIndex());
-			if (code)
-				return (this->sendError(code), this->_response);
-			this->_response += "\n\n" + this->_body;
-			return (this->_response);
-		}
-		else if (this->_req->getAutoIndex())
-			return (this->_makeAutoIndex(), this->_response);
-		else
-			return (this->sendError(403), this->_response);
-	}
+		return (this->sendError(this->_req->getCode()), this->_response);
+	std::string	method = this->_req->getMethod();
+	this->_path = this->_parseUrl(this->_req->getPath());
+
+	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ PATH: " << this->_req->getCode() << "\033[0m" << std::endl;
+
 	if (this->_req->getCgi())
 		this->_cgiargs = this->_setCgi(this->_path);
 	if (method == "GET")
@@ -192,17 +174,63 @@ std::string	&Response::getResponse(int code)
 
 void	Response::_handleGet()
 {
-	if (this->_cgi) // if there's cgi
+	int	is_dir;
+
+	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
+	is_dir = this->_isDir(this->_path);
+	if (is_dir == -1)
+	{
+		this->sendError(500);
+		return ;
+	}
+	else if (is_dir)
+	{
+		if (this->_req->getIndex() != "")
+		{
+			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
+			this->_response = this->putStatusLine(200);
+			this->putGeneralHeaders();
+			int code = this->fileToBody(this->_path + this->_req->getIndex());
+			if (code)
+			{
+				this->sendError(code);
+				return ;
+			}
+			this->_response += "\n\n" + this->_body;
+			return ;
+		}
+		//else if (this->_req->getAutoIndex() == true)
+		else if (this->_req->getAutoIndex() == false)// TMP
+		{
+			std::cout << "\033[32;1mGET autoindex\033[0m" << std::endl;
+			this->_makeAutoIndex();
+			return ;
+		}
+		else
+		{
+			this->sendError(403);
+			return ;
+		}
+	}
+	this->_cgi = true;
+	if (this->_cgi == true) // if there's cgi
 	{
 		if (access(this->_path.c_str(), F_OK)) // if cgi exists = 0
 		{
 			this->sendError(404);
 			return ;
 		}
+		else if (access(this->_path.c_str(), X_OK))
+		{
+			this->sendError(403);
+			return ;
+		}
 		std::cout << "\033[1;34mGET: path " << this->_path << "\033[0m" << std::endl;
 		Cgi	cgi(this->_socket, *(this->_req));
+		this->_cgiargs = this->_setCgi(this->_path);
 		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query, this->_cgiargs);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
+		std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
 		{
 			this->sendError(cgi_status);
@@ -269,35 +297,10 @@ bool	Response::_createFile(void)
 	newfile << this->_body;
 	return (0);
 }
-/*
+
 void	Response::_handlePost()
 {
-	if (this->_req->getPath() == "/submit-form")
-	{
-		this->_response = this->putStatusLine(200);
-		this->putGeneralHeaders();
-		this->_response += "\n\n<html><body>Form submitted!</body></html>";
-	}
-	else if (this->_req->getPath() == "/upload")
-	{
-		if (this->_req->getAllowUpload())
-		{
-			this->sendError(403);
-			return ;
-		}
-		if (this->_createFile())
-			return ;
-		this->_response = this->putStatusLine(201);
-		this->putGeneralHeaders();
-		this->putPostHeaders("new_file.tmp");
-		//this->putPostHeaders(this->_req->getFilename());
-	}
-	else
-		this->sendError(501);
-}
-*/
-void	Response::_handlePost()
-{
+	std::cout << "\033[1;31mHandle Post fileName: " << this->_req->getFileName() << "\033[0m" << std::endl;
 	if (this->_req->getFileName() != "")
 	{
 		if (this->_req->getAllowUpload())
@@ -346,11 +349,22 @@ bool	Response::_isNotAccepted(std::string mime)
 //else
 //	show 403
 
+int	Response::_isDir(const std::string &path) const
+{
+	struct stat	status;
+
+	if (stat(path.c_str(), &status))
+		return (-1);
+	if (S_ISDIR(status.st_mode))
+		return (1);
+	return (0);
+}
+
 void	Response::_makeAutoIndex(void)
 {
 	struct dirent	*dp;
-	struct stat		status;
 	DIR				*dir;
+	int				is_dir;
 	std::string		filename;
 
 	if (this->_isNotAccepted("text/html"))
@@ -358,26 +372,40 @@ void	Response::_makeAutoIndex(void)
 		this->sendError(403);
 		return ;
 	}
-	std::string	tmp_path = "." + this->_req->getPath();
-	dir = opendir(tmp_path.c_str());
+	dir = opendir(this->_path.c_str());
 	//dir = opendir(this->_req->getPath().c_str());
 	if (!dir)
 	{
 		this->sendError(500);
 		return ;
 	}
-	this->_body = "<html><head><title>INDEX</title><h1>Index of";
+	this->_body = "<html><head><title>INDEX</title><h1>Index of ";
 	this->_body += this->_req->getPath() + "</h1></head><body>";
 	while ((dp = readdir(dir)) != NULL)
 	{
-		filename = dp->d_name;
-		//filename += "/";
-		if (stat(filename.c_str(), &status))
+		filename = this->_path;
+		if (dp->d_name[0] == '.')
+			continue ;
+		is_dir = this->_isDir(filename);
+		if (is_dir == -1)
 		{
 			this->sendError(500);
-			return ; 
+			return ;
 		}
-		if (filename[0] == '.' || (!access(filename.c_str(), X_OK) && !S_ISDIR(status.st_mode)))
+		else if (is_dir && filename != "./")
+			filename += "/";
+		filename += dp->d_name;
+		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
+		is_dir = this->_isDir(filename);
+		if (is_dir == -1)
+		{
+			this->sendError(500);
+			return ;
+		}
+		filename = filename.substr(2);
+		if (!access(filename.c_str(), X_OK) && !is_dir)
+			continue ;
+		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
 			continue ;
 		this->_body += "<p><a href= " + filename + ">" + filename + "</a></p>\n";
 	}
