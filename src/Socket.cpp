@@ -3,6 +3,7 @@
 Socket::Socket(Server &server, int port): _server(server), _req(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
+	_lastActivity = time(nullptr);
 	initMaster();
 	setNonBlocking();
 }
@@ -25,7 +26,7 @@ Socket& Socket::operator=(const Socket& src)
 	_ipAddress = src._ipAddress;
 	_fd = src._fd;
 	_master = src._master;
-	_nClients = src._nClients;
+//	_nClients = src._nClients;
 	_req = src._req;
 	_resp = src._resp;
 	return (*this);
@@ -165,6 +166,12 @@ void	Socket::setResponse(std::string response){
 	this->_response = response;
 }
 
+void	Socket::setLastActivity(time_t now)
+{
+	_lastActivity = now;
+}
+
+
 //GETTERS
 const int	Socket::getSockFd() const {
 	return(_fd);
@@ -200,4 +207,12 @@ Request* Socket::getRequest() {
 
 Response* Socket::getResponse() {
 	return (&_resp);
+}
+
+std::string& Socket::getResponseLine() {
+	return (_ipAddress);
+}
+
+const time_t Socket::getLastActivity() const {
+	return (_lastActivity);
 }

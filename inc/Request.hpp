@@ -14,7 +14,7 @@ class Request {
 		std::string							_buffer;
 		int									_status;	
 		Server&								_serv;
-		
+		bool								_connectionKeepAlive;
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
@@ -57,6 +57,8 @@ class Request {
 		void	parseBodyByContentLength();
 		void	parseBodyByChunked();
 
+		void	cleanRequest(); // TODO for multiplexing
+
 		bool 						isStringOfDigits(std::string line);
 		uint64_t					convertStrToHex(std::string line);
 		
@@ -71,7 +73,8 @@ class Request {
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
 		const int 									getStatus() const; //LOCATION
-		
+		bool										getConnectionKeepAlive() const;
+
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);
 		void 		setAutoIndex(bool autoIndex);

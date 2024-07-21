@@ -57,15 +57,13 @@ void	Cluster::createEpoll()
 }
 
 
-void	Cluster::runCluster(){
-    // Server server = _servers[0]; //TODO: find server
-	// Socket socket = _sockets[0]; //TODO: identify socket
+void	Cluster::runCluster()
+{
 	std::string errmsg;
-
 
 	while (1) //manage signals
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, -1);
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000);
         if (_nfds == -1)
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
@@ -86,8 +84,7 @@ void	Cluster::runCluster(){
 			else //ADD timeout
 				throw std::runtime_error("Error: epoll event error ");
 		}
-
-
+		checkTimeout();
 	}
 }
 
@@ -111,25 +108,14 @@ void	Cluster::acceptConnection(Socket *sock)
 	_ev.data.ptr = &socket;
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 
 		throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
-
-
 }
 
 void	Cluster::readConnection(Socket *sock)
 {
-		if (sock->getRequest()->getStatus() == FINISH_PARSED)
-			return (modifyEvent(sock, 1));
-
 		char buffer[BUFFER_SIZE + 1];
-		int bytesRead = read(sock->getSockFd(), buffer, BUFFER_SIZE);
+		int bytesRead = recv(sock->getSockFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead <= 0)
-		{
-			if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client.fd, nullptr) == -1) {
-                                perror("epoll_ctl: EPOLL_CTL_DEL");
-                            }
-            close(sock->getSockFd);
-            _sockets.erase(*sock);
-		}
+			return (eraseSocket(sock, true));
 
 		buffer[bytesRead] = '\0';
 		sock->getRequest()->parseRequest(buffer);
@@ -138,23 +124,31 @@ void	Cluster::readConnection(Socket *sock)
 			return (modifyEvent(sock, 1));
 
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-
-
+		sock->setLastActivity(time(nullptr));
 }
 
+/*SEND 
+	send a message to the connection
+	int send(int sockfd, const void *msg, int len, int flags); 
+	MSG_DONTWAIT - Description: Enables non-blocking mode for this operation only. If the send operation would block, it fails with EAGAIN or EWOULDBLOCK.
+	MSG_MORE - The caller has more data to send. This flag is used to indicate that more data is coming, and the protocol should not send the message immediately.
+*/
 void	Cluster::sendConnection(Socket *sock)
 {
+	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), BUFFER_SIZE, 0); // a flag??
+	if (bytes <= 0)
+		return (eraseSocket(sock, true));
 
-		/*SEND 
-			send a message to the connection
-			int send(int sockfd, const void *msg, int len, int flags); 
-		*/
-		send(connection, response.c_str(), response.size(), 0);
+	sock->getResponseLine().erase(0, bytes);
+	sock->setLastActivity(time(nullptr));
 
-		// Close the connections
-		close(connection);
-
-	close(socket.getSockfd());
+	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
+		return (eraseSocket(sock, false));
+	else if (sock->getResponseLine().empty())
+	{
+		cleanSocket(sock);
+		return (modifyEvent(sock, 0));
+	}
 }
 
 // if flag 0 - to in, 1 - to out
@@ -173,5 +167,60 @@ void	Cluster::modifyEvent(Socket *sock, bool flag)
 		_ev.data.fd = sock->getSockFd();
 		_ev.data.ptr = sock;
 		epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
+	}
+}
+
+// 0 - not an error, 1 - closing because of the error
+void	Cluster::eraseSocket(Socket *sock, bool err)
+{
+	std::string errmsg;
+	
+	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), nullptr) == -1)
+		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+    close(sock->getSockFd());
+	
+	if (err)
+		std::cerr << "Couldn't read from a socket: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+	else
+		std::cout << "Client socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+	
+		// Find the iterator to the element
+    std::vector<Socket>::iterator it = std::find_if(_sockets.begin(), _sockets.end(), 
+        [sock](const Socket& s) { return &s == sock; });
+
+    // If the element is found, erase it
+    if (it != _sockets.end())
+        _sockets.erase(it);
+	else
+		std::cerr << "Couldn't eliminate a socket, socket not found: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+}
+
+std::vector<Socket>::iterator	Cluster::eraseSocket(std::vector<Socket>::iterator sock)
+{
+	std::string errmsg;
+	
+	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), nullptr) == -1)
+		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+    close(sock->getSockFd());
+	std::cout << "Client socket disconnected for timeout: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+    return (_sockets.erase(sock));
+}
+
+void	Cluster::cleanSocket(Socket *sock)
+{
+	sock->getResponseLine().clear();
+	sock->getRequest()->cleanRequest();
+	sock->getResponse()->cleanResponse();
+}
+
+void	Cluster::checkTimeout()
+{
+	time_t now = time(nullptr);
+	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
+	{
+		if (now - it->getLastActivity() > TIMEOUT)
+			it = eraseSocket(it);
+		else
+			++it;
 	}
 }

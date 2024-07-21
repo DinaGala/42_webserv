@@ -47,6 +47,17 @@ void	Request::initParamsRequest() {
 	_cgiConf = _serv.getCgiConf();
 }
 
+void	Request::cleanRequest() {
+	
+	_buffer.clear();
+	_requestLine.clear();
+	_headers.clear();
+	_body = "";
+	_errorCode = 200; //TODO: error code default?
+	_status = 0;
+	_connectionKeepAlive = true;
+}
+
 /*	REQUEST LINE: method | URI and protocol | version
 	HEADERS: A series of key-value pairs, each on its own line.
 	BLANK LINE: A line with no content, indicating the end of the headers.
@@ -296,6 +307,11 @@ const std::string& 	Request::getReturn() const {
 
 const std::map<std::string, std::string>&  Request::getCgiConf() const {
 	return (_cgiConf);
+}
+
+bool	Request::getConnectionKeepAlive() const
+{
+	return (_connectionKeepAlive);
 }
 
 // _____________  SETTERS _____________ 

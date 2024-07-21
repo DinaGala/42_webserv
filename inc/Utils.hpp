@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/20 17:53:49 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/21 17:19:45 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@
 # define BUFFER_SIZE 1024
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
-
+# define TIMEOUT 60 // in seconds
 
 
 std::string ltrim(const std::string& s);

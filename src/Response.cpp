@@ -2,6 +2,18 @@
 
 ////// Static Assets
 
+void	Response::cleanResponse()
+{
+	_body.clear();
+	_reqbody.clear();
+	_response.clear();
+	_cgi_path.clear();
+	_path.clear();
+	_servname.clear();
+	_method.clear();
+	// ...
+}
+
 std::map<std::string, std::string> Response::initStatus()
 {
 	std::map<std::string, std::string> error;

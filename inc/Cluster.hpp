@@ -31,6 +31,11 @@ class Cluster {
 		void	readConnection(Socket *sock);
 		void	sendConnection(Socket *sock);
 		void	modifyEvent(Socket *sock, bool flag); // 0 - in, 1 - out
+		void	eraseSocket(Socket *sock, bool err); // 0 - not an error, 1 - closing because of the error
+		void	cleanSocket(Socket *sock);
+		void	checkTimeout();
+
+		std::vector<Socket>::iterator 	eraseSocket(std::vector<Socket>::iterator sock);
 };
 
 #endif

@@ -1,13 +1,16 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#include <map>
-#include <string>
-#include <ctime>
-#include <fstream>
-#include <sstream>
-#include <unistd.h>
-#include "Cgi.hpp"
+# include <map>
+# include <string>
+# include <ctime>
+# include <fstream>
+# include <sstream>
+# include <unistd.h>
+# include "Cgi.hpp"
+# include "Utils.hpp"
+
+class Request;
 
 class	Response
 {
@@ -27,8 +30,10 @@ class	Response
 		bool		putPostHeaders(const std::string &file);
 		bool		fileToBody(const std::string &path);
 		//SEND RESPONSE
+		std::string	&makeResponse(const Request *r);
 		std::string	&getResponse(const std::string &code);
 		void		sendError(const std::string &code, const std::string &path);
+		void		cleanResponse(); // TODO for multiplexing
 		//TMP
 		void		setSocket(int sock);
 		void		setMethod(const std::string &meth);
