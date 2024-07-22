@@ -1,3 +1,4 @@
+#pragma once
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
@@ -8,14 +9,16 @@
 # define FINISH_PARSED 4
 # define CRLF "\r\n"
 
+
 # include "Utils.hpp"
+
+class Server;
 
 class Request {
 	private:
 		std::string							_buffer;
 		int									_status;
 		Server&								_server;
-		
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
@@ -34,6 +37,7 @@ class Request {
 		std::string 						_return; //TODO: is it necessary to add boolean?
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
+
 		std::vector<std::string> 			_serverNames; 
 		bool								_connectionKeepAlive;
 		std::multimap<std::string, std::string>	_acceptedContent;
@@ -45,8 +49,14 @@ class Request {
 
 
 	public:
-        Request(Server& server);
+    Request(Server& server);
+
 		~Request();
+
+		Request(Server& serv);
+		Request& operator=(const Request& src); //TODO to finish
+		Request(const Request& src); //TODO to finish
+
 		void	initParamsRequest();
 		void	parseRequest(const std::string& buffer);
 		void	sendBadRequestError(std::string errMssg);
@@ -72,6 +82,7 @@ class Request {
 		void	updateMultipartBody();
 		void	saveFileName();
 
+		void	cleanRequest(); // TODO for multiplexing
 		void 		requestValidations();
 		void 		checkPath();
 		std::string checkQuery();
@@ -93,7 +104,6 @@ class Request {
 		const std::map<int, std::string>& 			getErrorPages() const;
 		const std::string& 							getIndex() const;
 		bool 										getAutoIndex() const;
-
 		bool 											getAllowUpload() const;
 		const std::string& 								getUploadDir() const;
 		const std::string& 								getReturn() const;

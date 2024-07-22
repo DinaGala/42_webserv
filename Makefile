@@ -9,7 +9,8 @@ CPP = g++ -g -O0
 FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -Wshadow -Wno-shadow -fsanitize=address
 RM = rm -f
 
-SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp Utils.cpp Cluster.cpp Server.cpp Socket.cpp Request.cpp Response.cpp Cgi.cpp
+SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp \
+Utils.cpp Cluster.cpp Server.cpp Cgi.cpp Socket.cpp Request.cpp Response.cpp 
 F_SRC = src/
 F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))

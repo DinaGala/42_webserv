@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 22:45:36 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/22 15:36:27 by nzhuzhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,16 @@
 
 #ifndef UTILS_HPP
 # define UTILS_HPP
+
+# define MAX_BODY_SIZE 2000000000 //2GB
+# define DEFAULT_BODY_SIZE 10000000 //10MB
+# define N_SERV_DIR 9
+# define MAX_CON 10
+# define MAX_EVENTS 20
+# define BUFFER_SIZE 1024
+# define WS " \v\t\n\r"
+# define NUM "0123456789"
+# define TIMEOUT 60 // in seconds
 
 # include <string>
 # include <cstring>
@@ -29,31 +39,36 @@
 # include <functional>
 # include <climits>
 # include <fcntl.h>
+# include <sys/epoll.h>
+# include <unistd.h>
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
+# include <netdb.h>
+# include <netinet/in.h>
 # include <cstdlib> // For exit() and EXIT_FAILURE 
 # include <unistd.h>
 # include <cerrno>
 # include <sys/types.h>
 # include <arpa/inet.h>
-#include <sstream>
-#include <stdexcept> // For standard exceptions
+# include <netinet/in.h>
+# include <sstream>
+# include <stdexcept> // For standard exceptions
 
+# include "Response.hpp"
+# include "Request.hpp"
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
 # include "Parse.hpp"
-# include "Cluster.hpp"
 # include "Server.hpp"
-# include "Socket.hpp"
-# include "Request.hpp"
-# include "Response.hpp"
+# include "Cgi.hpp"
 
-# define MAX_BODY_SIZE 2000000000 //2GB
-# define DEFAULT_BODY_SIZE 10000000 //10MB
-# define N_SERV_DIR 9
-# define WS " \v\t\n\r"
-# define NUM "0123456789"
+# include "Socket.hpp"
+
+# include "Cluster.hpp"
+
+
+
 
 
 std::string ltrim(const std::string& s);

@@ -1,5 +1,17 @@
 #include "Response.hpp"
 
+void	Response::cleanResponse()
+{
+	_body.clear();
+	_reqbody.clear();
+	_response.clear();
+	_cgi_path.clear();
+	_path.clear();
+	_servname.clear();
+	_method.clear();
+	// ...
+}
+
 //////////////////////// STATIC ASSETS ////////////////////////////////////////
 
 std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
@@ -30,6 +42,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 //////////////////////////////////////////////////////////////////////////////
 
 Response::Response(): _cgi(false), _keep_alive(true), _code(200), _req(NULL) {}
+
 
 Response::Response(const Response &r): _req(r._req)
 {

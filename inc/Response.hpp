@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
@@ -17,9 +19,8 @@
 #include <sstream>
 #include <unistd.h>
 #include <dirent.h>
-#include "Cgi.hpp"
 #include "Utils.hpp"
-#include "Request.hpp"
+
 
 class Request;
 
@@ -30,6 +31,9 @@ class	Response
 		Response(const Response &r);
 		//Response(Request &req);
 		~Response();
+
+		Response(const Response &r);
+		Response	&operator=(const Response &r);
 		//SET VARS
 		void		setBody(const std::string &msg);
 		void		setCgiPath(const std::string &cgi);
@@ -41,8 +45,11 @@ class	Response
 		bool		putPostHeaders(const std::string &file);
 		int			fileToBody(const std::string &path);
 		//SEND RESPONSE
+		void		cleanResponse(); // TODO for multiplexing
+
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
+
 
 	private:
 		static std::map<int, std::pair<std::string, std::string> >	_status;
@@ -63,8 +70,8 @@ class	Response
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
 		const Request	*_req;
-
 		Response	&operator=(const Response &r);
+
 		void		_parseCgiResponse(void);
 		void		_handleGet(void);
 		void		_handlePost(void);
