@@ -1,11 +1,12 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-#define INITIAL_STATUS 0
-#define REQUEST_LINE_PARSED 1
-#define HEADERS_PARSED 2
-#define BODY_PARSED 3
-#define FINISH_PARSED 4
+# define INITIAL_STATUS 0
+# define REQUEST_LINE_PARSED 1
+# define HEADERS_PARSED 2
+# define BODY_PARSED 3
+# define FINISH_PARSED 4
+# define CRLF "\r\n"
 
 # include "Utils.hpp"
 
@@ -13,7 +14,7 @@ class Request {
 	private:
 		std::string							_buffer;
 		int									_status;
-		Socket&								_socket;
+		Server&								_server;
 		
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
@@ -44,11 +45,12 @@ class Request {
 
 
 	public:
-        Request(Socket& socket);
+        Request(Server& server);
 		~Request();
 		void	initParamsRequest();
 		void	parseRequest(const std::string& buffer);
-		
+		void	sendBadRequestError(std::string errMssg);
+
 		void	parseRequestLine();
 		void	parseHeaders();
 		void	parseBody();
@@ -57,9 +59,12 @@ class Request {
 		void	addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
 		void	checkConnectionKeepAlive();
 		
-		void	parseBodyByContentLength();
-		void	parseBodyByChunked();
-		void	checkAcceptedContent();
+		void		parseBodyByContentLength();
+		void		parseBodyByChunked();
+		int			findSizeChunk(size_t posEndSIze);
+		uint64_t	convertStrToHex(std::string line);
+		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
+		void		checkAcceptedContent();
 
 		void	manageMultipartForm();
 		void	getBoundary();
@@ -75,12 +80,8 @@ class Request {
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
 		void 		updatePath();
-
-
-		bool 						isStringOfDigits(std::string line);
-		uint64_t					convertStrToHex(std::string line);
 		
-		const Socket&								getSocket() const;
+		const Server&								getServer() const;
 		const std::map<std::string, std::string>&	getHeaders() const;
 		const std::string&							getBody() const;
 		const std::string&							getQuery() const;
@@ -90,16 +91,16 @@ class Request {
 		size_t										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
-		const std::string& 							getIndex() const; //LOCATION
+		const std::string& 							getIndex() const;
 		bool 										getAutoIndex() const;
 
-		bool 											getAllowUpload() const; //LOCATION
-		const std::string& 								getUploadDir() const; //LOCATION
-		const std::string& 								getReturn() const; //LOCATION
+		bool 											getAllowUpload() const;
+		const std::string& 								getUploadDir() const;
+		const std::string& 								getReturn() const;
 		bool											getCgi() const; 
 		const std::map<std::string, std::string>&		getCgiConf() const;
 		const std::string&								getMethod() const;
-		const std::vector<std::string>&					getServerNames() const; //LOCATION
+		const std::vector<std::string>&					getServerNames() const;
 		bool											getConnectionKeepAlive() const;
 		const std::multimap<std::string, std::string>&	getAcceptedContent() const;
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;

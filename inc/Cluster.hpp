@@ -23,6 +23,8 @@ class Cluster {
 		void	createSockets();
 
 		int		acceptConnection(Socket socket);
+
+		size_t checkLocation(std::string & path); //remoVE!!!!!!
 };
 
 #endif

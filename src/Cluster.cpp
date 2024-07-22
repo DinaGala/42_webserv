@@ -1,4 +1,5 @@
 #include "Cluster.hpp"
+#include "Utils.hpp"
 
 Cluster::Cluster() {
 }
@@ -51,7 +52,7 @@ void	Cluster::runCluster(){
 		int bytesRead = read(connection, buffer, 3000);
 		if (bytesRead < 0)
 			return; //TODO: manage error
-		Request request(socket);
+		Request request(server);
 		request.parseRequest(buffer);
 
 		/////////////////////////////
