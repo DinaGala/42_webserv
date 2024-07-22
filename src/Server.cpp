@@ -19,6 +19,7 @@ void	Server::initParamsServer(ServerConfig sconfig) {
 	_uploadDir = "";
 	_return = "";
 	_cgiConf = sconfig.getCgiConf();
+	_serverName = sconfig.getServerName();
 }
 
 // _____________  GETTERS _____________ 
@@ -65,6 +66,14 @@ const std::string& 	Server::getReturn() const {
 
 const std::map<std::string, std::string>&  Server::getCgiConf() const {
 	return (_cgiConf);
+}
+
+const std::vector<std::string>& Server::getServerName() const{
+	return (_serverName);
+}
+
+const std::vector<LocationConfig> Server::getLocationConfig() const{
+	return (_locations);
 }
 
 // _____________  SETTERS _____________ 

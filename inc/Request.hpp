@@ -5,8 +5,10 @@
 # define INITIAL_STATUS 0
 # define REQUEST_LINE_PARSED 1
 # define HEADERS_PARSED 2
-# define FINISH_PARSED 3
-# define K 3
+# define BODY_PARSED 3
+# define FINISH_PARSED 4
+# define CRLF "\r\n"
+
 
 # include "Utils.hpp"
 
@@ -15,14 +17,16 @@ class Server;
 class Request {
 	private:
 		std::string							_buffer;
-		int									_status;	
-		Server&								_serv;
-		bool								_connectionKeepAlive;
+		int									_status;
+		Server&								_server;
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
-		int									_errorCode;
-
+		std::string							_query;
+		std::string							_path;
+		std::string							_root;
+		int									_code;
+	
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
@@ -31,53 +35,86 @@ class Request {
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
 		std::string 						_return; //TODO: is it necessary to add boolean?
+		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
 
-		Request();
-		
+		std::vector<std::string> 			_serverNames; 
+		bool								_connectionKeepAlive;
+		std::multimap<std::string, std::string>	_acceptedContent;
+
+		std::string							_boundary;
+		std::map<std::string, std::string>	_multipartHeaders;
+		std::string							_fileName;
+		bool								_location;
+
+
 	public:
-	
-     //   Request(const std::string& buffer, Socket& socket);
+    Request(Server& server);
+
 		~Request();
-	//	Request();
-	//	Request();
+
 		Request(Server& serv);
 		Request& operator=(const Request& src); //TODO to finish
 		Request(const Request& src); //TODO to finish
 
 		void	initParamsRequest();
-		void	parseRequest(std::string buffer);
-		
+		void	parseRequest(const std::string& buffer);
+		void	sendBadRequestError(std::string errMssg);
+
 		void	parseRequestLine();
 		void	parseHeaders();
 		void	parseBody();
 		
 		void 	createRequestLineVector(std::string requestLineStr);
-		void 	checkUrlPath();
-		void	checkProtocolHttp();
-		void 	checkAllowMethod();
-		void	addHeaderToMap(std::string line);
+		void	addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
+		void	checkConnectionKeepAlive();
 		
-		void	parseBodyByContentLength();
-		void	parseBodyByChunked();
+		void		parseBodyByContentLength();
+		void		parseBodyByChunked();
+		int			findSizeChunk(size_t posEndSIze);
+		uint64_t	convertStrToHex(std::string line);
+		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
+		void		checkAcceptedContent();
+
+		void	manageMultipartForm();
+		void	getBoundary();
+		void	saveMultipartHeaders();
+		void	updateMultipartBody();
+		void	saveFileName();
 
 		void	cleanRequest(); // TODO for multiplexing
-
-		bool 						isStringOfDigits(std::string line);
-		uint64_t					convertStrToHex(std::string line);
+		void 		requestValidations();
+		void 		checkPath();
+		std::string checkQuery();
+		size_t		checkLocation(std::string & path);
+		void		updateInfoLocation(size_t nLoc);
+		void 		checkAllowMethod();
+		void		checkProtocolHttp();
+		void 		updatePath();
 		
-	//	const Socket&								getSocket() const;
-		const Server&								getServ() const;
+		const Server&								getServer() const;
+		const std::map<std::string, std::string>&	getHeaders() const;
+		const std::string&							getBody() const;
+		const std::string&							getQuery() const;
+		const std::string&							getPath() const;
+		const std::string& 							getRoot() const;
+		int											getCode() const;
+		size_t										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
-		const std::string& 							getIndex() const; //LOCATION
+		const std::string& 							getIndex() const;
 		bool 										getAutoIndex() const;
-		bool 										getAllowUpload() const; //LOCATION
-		const std::string& 							getUploadDir() const; //LOCATION
-		const std::string& 							getReturn() const; //LOCATION
-		const std::map<std::string, std::string>&	getCgiConf() const;
-		int 									getStatus() const; //LOCATION
-		bool										getConnectionKeepAlive() const;
+		bool 											getAllowUpload() const;
+		const std::string& 								getUploadDir() const;
+		const std::string& 								getReturn() const;
+		bool											getCgi() const; 
+		const std::map<std::string, std::string>&		getCgiConf() const;
+		const std::string&								getMethod() const;
+		const std::vector<std::string>&					getServerNames() const;
+		bool											getConnectionKeepAlive() const;
+		const std::multimap<std::string, std::string>&	getAcceptedContent() const;
+		const std::map<std::string, std::string>&		getMultipartHeaders() const;
+		const std::string& 								getFileName() const;
 
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);

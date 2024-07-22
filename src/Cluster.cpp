@@ -1,4 +1,5 @@
 #include "Cluster.hpp"
+#include "Utils.hpp"
 
 Cluster::Cluster() {
 }

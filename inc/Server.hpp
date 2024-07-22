@@ -17,6 +17,8 @@ class Server {
 		std::string 						_uploadDir;
 		std::string 						_return;
 		std::map<std::string, std::string> 	_cgiConf;
+		std::vector<std::string> 			_serverName;
+		std::vector<LocationConfig> 		_locations;
 
 	public:
 		Server(ServerConfig sconfig);
@@ -45,7 +47,8 @@ class Server {
 		const std::string& 							getUploadDir() const; //LOCATION
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
-
+		const std::vector<std::string>& 			getServerName() const;
+		const std::vector<LocationConfig> 			getLocationConfig() const;
 };
 
 #endif

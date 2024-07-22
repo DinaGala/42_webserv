@@ -96,9 +96,32 @@ std::string	isLetDig()
 	return ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 }
 
+
+/*A function that converts an integer into a string*/
 std::string ft_itoa(int nb)
 {
 	std::stringstream ss;
 	ss << nb;
 	return (ss.str());
+}
+
+/*A function that return TRUE if all chars are numbers or FALSE if not*/
+bool isStringOfDigits(std::string line)
+{
+	for (std::string::iterator it = line.begin(); it != line.end(); it++) {
+		 if (!std::isdigit(*it))
+			return (false);
+	}
+	return (true);
+}
+
+/*A function that converts a string into number hex or throw and error*/
+uint64_t    strToHex(std::string line)
+{
+	uint64_t result;
+
+    std::stringstream ss;
+	ss << std::hex << line;
+	ss >> result;
+	return result;
 }

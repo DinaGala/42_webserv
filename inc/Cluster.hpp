@@ -27,7 +27,6 @@ class Cluster {
 		void	createServers();
 		void	createSockets();
 		void 	createEpoll();
-
 		void	acceptConnection(Socket *sock);
 		void	readConnection(Socket *sock);
 		void	sendConnection(Socket *sock);
@@ -37,6 +36,7 @@ class Cluster {
 		void	checkTimeout();
 
 		std::vector<Socket>::iterator 	eraseSocket(std::vector<Socket>::iterator sock);
+
 };
 
 #endif

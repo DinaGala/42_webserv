@@ -32,6 +32,7 @@
 # include <iostream>
 # include <vector>
 # include <map>
+# include <map>
 # include <algorithm>
 # include <exception>
 # include <cctype>
@@ -78,7 +79,9 @@ std::string trim(const std::string& s);
 std::vector<std::string>  ft_split(std::string str, std::string del); 
 int ft_atopi(const std::string str);
 int ft_atoi(const std::string str);
-std::string ft_itoa(int nb);
 std::string	isLetDig();
+std::string ft_itoa(int nb);
+bool isStringOfDigits(std::string line);
+uint64_t strToHex(std::string line);
 
 #endif

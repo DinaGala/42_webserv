@@ -12,12 +12,12 @@ RM = rm -f
 SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp \
 Utils.cpp Cluster.cpp Server.cpp Cgi.cpp Socket.cpp Request.cpp Response.cpp 
 F_SRC = src/
-F_OBJ = obj/
+F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
 $(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
-	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
+	@$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
 
 all: dir $(NAME)
 
@@ -27,7 +27,7 @@ dir:
 -include $(DEP)
 $(NAME): $(OBJ)
 	$(CPP) $(FLAGS) -I ./inc/ $(OBJ) -o $(NAME)
-	@echo "$(GREEN)Everything has been compilated.$(BLACK)"
+	@echo "$(GREEN)Everything has been compiled.$(BLACK)"
 
 test:
 	@${CPP} ${CPPFLAGS} test.cpp
@@ -48,3 +48,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re dir
+.SILENT: fclean clean run test dir all ${NAME}
