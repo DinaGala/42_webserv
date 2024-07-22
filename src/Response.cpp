@@ -201,12 +201,12 @@ void	Response::_handleGet()
 
 	//std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	//std::cout << "\033[32;1mGET path \033[0m" << this->_path << std::endl;
-	if (this->_path == "./favicon.ico")
+	/*if (this->_path == "./favicon.ico")
 	{
 		std::cout << "\033[32;1mhandle favicon\033[0m" << std::endl;
 		this->_handleFavIcon();
 		return ;
-	}
+	}*/
 	is_dir = this->_isDir(this->_path);
 	if (is_dir == -1)
 	{
@@ -215,6 +215,7 @@ void	Response::_handleGet()
 	}
 	else if (is_dir)
 	{
+		this->_path += "/";
 		if (this->_req->getIndex() != "")
 		{
 			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
@@ -429,12 +430,11 @@ void	Response::_makeAutoIndex(void)
 		filename = filename.substr(2);
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
-		//if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
-		//	continue ;
+		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
+			continue ;
 		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
-		//this->_body += "<p><a href= " + dp->d_name + ">" + dp->d_name + "</a></p>\n";
 		this->_body += "<p><a href= ";
-		this->_body += dp->d_name;
+		this->_body += filename;
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
