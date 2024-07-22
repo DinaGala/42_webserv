@@ -138,12 +138,12 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
-	std::cout << "\033[31;1mmakeResponse\033[0m" << std::endl;
+	//std::cout << "\033[31;1mmakeResponse\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(500), this->_response);
 	else
 		this->_req = req;
-	std::cout << "\033[31;1mmakeResponse: req\033[0m" << std::endl;
+	//std::cout << "\033[31;1mmakeResponse: req\033[0m" << std::endl;
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -153,16 +153,16 @@ std::string	&Response::makeResponse(const Request *req)
 	}
 	else if (this->_req->getCode() > 301)
 		return (this->sendError(this->_req->getCode()), this->_response);
-	std::cout << "\033[31;1mmakeResponse: 301\033[0m" << std::endl;
+	//std::cout << "\033[31;1mmakeResponse: 301\033[0m" << std::endl;
 	std::string	method = this->_req->getMethod();
-	std::cout << "\033[31;1mmakeResponse: method\033[0m" << std::endl;
+	//std::cout << "\033[31;1mmakeResponse: method\033[0m" << std::endl;
 	this->_path = this->_parseUrl(this->_req->getPath());
-	std::cout << "\033[31;1mmakeResponse: path\033[0m" << std::endl;
+	//std::cout << "\033[31;1mmakeResponse: path\033[0m" << std::endl;
 
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mREQ PATH: " << this->_req->getCode() << "\033[0m" << std::endl;
+	//std::cout << "\033[33;1mREQ CODE: " << this->_req->getCode() << "\033[0m" << std::endl;
 
 	if (this->_req->getCgi())
 		this->_cgiargs = this->_setCgi(this->_path);
@@ -191,15 +191,16 @@ void	Response::_handleFavIcon()
 	}
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
-	this->_response += "\n\n" + this->_body;
+	this->_response += "Content-Type: image/png\n\n";
+	this->_response += this->_body;
 }
 
 void	Response::_handleGet()
 {
 	int	is_dir;
 
-	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
-	std::cout << "\033[32;1mGET path \033[0m" << this->_path << std::endl;
+	//std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
+	//std::cout << "\033[32;1mGET path \033[0m" << this->_path << std::endl;
 	if (this->_path == "./favicon.ico")
 	{
 		std::cout << "\033[32;1mhandle favicon\033[0m" << std::endl;
@@ -406,6 +407,7 @@ void	Response::_makeAutoIndex(void)
 	//dir = opendir(this->_req->getPath().c_str());
 	if (!dir)
 	{
+		std::cout << "\033[31;1mmake AutoIndex error dir\033[0m" << std::endl;
 		this->sendError(500);
 		return ;
 	}
@@ -416,19 +418,11 @@ void	Response::_makeAutoIndex(void)
 		filename = this->_path;
 		if (dp->d_name[0] == '.')
 			continue ;
-		is_dir = this->_isDir(filename);
-		if (is_dir == -1)
-		{
-			this->sendError(500);
-			return ;
-		}
-		else if (is_dir && filename != "./")
-			filename += "/";
 		filename += dp->d_name;
-		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		is_dir = this->_isDir(filename);
 		if (is_dir == -1)
 		{
+			std::cout << "\033[31;1mmake AutoIndex error dir while: " << filename << "\033[0m" << std::endl;
 			this->sendError(500);
 			return ;
 		}
@@ -437,13 +431,18 @@ void	Response::_makeAutoIndex(void)
 			continue ;
 		//if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
 		//	continue ;
-		this->_body += "<p><a href= " + filename + ">" + filename + "</a></p>\n";
+		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
+		//this->_body += "<p><a href= " + dp->d_name + ">" + dp->d_name + "</a></p>\n";
+		this->_body += "<p><a href= ";
+		this->_body += dp->d_name;
+		this->_body += ">";
+		this->_body += dp->d_name;
+		this->_body += "</a></p>\n";
 	}
 	this->_body += "</body></html>";
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
 	this->_response += "\n\n" + this->_body;
-	return ;
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
