@@ -3,10 +3,6 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-/*#ifndef TIMEOUT
-# define TIMEOUT 10
-#endif*/
-
 #ifndef MAXCONNECT
 # define MAXCONNECT 10
 #endif

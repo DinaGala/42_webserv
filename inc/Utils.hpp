@@ -23,7 +23,7 @@
 # define BUFFER_SIZE 1024
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
-# define TIMEOUT 60 // in seconds
+# define TIMEOUT 600000000 // in seconds
 
 # include <string>
 # include <cstring>

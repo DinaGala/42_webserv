@@ -33,13 +33,12 @@ void	Cluster::createSockets(){
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
-			// Request req(_servers[i]);
-			// Response resp;
 			Socket socket(_servers[i], ports[j]);
 			this->_sockets.push_back(socket);
 		}
 	}
 }
+
 
 void	Cluster::createEpoll()
 {
@@ -66,12 +65,13 @@ void	Cluster::runCluster()
 
 	while (1) //manage signals
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000);
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
         if (_nfds == -1)
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
+			std::cout << "current socket is:  " << cur << "\n";
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
@@ -87,7 +87,7 @@ void	Cluster::runCluster()
 			else //ADD timeout
 				throw std::runtime_error("Error: epoll event error ");
 		}
-		checkTimeout();
+		//checkTimeout();
 	}
 }
 
@@ -158,19 +158,12 @@ void	Cluster::sendConnection(Socket *sock)
 void	Cluster::modifyEvent(Socket *sock, bool flag)
 {
 	if (flag == 1)
-	{
 		_ev.events = EPOLLOUT;
-		_ev.data.fd = sock->getSockFd();
-		_ev.data.ptr = sock;
-		epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
-	}
 	else
-	{
 		_ev.events = EPOLLIN;
-		_ev.data.fd = sock->getSockFd();
-		_ev.data.ptr = sock;
-		epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
-	}
+	_ev.data.fd = sock->getSockFd();
+	_ev.data.ptr = sock;
+	epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
 }
 
 // 0 - not an error, 1 - closing because of the error
@@ -225,7 +218,7 @@ void	Cluster::checkTimeout()
 	time_t now = time(NULL);
 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
 	{
-		if (now - it->getLastActivity() > TIMEOUT)
+		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
 			it = eraseSocket(it);
 		else
 			++it;

@@ -17,7 +17,7 @@ OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
 
 $(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
-	@$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
+	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
 
 all: dir $(NAME)
 
@@ -39,7 +39,7 @@ run: ${NAME}
 
 clean:
 	$(RM) $(OBJ) $(DEP)
-	$(RM) -R obj
+	$(RM) -R .obj
 
 fclean: clean
 	$(RM) $(NAME)

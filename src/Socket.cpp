@@ -3,7 +3,7 @@
 Socket::Socket(Server &server, int port): _server(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
-	_lastActivity = time(NULL);
+	_lastActivity = time(NULL); // TOFIX
 	_req.push_back(Request(server));
 	_resp.push_back(Response());
 	initMaster();
@@ -14,6 +14,8 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 {
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
+	std::cout << "client socket port:  " << _port << "\n";
+	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
 	setNonBlocking();
 }
@@ -131,6 +133,7 @@ void	Socket::initClient(int masterfd)
 {
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
+	
 	_fd = accept(masterfd, (struct sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
 	if (_fd < 0)
 		throw std::runtime_error("Error: socket failed when aaccepting connection for: " + _ipAddress + ":" + ft_itoa(_port));
