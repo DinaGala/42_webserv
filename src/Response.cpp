@@ -138,10 +138,12 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
+	std::cout << "\033[31;1mmakeResponse\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(500), this->_response);
 	else
 		this->_req = req;
+	std::cout << "\033[31;1mmakeResponse: req\033[0m" << std::endl;
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -151,8 +153,11 @@ std::string	&Response::makeResponse(const Request *req)
 	}
 	else if (this->_req->getCode() > 301)
 		return (this->sendError(this->_req->getCode()), this->_response);
+	std::cout << "\033[31;1mmakeResponse: 301\033[0m" << std::endl;
 	std::string	method = this->_req->getMethod();
+	std::cout << "\033[31;1mmakeResponse: method\033[0m" << std::endl;
 	this->_path = this->_parseUrl(this->_req->getPath());
+	std::cout << "\033[31;1mmakeResponse: path\033[0m" << std::endl;
 
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
@@ -172,11 +177,35 @@ std::string	&Response::makeResponse(const Request *req)
 
 ////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
 
+void	Response::_handleFavIcon()
+{
+	std::ifstream	icon("./assets/favicon_general.png");
+	std::ostringstream	favicon;
+
+	if (!icon.is_open())
+		this->_body = "";
+	else
+	{
+		favicon << icon.rdbuf();
+		this->_body = favicon.str();
+	}
+	this->_response = this->putStatusLine(200);
+	this->putGeneralHeaders();
+	this->_response += "\n\n" + this->_body;
+}
+
 void	Response::_handleGet()
 {
 	int	is_dir;
 
 	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
+	std::cout << "\033[32;1mGET path \033[0m" << this->_path << std::endl;
+	if (this->_path == "./favicon.ico")
+	{
+		std::cout << "\033[32;1mhandle favicon\033[0m" << std::endl;
+		this->_handleFavIcon();
+		return ;
+	}
 	is_dir = this->_isDir(this->_path);
 	if (is_dir == -1)
 	{
@@ -212,7 +241,7 @@ void	Response::_handleGet()
 			return ;
 		}
 	}
-	this->_cgi = true;
+	this->_cgi = false;//TMP
 	if (this->_cgi == true) // if there's cgi
 	{
 		if (access(this->_path.c_str(), F_OK)) // if cgi exists = 0
@@ -240,6 +269,7 @@ void	Response::_handleGet()
 	}
 	else //if not cgi
 	{
+		std::cout << "\033[1;31mGET: fileToBody\033[0m" << std::endl;
 		int error = this->fileToBody(this->_path);
 		if (error)
 		{
@@ -405,8 +435,8 @@ void	Response::_makeAutoIndex(void)
 		filename = filename.substr(2);
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
-		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
-			continue ;
+		//if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
+		//	continue ;
 		this->_body += "<p><a href= " + filename + ">" + filename + "</a></p>\n";
 	}
 	this->_body += "</body></html>";

@@ -75,6 +75,7 @@ class	Response
 		bool		_isNotAccepted(std::string str);
 		void		_makeAutoIndex(void);
 		int			_isDir(const std::string &path) const ;
+		void		_handleFavIcon();
 };
 
 #endif
