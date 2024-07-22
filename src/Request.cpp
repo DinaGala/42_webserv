@@ -16,6 +16,7 @@ Request::Request(Server& serv): _serv(serv)
 Request::~Request() {
 }
 
+
 Request& Request::operator=(const Request& src)
 {
 	_serv = src._serv;
@@ -66,6 +67,7 @@ void	Request::cleanRequest() {
 
 /*----------------- PARSING REQUEST LINE -----------------*/
 void	Request::parseRequest(std::string buffer) {
+	(void)buffer;
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -293,7 +295,7 @@ bool Request::getAllowUpload() const {
 	return (_allowUpload);
 }
 
-const int Request::getStatus() const {
+int Request::getStatus() const {
 	return (_status);
 }
 

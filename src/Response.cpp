@@ -125,6 +125,13 @@ void	Response::_parseCgiResponse(void)
 	}
 }
 
+std::string	&Response::makeResponse(const Request *r)
+{
+	(void)r;
+//	std::string str = "not a real response";
+	return (_response);
+}
+
 //writes and returns the server's response
 std::string	&Response::getResponse(const std::string &code)
 {

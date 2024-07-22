@@ -2,7 +2,13 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
+
+//# include "Request.hpp"
+//# include "Response.hpp"
 # include "Utils.hpp"
+
+class Request;
+class Response;
 
 class Socket {
 	private:
@@ -14,8 +20,8 @@ class Socket {
 		bool				_master; // true if it's a master, false if a client
 	//	struct sockaddr_in	_sockaddr;
 	//	int					_nClients; //TODO: de 0 a MAX_CON
-		Request				_req;
-		Response			_resp;
+		std::vector<Request>	_req;
+		std::vector<Response>	_resp;
 		std::string			_response;
 		Socket();
 
@@ -42,14 +48,14 @@ class Socket {
 		void	setLastActivity(time_t now);
 
 		Server&						getServer() const;
-		const int					getPort() const;
+		int					getPort() const;
 		const std::string& 			getIpAdress() const;
-		const int					getSockFd() const;
+		int					getSockFd() const;
 		bool						getMaster() const;
 		Request*				getRequest() ;
 		Response*				getResponse() ;
 		std::string& 		getResponseLine() ;
-		const time_t				getLastActivity() const;
+		time_t				getLastActivity() const;
 //		const struct sockaddr_in&	getSockaddr() const;
 };
 

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
@@ -8,6 +9,8 @@
 # define K 3
 
 # include "Utils.hpp"
+
+class Server;
 
 class Request {
 	private:
@@ -36,6 +39,7 @@ class Request {
 	
      //   Request(const std::string& buffer, Socket& socket);
 		~Request();
+	//	Request();
 	//	Request();
 		Request(Server& serv);
 		Request& operator=(const Request& src); //TODO to finish
@@ -72,7 +76,7 @@ class Request {
 		const std::string& 							getUploadDir() const; //LOCATION
 		const std::string& 							getReturn() const; //LOCATION
 		const std::map<std::string, std::string>&	getCgiConf() const;
-		const int 									getStatus() const; //LOCATION
+		int 									getStatus() const; //LOCATION
 		bool										getConnectionKeepAlive() const;
 
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);

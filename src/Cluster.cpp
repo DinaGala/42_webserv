@@ -32,6 +32,8 @@ void	Cluster::createSockets(){
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
+			// Request req(_servers[i]);
+			// Response resp;
 			Socket socket(_servers[i], ports[j]);
 			this->_sockets.push_back(socket);
 		}
@@ -124,7 +126,7 @@ void	Cluster::readConnection(Socket *sock)
 			return (modifyEvent(sock, 1));
 
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		sock->setLastActivity(time(nullptr));
+		sock->setLastActivity(time(NULL));
 }
 
 /*SEND 
@@ -140,7 +142,7 @@ void	Cluster::sendConnection(Socket *sock)
 		return (eraseSocket(sock, true));
 
 	sock->getResponseLine().erase(0, bytes);
-	sock->setLastActivity(time(nullptr));
+	sock->setLastActivity(time(NULL));
 
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
 		return (eraseSocket(sock, false));
@@ -175,7 +177,7 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 {
 	std::string errmsg;
 	
-	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), nullptr) == -1)
+	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
 	
@@ -185,21 +187,25 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 		std::cout << "Client socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
 	
 		// Find the iterator to the element
-    std::vector<Socket>::iterator it = std::find_if(_sockets.begin(), _sockets.end(), 
-        [sock](const Socket& s) { return &s == sock; });
-
+	std::vector<Socket>::iterator it = _sockets.begin();
+	for (; it != _sockets.end(); it++) 
+	{
+		if (it->getSockFd() == sock->getSockFd()) 
+		{
+			_sockets.erase(it);
+			std::cout << "Client socket eliminated from: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+			return ;
+		}
+	}
     // If the element is found, erase it
-    if (it != _sockets.end())
-        _sockets.erase(it);
-	else
-		std::cerr << "Couldn't eliminate a socket, socket not found: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+	std::cerr << "Couldn't eliminate a socket, socket not found: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
 }
 
 std::vector<Socket>::iterator	Cluster::eraseSocket(std::vector<Socket>::iterator sock)
 {
 	std::string errmsg;
 	
-	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), nullptr) == -1)
+	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
 	std::cout << "Client socket disconnected for timeout: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
@@ -215,7 +221,7 @@ void	Cluster::cleanSocket(Socket *sock)
 
 void	Cluster::checkTimeout()
 {
-	time_t now = time(nullptr);
+	time_t now = time(NULL);
 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
 	{
 		if (now - it->getLastActivity() > TIMEOUT)

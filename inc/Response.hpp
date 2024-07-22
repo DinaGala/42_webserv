@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
@@ -7,7 +9,6 @@
 # include <fstream>
 # include <sstream>
 # include <unistd.h>
-# include "Cgi.hpp"
 # include "Utils.hpp"
 
 class Request;

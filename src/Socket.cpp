@@ -1,14 +1,16 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server &server, int port): _server(server), _req(server), _port(port), _master(true)
+Socket::Socket(Server &server, int port): _server(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
-	_lastActivity = time(nullptr);
+	_lastActivity = time(NULL);
+	_req.push_back(Request(server));
+	_resp.push_back(Response());
 	initMaster();
 	setNonBlocking();
 }
 
-Socket::Socket(Server &server, Socket *sock): _server(server), _req(server), _master(false)
+Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 {
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
@@ -32,7 +34,7 @@ Socket& Socket::operator=(const Socket& src)
 	return (*this);
 }
 
-Socket::Socket(const Socket& src): _server(src._server), _req(src._server)
+Socket::Socket(const Socket& src): _server(src._server)
 {
 	*this = src;
 }
@@ -53,8 +55,17 @@ void	Socket::setNonBlocking()
 /*SOCKET
 	int socket(int domain, int type, int protocol);
 	DOMAIN: communication domain - protocolos family  that socket will belong to. 
-	AF_INET - IPv4 Internet protocols */
-
+	AF_INET - IPv4 Internet protocols 
+*/
+/*BIND
+	int bind(int sockfd, const sockaddr *addr, socklen_t addrlen);
+	bind - assign an IP address and port to the socket.
+*/
+/*LISTEN 
+	int listen(int sockfd, int backlog);
+	mark the socket as a passive socket, the Socket indicates that it is ready to accept connections
+	backlog - maximum number of connections that will be queued before connections start being refused.
+*/
 void	Socket::initMaster() 
 {
 	struct addrinfo hints, *servinfo, *p;
@@ -80,12 +91,14 @@ void	Socket::initMaster()
     if (p == NULL)
         throw std::runtime_error("Error: getaddrinfo failed the conversion for " + _ipAddress + ":" + ft_itoa(_port));
     freeaddrinfo(servinfo);
+	std::cout << "Master socket is binded to: "  + _ipAddress + ":" << _port << std::endl;
     
 	if (listen(_fd, MAX_CON) == -1) // we set our maximum?
 	{
         close(_fd);
         throw std::runtime_error("Error: listen failed for " + _ipAddress + ":" + ft_itoa(_port));
     }
+	std::cout << "Master socket is listening from: "  + _ipAddress + ":" << _port << std::endl;
 
 	// NOT SURE ABOUT IT
 	int opt = 1;
@@ -96,24 +109,13 @@ void	Socket::initMaster()
 	}
 }
 
-	/*ACCEPT
-	**int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
-	**addrlen is now a value-result argument. 
-	**It expects a pointer to an int that will be the size of addr. 
-	**After the function is executed, the int refered by addrlen will be set to the size of the peer address.
-	*/
-	// Grab a connection from the queue
-void	Socket::initClient(int masterfd) 
-{
-	struct sockaddr_in clientAddr;
-	socklen_t clientAddrLen = sizeof(clientAddr);
-	_fd = accept(masterfd, (struct sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
-	if (_fd < 0) {
-		std::cerr << "Failed to grab connection. errno: " << std::endl;
-		exit(EXIT_FAILURE);
-	}
-}
-
+/*ACCEPT
+	int accept(int sockfd, sockaddr *addr, socklen_t *addrlen);
+	addrlen is now a value-result argument. 
+	It expects a pointer to an int that will be the size of addr. 
+	After the function is executed, the int refered by addrlen will be set to the size of the peer address.
+*/
+// Grab a connection from the queue
 /*SOCKET ADDRESS STRUCTURE 
 	Struct used to specify the address we want to assign to the socket.
 	The exact struct that needs to be used to define the address, varies by protocol. 
@@ -124,34 +126,17 @@ void	Socket::initClient(int masterfd)
 	in_port_t      sin_port;   // port in network byte order
 	struct in_addr sin_addr;   // internet address
 	};
-
-  BIND
-	int bind(int sockfd, const sockaddr *addr, socklen_t addrlen);
-	bind - assign an IP address and port to the socket.
 */
+void	Socket::initClient(int masterfd) 
+{
+	struct sockaddr_in clientAddr;
+	socklen_t clientAddrLen = sizeof(clientAddr);
+	_fd = accept(masterfd, (struct sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
+	if (_fd < 0)
+		throw std::runtime_error("Error: socket failed when aaccepting connection for: " + _ipAddress + ":" + ft_itoa(_port));
+	std::cout << "Client is accepted from: "  + _ipAddress + ":" << _port << std::endl;
+}
 
-// void	Socket::bindSocket(){
-// 	_sockaddr.sin_family = AF_INET;
-//     _sockaddr.sin_addr.s_addr = inet_addr(this->_ipAddress.c_str()); //tansform address to binary
-// 	_sockaddr.sin_port = htons(this->_port); // htons is necessary to convert a number to network byte order
-
-// 	if (bind(this->_sockfd, (struct sockaddr*)&this->_sockaddr, sizeof(this->_sockaddr)) < 0) {
-// 		std::cout << "Failed to bind to port 9999. errno: " << errno << std::endl;
-// 		exit(EXIT_FAILURE);
-// 	}
-// }
-
-/*LISTEN 
-	int listen(int sockfd, int backlog);
-	mark the socket as a passive socket, the Socket indicates that it is ready to accept connections
-	backlog - maximum number of connections that will be queued before connections start being refused.
-*/
-// void	Socket::listenConnection(){
-// 	if (listen(this->_sockfd, 10000) < 0) {  //max num of connections??
-// 		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-// 		exit(EXIT_FAILURE);
-// 	}
-// }
 
 //SETTERS
 void	Socket::setIpAddress(const std::string & ipAddress){
@@ -173,7 +158,7 @@ void	Socket::setLastActivity(time_t now)
 
 
 //GETTERS
-const int	Socket::getSockFd() const {
+int	Socket::getSockFd() const {
 	return(_fd);
 }
 
@@ -197,22 +182,22 @@ const std::string& Socket::getIpAdress() const {
 	return (_ipAddress);
 }
 
-const int Socket::getPort() const {
+int Socket::getPort() const {
 	return (_port);
 }
 
 Request* Socket::getRequest() {
-	return (&_req);
+	return (&_req[0]);
 }
 
 Response* Socket::getResponse() {
-	return (&_resp);
+	return (&_resp[0]);
 }
 
 std::string& Socket::getResponseLine() {
 	return (_ipAddress);
 }
 
-const time_t Socket::getLastActivity() const {
+time_t Socket::getLastActivity() const {
 	return (_lastActivity);
 }
