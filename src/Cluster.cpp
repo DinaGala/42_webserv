@@ -48,6 +48,7 @@ void	Cluster::runCluster(){
 		
 		
 		int	connection = acceptConnection(socket);
+
 		char buffer[3000];
 		int bytesRead = read(connection, buffer, 3000);
 		if (bytesRead < 0)
@@ -59,10 +60,9 @@ void	Cluster::runCluster(){
 		///////// RESPONSE /////////
 		///////////////////////////
 		Response	rsp;
-		rsp.setCgiPath("a");
-		rsp.setMethod("GET");
-		rsp.setSocket((int)socket.getSockfd());
-		std::string response = rsp.getResponse("200");
+		//rsp.setCgiPath("cgi-bin/random_number");
+		//rsp.setSocket((int)socket.getSockfd());
+		std::string response = rsp.makeResponse(&request);
 		std::cout << std::endl << "RESPONSE" << std::endl << response << std::endl;
 		///////////////////////////
 		///////////////////////////
