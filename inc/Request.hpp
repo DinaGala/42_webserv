@@ -13,8 +13,8 @@
 class Request {
 	private:
 		std::string							_buffer;
-		Server&								_server;
 		int									_status;
+		Server*								_server;
 
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
@@ -31,7 +31,7 @@ class Request {
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
-		std::string 						_return; //TODO: is it necessary to add boolean?
+		std::string 						_return;
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
 		std::vector<std::string> 			_serverNames; 
@@ -46,7 +46,7 @@ class Request {
 
 	public:
 		Request();
-		Request(Server& server);
+		Request(Server* server);
 		Request(const Request& src);
 		Request& operator=(const Request& src);
 		~Request();
@@ -70,11 +70,11 @@ class Request {
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
 		void		checkAcceptedContent();
 
-		void	manageMultipartForm();
-		void	getBoundary();
-		void	saveMultipartHeaders();
-		void	updateMultipartBody();
-		void	saveFileName();
+		void		manageMultipartForm();
+		void		getBoundary();
+		void		saveMultipartHeaders();
+		void		updateMultipartBody();
+		void		saveFileName();
 
 		void 		requestValidations();
 		void 		checkPath();
@@ -86,7 +86,7 @@ class Request {
 		void 		updatePath();
 		
 		const std::string&							getBuffer() const;
-		const Server&								getServer() const;
+		Server*										getServer() const;
 		int											getStatus() const;
 		const std::vector<std::string>&				getRequesLine() const;
 		const std::map<std::string, std::string>&	getHeaders() const;

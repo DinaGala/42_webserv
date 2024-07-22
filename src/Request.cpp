@@ -1,17 +1,16 @@
 #include "Request.hpp"
 
-Request::Request() : _status(INITIAL_STATUS){
-	initParamsRequest();
+Request::Request() {
 }
 
-Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
+Request::Request(Server* server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
 }
 
 Request::~Request() {
 }
 
-Request::Request(const Request& src) {
+Request::Request(const Request& src) : _server(src._server) {
 	*this = src;
 }
 
@@ -19,8 +18,8 @@ Request& Request::operator=(const Request& src){
 	_buffer = src.getBuffer();
 	_server = src.getServer();
 	_status = src.getStatus();
-	_headers = 
-	_body = 
+	_headers = src.getHeaders();
+	_body = src.getBody();
 	_query = src.getQuery();
 	_path = src.getPath();
 	_root = src.getRoot();
@@ -50,14 +49,14 @@ void	Request::initParamsRequest() {
 	_requestLine.clear();
 	_headers.clear();
 	_code = 200;
-	_maxBodySize = _server.getMaxBodySize();
-	_allowedMethods = _server.getAllowedMethods();
-	_errorPages = _server.getErrorPages();
-	_autoIndex = _server.getAutoIndex();
+	_maxBodySize = _server->getMaxBodySize();
+	_allowedMethods = _server->getAllowedMethods();
+	_errorPages = _server->getErrorPages();
+	_autoIndex = _server->getAutoIndex();
 	_allowUpload = false;
 	_cgi = false;
-	_cgiConf = _server.getCgiConf();
-	_serverNames = _server.getServerName();
+	_cgiConf = _server->getCgiConf();
+	_serverNames = _server->getServerName();
 	_connectionKeepAlive = true;
 	_location = false;
 }
@@ -375,7 +374,7 @@ std::string Request::checkQuery() {
 }
 
 size_t Request::checkLocation(std::string & path) {
-	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+	std::vector<LocationConfig> vecLocations = _server->getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
@@ -415,7 +414,7 @@ void Request::updatePath() {
 }
 
 void	Request::updateInfoLocation(size_t nLoc) {
- 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+ 	std::vector<LocationConfig> vecLocations = _server->getLocationConfig();
     LocationConfig location = vecLocations[nLoc];
 
 	_root = vecLocations[nLoc].getRoot();
@@ -430,7 +429,7 @@ void	Request::updateInfoLocation(size_t nLoc) {
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _server.getAllowedMethods();
+	std::vector<std::string> allowedMethodsVect = _server->getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
 		_code = 405;
@@ -449,7 +448,7 @@ const std::string& Request::getBuffer() const {
 	return (_buffer);
 }
 
-const Server&  Request::getServer() const {
+Server*  Request::getServer() const {
 	return (_server);
 }
 

@@ -8,7 +8,7 @@ int main(int ac, char **av){
 		Cluster clusterC;
 
 		clusterC.setUpCluster(ac, av);
-		//clusterC.runCluster();
+		clusterC.runCluster();
 	}
 	catch (const std::exception & e){
 		std::cerr << e.what() << std::endl;
