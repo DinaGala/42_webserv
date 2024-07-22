@@ -49,11 +49,9 @@ class Request {
 
 
 	public:
-    Request(Server& server);
+   		 Request(Server& server);
 
 		~Request();
-
-		Request(Server& serv);
 		Request& operator=(const Request& src); //TODO to finish
 		Request(const Request& src); //TODO to finish
 
@@ -93,6 +91,7 @@ class Request {
 		void 		updatePath();
 		
 		const Server&								getServer() const;
+		int											getStatus() const;
 		const std::map<std::string, std::string>&	getHeaders() const;
 		const std::string&							getBody() const;
 		const std::string&							getQuery() const;

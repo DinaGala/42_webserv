@@ -3,9 +3,9 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#ifndef TIMEOUT
+/*#ifndef TIMEOUT
 # define TIMEOUT 10
-#endif
+#endif*/
 
 #ifndef MAXCONNECT
 # define MAXCONNECT 10
@@ -32,7 +32,6 @@ class	Response
 		//Response(Request &req);
 		~Response();
 
-		Response(const Response &r);
 		Response	&operator=(const Response &r);
 		//SET VARS
 		void		setBody(const std::string &msg);
@@ -70,7 +69,6 @@ class	Response
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
 		const Request	*_req;
-		Response	&operator=(const Response &r);
 
 		void		_parseCgiResponse(void);
 		void		_handleGet(void);

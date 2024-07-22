@@ -10,13 +10,13 @@ Request::~Request() {
 
 Request& Request::operator=(const Request& src)
 {
-	_serv = src._serv;
+	_server = src._server;
 //	FINISH
 //	empty = src.empty;
 	return (*this);
 }
 
-Request::Request(const Request& src): _serv(src._serv)
+Request::Request(const Request& src): _server(src._server)
 {
 	*this = src;
 }
@@ -44,7 +44,7 @@ void	Request::cleanRequest() {
 	_requestLine.clear();
 	_headers.clear();
 	_body = "";
-	_errorCode = 200; //TODO: error code default?
+	_code = 200; //TODO: error code default?
 	_status = 0;
 	_connectionKeepAlive = true;
   // ...
@@ -437,6 +437,10 @@ const Server&  Request::getServer() const {
 	return (_server);
 }
 
+int	Request::getStatus() const {
+	return (_status);
+}
+
 const std::map<std::string, std::string>& Request::getHeaders() const{
 	return (_headers);
 }
@@ -483,10 +487,6 @@ bool Request::getAutoIndex() const {
 
 bool Request::getAllowUpload() const {
 	return (_allowUpload);
-}
-
-int Request::getStatus() const {
-	return (_status);
 }
 
 const std::string& 	Request::getUploadDir() const {
