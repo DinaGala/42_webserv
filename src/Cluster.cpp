@@ -71,7 +71,7 @@ void	Cluster::runCluster()
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			std::cout << "current socket is:  " << cur << "\n";
+			std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
@@ -108,7 +108,7 @@ void	Cluster::acceptConnection(Socket *sock)
 
 	_ev.events = EPOLLIN;
 	_ev.data.fd = socket.getSockFd();
-	_ev.data.ptr = &socket;
+	_ev.data.ptr = _sockets.data() + _sockets.size() - 1;
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 
 		throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
 }
@@ -223,4 +223,20 @@ void	Cluster::checkTimeout()
 		else
 			++it;
 	}
+}
+
+std::ostream	&operator<<(std::ostream &out, const Socket &val)
+{
+    
+
+//	out << "Port:  " << val.getServer() << "\n";
+    out << "Port:  " << val.getPort() << "\n";
+    out << "IP:  " << val.getIpAdress() << "\n";
+    out << "Socket fd:  " << val.getSockFd() << "\n";
+    out << "Last activity:  " << val.getLastActivity() << "\n";
+    out << "Master:  " << val.getMaster() << "\n\n";
+
+ //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
+   
+	return (out);
 }

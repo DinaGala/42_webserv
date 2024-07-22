@@ -39,4 +39,6 @@ class Cluster {
 
 };
 
+std::ostream	&operator<<(std::ostream &out, const Socket &val);
+
 #endif

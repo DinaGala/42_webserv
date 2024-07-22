@@ -58,6 +58,8 @@ void	Request::cleanRequest() {
 
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(const std::string& buffer) {
+//	std::cout << "REQUEST -------------" << std::endl;
+//	std::cout << buffer << std::endl;
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
