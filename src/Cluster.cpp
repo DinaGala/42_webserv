@@ -7,6 +7,48 @@ Cluster::Cluster() {
 Cluster::~Cluster() {
 }
 
+/*size_t Cluster::checkLocation(std::string & path) {
+
+	std::cout << "Server size " << _servers.size() << std::endl;
+	std::cout << "sconf size " << _sconf.size() << std::endl;
+	ServerConfig sconf = _sconf[0];
+
+	std::cout << "Locations sconf size " << sconf.getLocationConfig().size() << std::endl;
+	
+	//std::vector<LocationConfig> vecLocations = _servers[0].getLocationConfig();
+	//std::cout << "vecLocations size" << _servers.getLocationConfig().size() << std::endl;
+	
+	
+	(void)path;
+	
+	size_t 	posLoc = 0;
+	size_t	nEqualLocs = 0;
+	size_t 	j=0;
+	bool _location = false;
+
+	std::vector<std::string> vecPath = ft_split(path, "/");
+	
+
+	for (size_t i=0; i < vecLocations.size(); i++) {
+		std::vector<std::string> pathLoc = ft_split(vecLocations[i].getUri(), "/");
+		for (j = 0; j < pathLoc.size(); j++) {
+			if (vecPath[j] != pathLoc[j]) {
+				break;
+			}	
+		}
+		if (j > nEqualLocs) {
+			posLoc = i;
+			nEqualLocs = j;
+			_location = true;
+		}
+	}
+	if (_location)
+		std::cout << "LOCATION YES" << std::endl;
+	return posLoc;
+	return 1;
+}*/
+
+
 void	Cluster::setUpCluster(int ac, char **av){
 	if (ac == 2) {
         _sconf = Parse::configParse(av[1]);
@@ -17,8 +59,12 @@ void	Cluster::setUpCluster(int ac, char **av){
         _sconf = Parse::configParse();
 			std::cout << _sconf;
 	}
-	createServers();
+	//createServers();
 	createSockets();
+	
+	//std::string str = "/pedro";
+	//checkLocation(str);
+
 }
 
 void	Cluster::createServers(){

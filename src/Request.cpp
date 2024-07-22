@@ -1,10 +1,48 @@
 #include "Request.hpp"
 
+Request::Request() : _status(INITIAL_STATUS){
+	initParamsRequest();
+}
+
 Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
 }
 
 Request::~Request() {
+}
+
+Request::Request(const Request& src) {
+	*this = src;
+}
+
+Request& Request::operator=(const Request& src){
+	_buffer = src.getBuffer();
+	_server = src.getServer();
+	_status = src.getStatus();
+	_headers = 
+	_body = 
+	_query = src.getQuery();
+	_path = src.getPath();
+	_root = src.getRoot();
+	_code = src.getCode();
+	_maxBodySize = src.getMaxBodySize();
+	_allowedMethods = src.getAllowedMethods();
+	_errorPages = src.getErrorPages();
+	_index = getIndex();
+	_autoIndex = getAutoIndex();
+	_allowUpload = getAllowUpload();
+	_uploadDir = src.getUploadDir();
+	_return = src.getReturn(); 
+	_cgi = src.getCgi();
+	_cgiConf = src.getCgiConf();
+	_serverNames = src.getServerNames(); 
+	_connectionKeepAlive = src.getConnectionKeepAlive();
+	_acceptedContent = src.getAcceptedContent();
+	_boundary = src.getBoundary();
+	_multipartHeaders = src.getMultipartHeaders();
+	_fileName = src.getFileName();
+	_location = src.getLocation();
+	return (*this);
 }
 
 void	Request::initParamsRequest() {
@@ -407,8 +445,20 @@ void Request::checkProtocolHttp(){
 
 // _____________  GETTERS _____________ 
 
+const std::string& Request::getBuffer() const {
+	return (_buffer);
+}
+
 const Server&  Request::getServer() const {
 	return (_server);
+}
+
+int	Request::getStatus() const {
+	return (_status);
+}
+
+const std::vector<std::string>& Request::getRequesLine() const{
+	return (_requestLine);
 }
 
 const std::map<std::string, std::string>& Request::getHeaders() const{
@@ -491,12 +541,20 @@ const std::multimap<std::string, std::string>&	Request::getAcceptedContent() con
 	return (_acceptedContent);
 }
 
+const std::string&  Request::getBoundary() const {
+	return (_boundary);
+}
+
 const std::map<std::string, std::string>& Request::getMultipartHeaders() const{
 	return (_multipartHeaders);
 }
 
 const std::string&	Request::getFileName() const {
 	return (_fileName);
+}
+
+bool Request::getLocation() const {
+	return (_location);
 }
 
 // _____________  SETTERS _____________ 
