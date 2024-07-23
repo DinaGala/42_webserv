@@ -54,7 +54,22 @@ Response::~Response() {}
 
 Response	&Response::operator=(const Response &r)
 {
-	(void)r;
+	this->_body = r._body;
+	this->_response = r._response;
+	this->_query = r._query;
+	this->_reqbody = r._reqbody;
+	this->_path = r._path;
+	this->_servname = r._servname;
+	this->_method = r._method; //tmp
+	this->_host = r._host; //tmp
+	this->_socket = r.socket; //tmp
+	this->_port = r._port; //tmp
+	this->_cgi = r._cgi; //tmp
+	this->_keep_alive = r._keep_alive; //tmp
+	this->_cgiargs = r._cgiargs;
+	this->_code = r.code;
+	this->_req = _req;
+
 	return (*this);
 }
 
