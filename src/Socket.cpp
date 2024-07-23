@@ -4,8 +4,8 @@ Socket::Socket(Server &server, int port): _server(server), _port(port), _master(
 {
 	_ipAddress = server.getIpAdress();
 	_lastActivity = time(NULL); // TOFIX
-	_req.push_back(Request(server));
-	_resp.push_back(Response());
+	//_req.push_back(Request(server));
+	//_resp.push_back(Response());
 	initMaster();
 	setNonBlocking();
 }
@@ -15,6 +15,8 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
 	std::cout << "client socket port:  " << _port << "\n";
+	_req.push_back(Request(server));
+	_resp.push_back(Response());
 	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
 	setNonBlocking();
