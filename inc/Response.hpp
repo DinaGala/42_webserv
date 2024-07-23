@@ -34,6 +34,8 @@ class	Response
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
 		void		setReq(const Request *rqt);
+		const std::string& 		getResponse() const;
+		int				getCode() const;
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
@@ -44,9 +46,6 @@ class	Response
 
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
-
-		int			getCode(void) const;
-		const std::string	&getResponse(void) const;
 
 	private:
 		static std::map<int, std::pair<std::string, std::string> >	_status;

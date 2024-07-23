@@ -199,6 +199,7 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_handlePost();
 	else if (method == "DELETE")
 		this->_handleDelete();
+//	std::cout << "EN MAKE RESPONSE, the response: " + _response + "\n";
 	return (this->_response);
 }
 

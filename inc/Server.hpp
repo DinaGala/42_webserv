@@ -21,13 +21,11 @@ class Server {
 		std::vector<LocationConfig> 		_locations;
 
 	public:
-		Server();
-		Server(ServerConfig sconfig);
-		Server(const Server& src);
-		Server& operator=(const Server& src);
+		Server(ServerConfig &sconfig);
 		~Server();
 
-		void		initParamsServer(ServerConfig sconfig);
+		void		initParamsServer(ServerConfig &sconfig);
+		
 		void		setIpAddress(const char* ipAddress);
 		void		setPort(const int port);
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);

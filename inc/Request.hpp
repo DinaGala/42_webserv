@@ -18,8 +18,7 @@ class Request {
 	private:
 		std::string							_buffer;
 		int									_status;
-		std::vector<Server*>		    		_serv;
-		//Server*								_server;
+		Server&								_server;
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
@@ -35,7 +34,7 @@ class Request {
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
-		std::string 						_return;
+		std::string 						_return; //TODO: is it necessary to add boolean?
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
 
@@ -50,11 +49,12 @@ class Request {
 
 
 	public:
-		Request();
-		Request(Server* server);
-		//Request(const Request& src);
-		//Request& operator=(const Request& src);
+   		 Request(Server& server);
+
 		~Request();
+		Request& operator=(const Request& src); //TODO to finish
+		Request(const Request& src); //TODO to finish
+
 		void	initParamsRequest();
 		void	parseRequest(const std::string& buffer);
 		void	sendBadRequestError(std::string errMssg);
@@ -74,13 +74,13 @@ class Request {
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
 		void		checkAcceptedContent();
 
-		void		manageMultipartForm();
-		void		getBoundary();
-		void		saveMultipartHeaders();
-		void		updateMultipartBody();
-		void		saveFileName();
+		void	manageMultipartForm();
+		void	getBoundary();
+		void	saveMultipartHeaders();
+		void	updateMultipartBody();
+		void	saveFileName();
 
-		void		cleanRequest(); // TODO for multiplexing
+		void	cleanRequest(); // TODO for multiplexing
 		void 		requestValidations();
 		void 		checkPath();
 		std::string checkQuery();
@@ -91,7 +91,7 @@ class Request {
 		void 		updatePath();
 		
 		const std::string&							getBuffer() const;
-		//Server*										getServer() const;
+		Server&										getServer() const;
 		int											getStatus() const;
 		const std::vector<std::string>&				getRequesLine() const;
 		const std::map<std::string, std::string>&	getHeaders() const;

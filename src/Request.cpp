@@ -1,28 +1,18 @@
 #include "Request.hpp"
 
-Request::Request() {
-}
-
-/*Request::Request(Server* server) : _status(INITIAL_STATUS), _server(server){
-	initParamsRequest();
-}*/
-
-Request::Request(Server* server) : _status(INITIAL_STATUS){
-	_serv.push_back(server);
-	
+Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
 }
 
 Request::~Request() {
 }
 
-/*Request::Request(const Request& src) : _server(src._server) {
-	*this = src;
-}*/
 
-/*Request& Request::operator=(const Request& src){
+Request& Request::operator=(const Request& src)
+{
+	// _requestLine
 	_buffer = src.getBuffer();
-	//_server = src.getServer();
+	_server = src.getServer();
 	_status = src.getStatus();
 	_headers = src.getHeaders();
 	_body = src.getBody();
@@ -33,8 +23,8 @@ Request::~Request() {
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
 	_errorPages = src.getErrorPages();
-	_index = getIndex();
-	_autoIndex = getAutoIndex();
+	_index = src.getIndex();
+	_autoIndex = src.getAutoIndex();
 	_allowUpload = getAllowUpload();
 	_uploadDir = src.getUploadDir();
 	_return = src.getReturn(); 
@@ -48,21 +38,28 @@ Request::~Request() {
 	_fileName = src.getFileName();
 	_location = src.getLocation();
 	return (*this);
-}*/
+}
+
+Request::Request(const Request& src): _server(src._server)
+{
+	*this = src;
+}
 
 void	Request::initParamsRequest() {
   	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
+	_path = "";
+	_root = "";
 	_code = 200;
-	_maxBodySize = _serv[0]->getMaxBodySize();
-	_allowedMethods = _serv[0]->getAllowedMethods();
-	_errorPages = _serv[0]->getErrorPages();
-	_autoIndex = _serv[0]->getAutoIndex();
+	_maxBodySize = _server.getMaxBodySize();
+	_allowedMethods = _server.getAllowedMethods();
+	_errorPages = _server.getErrorPages();
+	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_cgi = false;
-	_cgiConf = _serv[0]->getCgiConf();
-	_serverNames = _serv[0]->getServerName();
+	_cgiConf = _server.getCgiConf();
+	_serverNames = _server.getServerName();
 	_connectionKeepAlive = true;
 	_location = false;
 }
@@ -76,7 +73,7 @@ void	Request::cleanRequest() {
 	_code = 200; //TODO: error code default?
 	_status = 0;
 	_connectionKeepAlive = true;
-
+  // ...
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -92,6 +89,8 @@ void	Request::parseRequest(const std::string& buffer) {
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
+	std::cout << "STATUS " << _status << std::endl;
+	std::cout << "CODE " << _code << std::endl;
 
 	try {
 		if (_status == INITIAL_STATUS){
@@ -394,7 +393,7 @@ std::string Request::checkQuery() {
 }
 
 size_t Request::checkLocation(std::string & path) {
-	std::vector<LocationConfig> vecLocations = _serv[0]->getLocationConfig();
+	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
@@ -434,7 +433,7 @@ void Request::updatePath() {
 }
 
 void	Request::updateInfoLocation(size_t nLoc) {
- 	std::vector<LocationConfig> vecLocations = _serv[0]->getLocationConfig();
+ 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
     LocationConfig location = vecLocations[nLoc];
 
 	_root = vecLocations[nLoc].getRoot();
@@ -449,7 +448,7 @@ void	Request::updateInfoLocation(size_t nLoc) {
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _serv[0]->getAllowedMethods();
+	std::vector<std::string> allowedMethodsVect = _server.getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
 		_code = 405;
@@ -468,9 +467,9 @@ const std::string& Request::getBuffer() const {
 	return (_buffer);
 }
 
-/*Server*  Request::getServer() const {
+Server&  Request::getServer() const {
 	return (_server);
-}*/
+}
 
 int	Request::getStatus() const {
 	return (_status);
@@ -493,8 +492,11 @@ const std::string& Request::getQuery() const {
 }
 
 const std::string&  Request::getPath() const {
-    return (_requestLine[1]);
+    return (_path);
 }
+
+
+//TODO: aDD GETTER FROM REQUESTLINE[1]
 
 const std::string& 	Request::getRoot() const{
     return (_root);
@@ -575,6 +577,7 @@ const std::string&	Request::getFileName() const {
 bool Request::getLocation() const {
 	return (_location);
 }
+
 
 // _____________  SETTERS _____________ 
 
