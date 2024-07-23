@@ -1,5 +1,16 @@
 #include "Response.hpp"
 
+void	Response::cleanResponse()
+{
+	_body.clear();
+	_reqbody.clear();
+	_response.clear();
+	_path.clear();
+	_servname.clear();
+	_method.clear();
+	// ...
+}
+
 //////////////////////// STATIC ASSETS ////////////////////////////////////////
 
 std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
@@ -30,6 +41,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 //////////////////////////////////////////////////////////////////////////////
 
 Response::Response(): _cgi(false), _keep_alive(true), _code(200), _req(NULL) {}
+
 
 Response::Response(const Response &r): _req(r._req)
 {
@@ -62,14 +74,13 @@ Response	&Response::operator=(const Response &r)
 	this->_servname = r._servname;
 	this->_method = r._method; //tmp
 	this->_host = r._host; //tmp
-	this->_socket = r.socket; //tmp
+	this->_socket = r._socket; //tmp
 	this->_port = r._port; //tmp
 	this->_cgi = r._cgi; //tmp
 	this->_keep_alive = r._keep_alive; //tmp
 	this->_cgiargs = r._cgiargs;
-	this->_code = r.code;
+	this->_code = r._code;
 	this->_req = _req;
-	(void)r;
 
 	return (*this);
 }
@@ -577,12 +588,12 @@ void	Response::sendError(int code)
 	this->_response += this->_body;
 }
 
-void	Response::getCode(void) const
+int	Response::getCode(void) const
 {
 	return (this->_code);
 }
 
-void	Response::getResponse(void) const
+const std::string	&Response::getResponse(void) const
 {
 	return (this->_response);
 }

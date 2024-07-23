@@ -1,7 +1,31 @@
 #include "Server.hpp"
 
+Server::Server() {
+}
+
 Server::Server(ServerConfig sconfig) {
 	initParamsServer(sconfig);
+}
+
+Server::Server(const Server& src) {
+	*this = src;
+}
+
+Server& Server::operator=(const Server& src) {
+	_ipAddress = src.getIpAdress();
+	_ports = src.getPort();
+	_maxBodySize = src.getMaxBodySize();
+	_allowedMethods = src.getAllowedMethods();
+	_errorPages = src.getErrorPages();
+	_index = src.getIndex();
+	_autoIndex = src.getAutoIndex();
+	_allowUpload = src.getAllowUpload();
+	_uploadDir = src.getUploadDir();
+	_return = src.getReturn();
+	_cgiConf = src.getCgiConf();
+	_serverName = src.getServerName();
+	_locations = src.getLocationConfig();
+	return (*this);
 }
 
 Server::~Server() {
