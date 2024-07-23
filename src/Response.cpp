@@ -5,7 +5,6 @@ void	Response::cleanResponse()
 	_body.clear();
 	_reqbody.clear();
 	_response.clear();
-	_path.clear();
 	_servname.clear();
 	_method.clear();
 	// ...
@@ -50,7 +49,6 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_path = r._path;
 	this->_servname = r._servname;
 	this->_method = r._method;
 	this->_host = r._host;
@@ -70,7 +68,6 @@ Response	&Response::operator=(const Response &r)
 	this->_response = r._response;
 	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_path = r._path;
 	this->_servname = r._servname;
 	this->_method = r._method; //tmp
 	this->_host = r._host; //tmp
@@ -101,7 +98,7 @@ void	Response::setReq(const Request *rqt)
 	this->_req = rqt;
 }
 
-std::vector<std::string>	Response::_setCgi(std::string &path)
+std::vector<std::string>	Response::_setCgi(const std::string &path)
 {
 	std::vector<std::string>	args;
 	if (access(path.c_str(), X_OK) == 0) //if executable
@@ -124,7 +121,7 @@ std::vector<std::string>	Response::_setCgi(std::string &path)
 	return (args);
 }
 ///////////////////////////////////////////////////////////////////////////
-
+/*
 std::string	Response::_parseUrl(const std::string &url)
 {
 	std::string::size_type	found = 0;
@@ -143,7 +140,7 @@ std::string	Response::_parseUrl(const std::string &url)
 	if (access(str.c_str(), X_OK) == 0)
 		this->_cgi = true;
 	return (str);
-}
+}*/
 
 //parses Cgi's response: separates headers from body
 void	Response::_parseCgiResponse(void)
@@ -165,41 +162,34 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
-	//std::cout << "\033[31;1mmakeResponse\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(500), this->_response);
 	else
 		this->_req = req;
-	//std::cout << "\033[31;1mmakeResponse: req\033[0m" << std::endl;
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
 		this->putGeneralHeaders();
-		this->_response += "Location: " + this->_path + "\r\n";
+		this->_response += "Location: " + this->_req->getPath() + "\r\n";
 		return (this->_response);
 	}
 	else if (this->_req->getCode() > 301)
 		return (this->sendError(this->_req->getCode()), this->_response);
-	//std::cout << "\033[31;1mmakeResponse: 301\033[0m" << std::endl;
 	std::string	method = this->_req->getMethod();
-	//std::cout << "\033[31;1mmakeResponse: method\033[0m" << std::endl;
-	this->_path = this->_parseUrl(this->_req->getPath());
-	//std::cout << "\033[31;1mmakeResponse: path\033[0m" << std::endl;
 
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
-	std::cout << "\033[33;1mPATH: " << this->_path << "\033[0m" << std::endl;
+	//std::cout << "\033[33;1mPATH: " << this->_req->getPath() << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
 	//std::cout << "\033[33;1mREQ CODE: " << this->_req->getCode() << "\033[0m" << std::endl;
 
 	if (this->_req->getCgi())
-		this->_cgiargs = this->_setCgi(this->_path);
+		this->_cgiargs = this->_setCgi(this->_req->getPath());
 	if (method == "GET")
 		this->_handleGet();
 	else if (method == "POST")
 		this->_handlePost();
 	else if (method == "DELETE")
 		this->_handleDelete();
-//	std::cout << "EN MAKE RESPONSE, the response: " + _response + "\n";
 	return (this->_response);
 }
 
@@ -228,14 +218,14 @@ void	Response::_handleGet()
 	int	is_dir;
 
 	//std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
-	//std::cout << "\033[32;1mGET path \033[0m" << this->_path << std::endl;
-	/*if (this->_path == "./favicon.ico")
+	//std::cout << "\033[32;1mGET path \033[0m" << this->_req->getPath() << std::endl;
+	if (this->_req->getPath() == "./favicon.ico")
 	{
 		std::cout << "\033[32;1mhandle favicon\033[0m" << std::endl;
 		this->_handleFavIcon();
 		return ;
-	}*/
-	is_dir = this->_isDir(this->_path);
+	}
+	is_dir = this->_isDir(this->_req->getPath());
 	if (is_dir == -1)
 	{
 		this->sendError(500);
@@ -243,13 +233,12 @@ void	Response::_handleGet()
 	}
 	else if (is_dir)
 	{
-		this->_path += "/";
 		if (this->_req->getIndex() != "")
 		{
 			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_path + this->_req->getIndex());
+			int code = this->fileToBody(this->_req->getPath() + this->_req->getIndex());
 			if (code)
 			{
 				this->sendError(code);
@@ -271,23 +260,22 @@ void	Response::_handleGet()
 			return ;
 		}
 	}
-	this->_cgi = false;//TMP
 	if (this->_cgi == true) // if there's cgi
 	{
-		if (access(this->_path.c_str(), F_OK)) // if cgi exists = 0
+		if (access(this->_req->getPath().c_str(), F_OK)) // if cgi exists = 0
 		{
 			this->sendError(404);
 			return ;
 		}
-		else if (access(this->_path.c_str(), X_OK))
+		else if (access(this->_req->getPath().c_str(), X_OK))
 		{
 			this->sendError(403);
 			return ;
 		}
-		std::cout << "\033[1;34mGET: path " << this->_path << "\033[0m" << std::endl;
+		//std::cout << "\033[1;34mGET: path " << this->_req->getPath() << "\033[0m" << std::endl;
 		Cgi	cgi(this->_socket, *(this->_req));
-		this->_cgiargs = this->_setCgi(this->_path);
-		cgi.setEnvVars(this->_path, this->_host, this->_servname, this->_query, this->_cgiargs);
+		this->_cgiargs = this->_setCgi(this->_req->getPath());
+		cgi.setEnvVars(this->_req->getPath(), this->_host, this->_servname, this->_query, this->_cgiargs);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
@@ -300,7 +288,7 @@ void	Response::_handleGet()
 	else //if not cgi
 	{
 		std::cout << "\033[1;31mGET: fileToBody\033[0m" << std::endl;
-		int error = this->fileToBody(this->_path);
+		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 		{
 			this->sendError(error);
@@ -432,11 +420,10 @@ void	Response::_makeAutoIndex(void)
 		this->sendError(403);
 		return ;
 	}
-	dir = opendir(this->_path.c_str());
-	//dir = opendir(this->_req->getPath().c_str());
+	dir = opendir(this->_req->getPath().c_str());
 	if (!dir)
 	{
-		std::cout << "\033[31;1mmake AutoIndex error dir\033[0m" << std::endl;
+		//std::cout << "\033[31;1mmake AutoIndex error dir\033[0m" << std::endl;
 		this->sendError(500);
 		return ;
 	}
@@ -444,14 +431,19 @@ void	Response::_makeAutoIndex(void)
 	this->_body += this->_req->getPath() + "</h1></head><body>";
 	while ((dp = readdir(dir)) != NULL)
 	{
-		filename = this->_path;
+		filename = this->_req->getPath();
 		if (dp->d_name[0] == '.')
 			continue ;
+		if (filename[filename.size() - 1] != '/')
+			filename += "/";
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
+		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
+		//		<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
+		//		<< dp->d_name<< "\033[0m" << std::endl;
 		if (is_dir == -1)
 		{
-			std::cout << "\033[31;1mmake AutoIndex error dir while: " << filename << "\033[0m" << std::endl;
+			std::cout << "\033[31;1mAutoIdx error while: " << filename << "\033[0m" << std::endl;
 			this->sendError(500);
 			closedir(dir);
 			return ;
@@ -461,7 +453,7 @@ void	Response::_makeAutoIndex(void)
 			continue ;
 		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
 			continue ;
-		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
+		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
 		this->_body += filename;
 		this->_body += ">";

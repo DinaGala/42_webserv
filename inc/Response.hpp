@@ -72,7 +72,7 @@ class	Response
 		void		_handlePost(void);
 		void		_handleDelete(void);
 		std::string	_parseUrl(const std::string &url);
-		std::vector<std::string> _setCgi(std::string &path);
+		std::vector<std::string> _setCgi(const std::string &path);
 		bool		_createFile(void);
 		bool		_isNotAccepted(std::string str);
 		void		_makeAutoIndex(void);
