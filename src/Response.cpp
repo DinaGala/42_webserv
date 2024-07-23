@@ -69,6 +69,7 @@ Response	&Response::operator=(const Response &r)
 	this->_cgiargs = r._cgiargs;
 	this->_code = r.code;
 	this->_req = _req;
+	(void)r;
 
 	return (*this);
 }
@@ -440,6 +441,7 @@ void	Response::_makeAutoIndex(void)
 		{
 			std::cout << "\033[31;1mmake AutoIndex error dir while: " << filename << "\033[0m" << std::endl;
 			this->sendError(500);
+			closedir(dir);
 			return ;
 		}
 		filename = filename.substr(2);
@@ -458,6 +460,7 @@ void	Response::_makeAutoIndex(void)
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
 	this->_response += "\n\n" + this->_body;
+	closedir(dir);
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
@@ -572,4 +575,14 @@ void	Response::sendError(int code)
 	this->_response.insert(0, this->putStatusLine(code));
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
 	this->_response += this->_body;
+}
+
+void	Response::getCode(void) const
+{
+	return (this->_code);
+}
+
+void	Response::getResponse(void) const
+{
+	return (this->_response);
 }

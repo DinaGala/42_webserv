@@ -44,6 +44,9 @@ class	Response
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
 
+		void		getCode(void) const;
+		void		getResponse(void) const;
+
 	private:
 		static std::map<int, std::pair<std::string, std::string> >	_status;
 		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
