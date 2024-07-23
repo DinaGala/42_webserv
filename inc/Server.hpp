@@ -22,12 +22,11 @@ class Server {
 
 	public:
 		Server();
-		Server(ServerConfig sconfig);
+		Server(ServerConfig &sconfig);
 		Server(const Server& src);
 		Server& operator=(const Server& src);
 		~Server();
-
-		void		initParamsServer(ServerConfig sconfig);
+		void		initParamsServer(ServerConfig &sconfig);
 		void		setIpAddress(const char* ipAddress);
 		void		setPort(const int port);
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
@@ -43,11 +42,11 @@ class Server {
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
-		const std::string& 							getIndex() const; //LOCATION
+		const std::string& 							getIndex() const;
 		bool 										getAutoIndex() const;
-		bool 										getAllowUpload() const; //LOCATION
-		const std::string& 							getUploadDir() const; //LOCATION
-		const std::string& 							getReturn() const; //LOCATION
+		bool 										getAllowUpload() const;
+		const std::string& 							getUploadDir() const;
+		const std::string& 							getReturn() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;
 		const std::vector<std::string>& 			getServerName() const;
 		const std::vector<LocationConfig> 			getLocationConfig() const;
