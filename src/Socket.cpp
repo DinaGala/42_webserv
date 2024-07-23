@@ -33,6 +33,7 @@ Socket& Socket::operator=(const Socket& src)
 //	_nClients = src._nClients;
 	_req = src._req;
 	_resp = src._resp;
+	_response = src._response;
 	return (*this);
 }
 
@@ -90,8 +91,10 @@ void	Socket::initMaster()
 			break;
         close(_fd);
     }
-    if (p == NULL)
+    if (p == NULL) {
+		freeaddrinfo(servinfo);
         throw std::runtime_error("Error: getaddrinfo failed the conversion for " + _ipAddress + ":" + ft_itoa(_port));
+	}
     freeaddrinfo(servinfo);
 	std::cout << "Master socket is binded to: "  + _ipAddress + ":" << _port << std::endl;
     
