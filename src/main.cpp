@@ -1,7 +1,6 @@
 
 #include "Utils.hpp"
 
-
 int main(int ac, char **av){
 	
 	try {
@@ -11,6 +10,7 @@ int main(int ac, char **av){
 
 		clusterC.setUpCluster(ac, av);
 		clusterC.runCluster();
+		std::cout << "----- THE END ------ " << std::endl;
 	}
 	catch (const std::exception & e){
 		std::cerr << e.what() << std::endl;

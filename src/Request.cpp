@@ -1,8 +1,5 @@
 #include "Request.hpp"
 
-Request::Request() {
-}
-
 Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
 }

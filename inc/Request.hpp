@@ -49,7 +49,6 @@ class Request {
 
 
 	public:
-		Request();
 		Request(Server& server);
 		Request(const Request& src);
 		Request& operator=(const Request& src);

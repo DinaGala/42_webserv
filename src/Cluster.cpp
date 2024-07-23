@@ -35,11 +35,12 @@ void	Cluster::createSockets(){
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
-			Socket socket(&_servers[i], ports[j]);
+			Socket socket(_servers[i], ports[j]);
 			this->_sockets.push_back(socket);
 		}
 	}
 }
+
 
 void	Cluster::createEpoll()
 {
@@ -59,12 +60,12 @@ void	Cluster::createEpoll()
 	}
 }
 
-
 void	Cluster::runCluster()
 {
 	std::string errmsg;
+	Signals::initSignals();
 
-	while (1) //manage signals
+	while (Signals::signaled)
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
         std::cout << "EPOLL WAIT\n";
@@ -91,6 +92,7 @@ void	Cluster::runCluster()
 		}
 		//checkTimeout();
 	}
+	std::cout << "----- THE END ------ " << std::endl;
 }
 
 
@@ -291,4 +293,3 @@ std::ostream	&operator<<(std::ostream &out, const Response &val)
    
 	return (out);
 }
-
