@@ -4,8 +4,6 @@ Socket::Socket(Server &server, int port): _server(server), _port(port), _master(
 {
 	_ipAddress = server.getIpAdress();
 	_lastActivity = time(NULL); // TOFIX
-	//_req.push_back(Request(server));
-	//_resp.push_back(Response());
 	initMaster();
 	setNonBlocking();
 }
@@ -203,7 +201,7 @@ Response* Socket::getResponse() {
 }
 
 std::string& Socket::getResponseLine() {
-	return (_ipAddress);
+	return (_response);
 }
 
 time_t Socket::getLastActivity() const {

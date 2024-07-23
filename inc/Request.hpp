@@ -90,8 +90,10 @@ class Request {
 		void		checkProtocolHttp();
 		void 		updatePath();
 		
-		const Server&								getServer() const;
+		const std::string&							getBuffer() const;
+		Server&										getServer() const;
 		int											getStatus() const;
+		const std::vector<std::string>&				getRequesLine() const;
 		const std::map<std::string, std::string>&	getHeaders() const;
 		const std::string&							getBody() const;
 		const std::string&							getQuery() const;
@@ -112,8 +114,10 @@ class Request {
 		const std::vector<std::string>&					getServerNames() const;
 		bool											getConnectionKeepAlive() const;
 		const std::multimap<std::string, std::string>&	getAcceptedContent() const;
+		const std::string&								getBoundary() const;
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;
 		const std::string& 								getFileName() const;
+		bool											getLocation() const;
 
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);

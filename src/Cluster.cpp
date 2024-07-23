@@ -5,6 +5,8 @@ Cluster::Cluster() {
 }
 
 Cluster::~Cluster() {
+	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
+		close(it->getSockFd());
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -54,7 +56,7 @@ void	Cluster::createEpoll()
 		_ev.data.fd = it->getSockFd();
 		_ev.data.ptr = &(*it);
 		if (epoll_ctl(_epFd, EPOLL_CTL_ADD, it->getSockFd(), &_ev) == -1) 
-			throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
+			throw std::runtime_error("Error: master epoll control failed: " + errmsg.assign(strerror(errno)));
 	}
 }
 
@@ -66,7 +68,8 @@ void	Cluster::runCluster()
 	while (1) //manage signals
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
-        if (_nfds == -1)
+        std::cout << "EPOLL WAIT\n";
+		if (_nfds == -1)
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
 		{
@@ -112,7 +115,8 @@ void	Cluster::acceptConnection(Socket *sock)
 	_ev.data.fd = socket.getSockFd();
 	_ev.data.ptr = _sockets.data() + _sockets.size() - 1;
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 
-		throw std::runtime_error("Error: epoll control failed: " + errmsg.assign(strerror(errno)));
+		throw std::runtime_error("Error: client epoll control failed: " + errmsg.assign(strerror(errno)));
+
 }
 
 void	Cluster::readConnection(Socket *sock)
@@ -123,13 +127,16 @@ void	Cluster::readConnection(Socket *sock)
 			return (eraseSocket(sock, true));
 
 		buffer[bytesRead] = '\0';
-		std::cout << "Cluster req: " << sock->getRequest() << std::endl;
+			
+	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
 		sock->getRequest()->parseRequest(buffer);
-		
+	//	exit (0);
+	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
-			return (modifyEvent(sock, 1));
+			modifyEvent(sock, 1);
 
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
+	//	std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << sock->getResponse()->makeResponse(sock->getRequest());
 		sock->setLastActivity(time(NULL));
 }
 
@@ -141,11 +148,14 @@ void	Cluster::readConnection(Socket *sock)
 */
 void	Cluster::sendConnection(Socket *sock)
 {
-	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), BUFFER_SIZE, 0); // a flag??
+	std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
+//	exit (1);
+	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
-
-	sock->getResponseLine().erase(0, bytes);
+	std::cout << "BYTES " << bytes << "\n";
+//	exit (1);
+	sock->getResponseLine().clear(); //.erase(0, bytes);
 	sock->setLastActivity(time(NULL));
 
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
@@ -174,6 +184,7 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 {
 	std::string errmsg;
 	
+	std::cout << "Eliminamos el socket: " << sock << "\n" << *sock;
 	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
@@ -190,6 +201,7 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 		if (it->getSockFd() == sock->getSockFd()) 
 		{
 			_sockets.erase(it);
+			std::cout << "Eliminamos el socket: " << &(*it) << "\n" << *it;
 			std::cout << "Client socket eliminated from: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
 			return ;
 		}
@@ -202,6 +214,7 @@ std::vector<Socket>::iterator	Cluster::eraseSocket(std::vector<Socket>::iterator
 {
 	std::string errmsg;
 	
+//	std::cout 
 	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
@@ -243,3 +256,40 @@ std::ostream	&operator<<(std::ostream &out, const Socket &val)
    
 	return (out);
 }
+
+std::ostream	&operator<<(std::ostream &out, const Request &val)
+{
+    
+
+//	out << "Port:  " << val.getServer() << "\n";
+    out << "Status:  " << val.getStatus() << "\n";
+    out << "Code:  " << val.getCode() << "\n";
+    out << "Buffer:  " << val.getBuffer() << "\n";
+    out << "Path:  " << val.getPath() << "\n";
+	out << "CGI:  " << val.getCgi() << "\n";
+	out << "Autoindex:  " << val.getAutoIndex() << "\n";
+	out << "Request line:  " << val.getRequesLine() << "\n";
+    
+	out << "\n\n";
+
+ //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
+   
+	return (out);
+}
+
+std::ostream	&operator<<(std::ostream &out, const Response &val)
+{
+    
+
+//	out << "Port:  " << val.getServer() << "\n";
+    out << "Response:  " << val.getResponse() << "\n";
+    out << "Code:  " << val.getCode() << "\n";
+    // out << "Socket fd:  " << val.getSockFd() << "\n";
+    // out << "Last activity:  " << val.getLastActivity() << "\n";
+    // out << "Master:  " << val.getMaster() << "\n\n";
+
+ //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
+   
+	return (out);
+}
+

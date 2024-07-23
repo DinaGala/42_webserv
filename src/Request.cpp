@@ -2,7 +2,6 @@
 
 Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
-	_status = 0;
 }
 
 Request::~Request() {
@@ -11,9 +10,33 @@ Request::~Request() {
 
 Request& Request::operator=(const Request& src)
 {
-	_server = src._server;
-//	FINISH
-//	empty = src.empty;
+	// _requestLine
+	_buffer = src.getBuffer();
+	_server = src.getServer();
+	_status = src.getStatus();
+	_headers = src.getHeaders();
+	_body = src.getBody();
+	_query = src.getQuery();
+	_path = src.getPath();
+	_root = src.getRoot();
+	_code = src.getCode();
+	_maxBodySize = src.getMaxBodySize();
+	_allowedMethods = src.getAllowedMethods();
+	_errorPages = src.getErrorPages();
+	_index = src.getIndex();
+	_autoIndex = src.getAutoIndex();
+	_allowUpload = getAllowUpload();
+	_uploadDir = src.getUploadDir();
+	_return = src.getReturn(); 
+	_cgi = src.getCgi();
+	_cgiConf = src.getCgiConf();
+	_serverNames = src.getServerNames(); 
+	_connectionKeepAlive = src.getConnectionKeepAlive();
+	_acceptedContent = src.getAcceptedContent();
+	_boundary = src.getBoundary();
+	_multipartHeaders = src.getMultipartHeaders();
+	_fileName = src.getFileName();
+	_location = src.getLocation();
 	return (*this);
 }
 
@@ -23,9 +46,11 @@ Request::Request(const Request& src): _server(src._server)
 }
 
 void	Request::initParamsRequest() {
-  _buffer.clear();
+  	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
+	_path = "";
+	_root = "";
 	_code = 200;
 	_maxBodySize = _server.getMaxBodySize();
 	_allowedMethods = _server.getAllowedMethods();
@@ -64,6 +89,8 @@ void	Request::parseRequest(const std::string& buffer) {
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
+	std::cout << "STATUS " << _status << std::endl;
+	std::cout << "CODE " << _code << std::endl;
 
 	try {
 		if (_status == INITIAL_STATUS){
@@ -436,12 +463,20 @@ void Request::checkProtocolHttp(){
 
 // _____________  GETTERS _____________ 
 
-const Server&  Request::getServer() const {
+const std::string& Request::getBuffer() const {
+	return (_buffer);
+}
+
+Server&  Request::getServer() const {
 	return (_server);
 }
 
 int	Request::getStatus() const {
 	return (_status);
+}
+
+const std::vector<std::string>& Request::getRequesLine() const{
+	return (_requestLine);
 }
 
 const std::map<std::string, std::string>& Request::getHeaders() const{
@@ -457,8 +492,11 @@ const std::string& Request::getQuery() const {
 }
 
 const std::string&  Request::getPath() const {
-    return (_requestLine[1]);
+    return (_path);
 }
+
+
+//TODO: aDD GETTER FROM REQUESTLINE[1]
 
 const std::string& 	Request::getRoot() const{
     return (_root);
@@ -524,6 +562,10 @@ const std::multimap<std::string, std::string>&	Request::getAcceptedContent() con
 	return (_acceptedContent);
 }
 
+const std::string&  Request::getBoundary() const {
+	return (_boundary);
+}
+
 const std::map<std::string, std::string>& Request::getMultipartHeaders() const{
 	return (_multipartHeaders);
 }
@@ -531,6 +573,11 @@ const std::map<std::string, std::string>& Request::getMultipartHeaders() const{
 const std::string&	Request::getFileName() const {
 	return (_fileName);
 }
+
+bool Request::getLocation() const {
+	return (_location);
+}
+
 
 // _____________  SETTERS _____________ 
 

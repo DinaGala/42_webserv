@@ -34,6 +34,8 @@ class	Response
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
 		void		setReq(const Request *rqt);
+		const std::string& 		getResponse() const;
+		int				getCode() const;
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);

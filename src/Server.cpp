@@ -1,13 +1,13 @@
 #include "Server.hpp"
 
-Server::Server(ServerConfig sconfig) {
+Server::Server(ServerConfig &sconfig) {
 	initParamsServer(sconfig);
 }
 
 Server::~Server() {
 }
 
-void	Server::initParamsServer(ServerConfig sconfig) {
+void	Server::initParamsServer(ServerConfig &sconfig) {
 	_ipAddress = sconfig.getIp();
 	_ports = sconfig.getPort();
 	_allowedMethods = sconfig.getAllowedMethods();
