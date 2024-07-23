@@ -2,6 +2,7 @@
 
 Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
 	initParamsRequest();
+	_status = 0;
 }
 
 Request::~Request() {
