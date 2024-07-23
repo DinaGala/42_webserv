@@ -33,7 +33,7 @@ void	Cluster::createSockets(){
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
-			Socket socket(_servers[i], ports[j]);
+			Socket socket(&_servers[i], ports[j]);
 			this->_sockets.push_back(socket);
 		}
 	}

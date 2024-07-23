@@ -1,8 +1,8 @@
 #include "Socket.hpp"
 
-Socket::Socket(Server &server, int port): _server(server), _port(port), _master(true)
+Socket::Socket(Server *server, int port): _server(server), _port(port), _master(true)
 {
-	_ipAddress = server.getIpAdress();
+	_ipAddress = server->getIpAdress();
 	_lastActivity = time(NULL); // TOFIX
 	_req.push_back(Request(server));
 	_resp.push_back(Response());
@@ -10,9 +10,9 @@ Socket::Socket(Server &server, int port): _server(server), _port(port), _master(
 	setNonBlocking();
 }
 
-Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
+Socket::Socket(Server *server, Socket *sock): _server(server), _master(false)
 {
-	_ipAddress = server.getIpAdress();
+	_ipAddress = server->getIpAdress();
 	_port = sock->getPort();
 	std::cout << "client socket port:  " << _port << "\n";
 	_lastActivity = time(NULL);
@@ -177,7 +177,7 @@ bool	Socket::getMaster() const {
 // 	return(_server);
 // }
 
-Server& Socket::getServer() const {
+Server* Socket::getServer() const {
 	return(_server);
 }
 

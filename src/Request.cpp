@@ -3,20 +3,26 @@
 Request::Request() {
 }
 
-Request::Request(Server* server) : _status(INITIAL_STATUS), _server(server){
+/*Request::Request(Server* server) : _status(INITIAL_STATUS), _server(server){
+	initParamsRequest();
+}*/
+
+Request::Request(Server* server) : _status(INITIAL_STATUS){
+	_serv.push_back(server);
+	
 	initParamsRequest();
 }
 
 Request::~Request() {
 }
 
-Request::Request(const Request& src) : _server(src._server) {
+/*Request::Request(const Request& src) : _server(src._server) {
 	*this = src;
-}
+}*/
 
-Request& Request::operator=(const Request& src){
+/*Request& Request::operator=(const Request& src){
 	_buffer = src.getBuffer();
-	_server = src.getServer();
+	//_server = src.getServer();
 	_status = src.getStatus();
 	_headers = src.getHeaders();
 	_body = src.getBody();
@@ -42,21 +48,21 @@ Request& Request::operator=(const Request& src){
 	_fileName = src.getFileName();
 	_location = src.getLocation();
 	return (*this);
-}
+}*/
 
 void	Request::initParamsRequest() {
   	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
 	_code = 200;
-	_maxBodySize = _server->getMaxBodySize();
-	_allowedMethods = _server->getAllowedMethods();
-	_errorPages = _server->getErrorPages();
-	_autoIndex = _server->getAutoIndex();
+	_maxBodySize = _serv[0]->getMaxBodySize();
+	_allowedMethods = _serv[0]->getAllowedMethods();
+	_errorPages = _serv[0]->getErrorPages();
+	_autoIndex = _serv[0]->getAutoIndex();
 	_allowUpload = false;
 	_cgi = false;
-	_cgiConf = _server->getCgiConf();
-	_serverNames = _server->getServerName();
+	_cgiConf = _serv[0]->getCgiConf();
+	_serverNames = _serv[0]->getServerName();
 	_connectionKeepAlive = true;
 	_location = false;
 }
@@ -386,7 +392,7 @@ std::string Request::checkQuery() {
 }
 
 size_t Request::checkLocation(std::string & path) {
-	std::vector<LocationConfig> vecLocations = _server->getLocationConfig();
+	std::vector<LocationConfig> vecLocations = _serv[0]->getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
@@ -426,7 +432,7 @@ void Request::updatePath() {
 }
 
 void	Request::updateInfoLocation(size_t nLoc) {
- 	std::vector<LocationConfig> vecLocations = _server->getLocationConfig();
+ 	std::vector<LocationConfig> vecLocations = _serv[0]->getLocationConfig();
     LocationConfig location = vecLocations[nLoc];
 
 	_root = vecLocations[nLoc].getRoot();
@@ -441,7 +447,7 @@ void	Request::updateInfoLocation(size_t nLoc) {
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _server->getAllowedMethods();
+	std::vector<std::string> allowedMethodsVect = _serv[0]->getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
 		_code = 405;
@@ -460,9 +466,9 @@ const std::string& Request::getBuffer() const {
 	return (_buffer);
 }
 
-Server*  Request::getServer() const {
+/*Server*  Request::getServer() const {
 	return (_server);
-}
+}*/
 
 int	Request::getStatus() const {
 	return (_status);

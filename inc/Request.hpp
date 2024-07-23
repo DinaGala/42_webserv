@@ -18,7 +18,8 @@ class Request {
 	private:
 		std::string							_buffer;
 		int									_status;
-		Server*								_server;
+		std::vector<Server*>		    		_serv;
+		//Server*								_server;
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
@@ -51,8 +52,8 @@ class Request {
 	public:
 		Request();
 		Request(Server* server);
-		Request(const Request& src);
-		Request& operator=(const Request& src);
+		//Request(const Request& src);
+		//Request& operator=(const Request& src);
 		~Request();
 		void	initParamsRequest();
 		void	parseRequest(const std::string& buffer);
@@ -90,7 +91,7 @@ class Request {
 		void 		updatePath();
 		
 		const std::string&							getBuffer() const;
-		Server*										getServer() const;
+		//Server*										getServer() const;
 		int											getStatus() const;
 		const std::vector<std::string>&				getRequesLine() const;
 		const std::map<std::string, std::string>&	getHeaders() const;

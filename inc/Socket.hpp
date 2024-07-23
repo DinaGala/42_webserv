@@ -6,10 +6,11 @@
 
 class Request;
 class Response;
+class Server;
 
 class Socket {
 	private:
-		Server&				_server;		
+		Server*				_server;		
 		int					_port;
 		std::string			_ipAddress;
 		int					_fd;
@@ -23,8 +24,8 @@ class Socket {
 		Socket();
 	
 	public:
-		Socket(Server& server, int port);
-		Socket(Server &server, Socket *sock);
+		Socket(Server *server, int port);
+		Socket(Server *server, Socket *sock);
 		~Socket();
 		Socket& operator=(const Socket& src);
 		Socket(const Socket& src);
@@ -38,7 +39,7 @@ class Socket {
 		void	setResponse(std::string response);
 		void	setLastActivity(time_t now);
 
-		Server&						getServer() const;
+		Server*						getServer() const;
 		int					getPort() const;
 		const std::string& 			getIpAdress() const;
 		int					getSockFd() const;
