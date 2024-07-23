@@ -104,6 +104,8 @@ void	Cluster::acceptConnection(Socket *sock)
 	std::string errmsg;
 	Socket socket(sock->getServer(), sock);
 	
+	std::cout << "\033[1;32mcluster accept 107\033[0m" << std::endl;
+	std::cout << "\033[1;32mcluster accept 107: " << socket.getRequest()->getStatus() << "\033[0m" << std::endl;
 	_sockets.push_back(socket);
 
 	_ev.events = EPOLLIN;
@@ -121,6 +123,7 @@ void	Cluster::readConnection(Socket *sock)
 			return (eraseSocket(sock, true));
 
 		buffer[bytesRead] = '\0';
+		std::cout << "Cluster req: " << sock->getRequest() << std::endl;
 		sock->getRequest()->parseRequest(buffer);
 		
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
