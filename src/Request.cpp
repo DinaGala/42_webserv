@@ -45,7 +45,7 @@ Request& Request::operator=(const Request& src){
 }
 
 void	Request::initParamsRequest() {
-	_buffer.clear();
+  	_buffer.clear();
 	_requestLine.clear();
 	_headers.clear();
 	_code = 200;
@@ -61,6 +61,18 @@ void	Request::initParamsRequest() {
 	_location = false;
 }
 
+void	Request::cleanRequest() {
+	
+	_buffer.clear();
+	_requestLine.clear();
+	_headers.clear();
+	_body = "";
+	_code = 200; //TODO: error code default?
+	_status = 0;
+	_connectionKeepAlive = true;
+
+}
+
 /*	REQUEST LINE: method | URI | and protocolversion
 	HEADERS: A series of key-value pairs, each on its own line.
 	BLANK LINE: A line with no content, indicating the end of the headers.
@@ -72,7 +84,7 @@ void	Request::parseRequest(const std::string& buffer) {
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
-	
+
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -472,8 +484,8 @@ const std::string& Request::getQuery() const {
 	return (_query);
 }
 
-const std::string&	Request::getPath() const {
-	return (_path);
+const std::string&  Request::getPath() const {
+    return (_requestLine[1]);
 }
 
 const std::string& 	Request::getRoot() const{
