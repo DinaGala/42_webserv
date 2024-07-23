@@ -73,7 +73,7 @@ void	Cluster::runCluster()
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			std::cout << "current socket is:  " << cur << "\n" << *cur;
+			//std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
@@ -106,8 +106,6 @@ void	Cluster::acceptConnection(Socket *sock)
 	std::string errmsg;
 	Socket socket(sock->getServer(), sock);
 	
-	std::cout << "\033[1;32mcluster accept 107\033[0m" << std::endl;
-	std::cout << "\033[1;32mcluster accept 107: " << socket.getRequest()->getStatus() << "\033[0m" << std::endl;
 	_sockets.push_back(socket);
 
 	_ev.events = EPOLLIN;
