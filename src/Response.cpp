@@ -437,7 +437,7 @@ void	Response::_makeAutoIndex(void)
 		{
 			std::cout << "\033[31;1mmake AutoIndex error dir while: " << filename << "\033[0m" << std::endl;
 			this->sendError(500);
-		//	closedir(dir);
+			closedir(dir);
 			return ;
 		}
 		filename = filename.substr(2);
@@ -457,7 +457,7 @@ void	Response::_makeAutoIndex(void)
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
 	this->_response += "\n\n" + this->_body;
-//	closedir(dir);
+	closedir(dir);
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////

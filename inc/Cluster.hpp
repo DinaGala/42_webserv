@@ -42,5 +42,6 @@ class Cluster {
 std::ostream	&operator<<(std::ostream &out, const Socket &val);
 std::ostream	&operator<<(std::ostream &out, const Request &val);
 std::ostream	&operator<<(std::ostream &out, const Response &val);
+std::ostream	&operator<<(std::ostream &out, const std::vector<Socket> &val);
 
 #endif

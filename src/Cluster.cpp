@@ -5,8 +5,15 @@ Cluster::Cluster() {
 }
 
 Cluster::~Cluster() {
+	
+	std::string errmsg;
 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
+	{
+		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
+	}
+	close(_epFd);
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -67,12 +74,13 @@ void	Cluster::runCluster()
 
 	while (1) //manage signals
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 300000000); // check 2000
         std::cout << "EPOLL WAIT\n";
 		if (_nfds == -1)
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
 		{
+			std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
 			std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
@@ -134,6 +142,8 @@ void	Cluster::readConnection(Socket *sock)
 	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
+		else
+			return ;
 
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 	//	std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << sock->getResponse()->makeResponse(sock->getRequest());
@@ -155,16 +165,23 @@ void	Cluster::sendConnection(Socket *sock)
 		return (eraseSocket(sock, true));
 	std::cout << "BYTES " << bytes << "\n";
 //	exit (1);
-	sock->getResponseLine().clear(); //.erase(0, bytes);
+	sock->getResponseLine().erase(0, bytes);
 	sock->setLastActivity(time(NULL));
-
+	
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
+	{
+	//	exit (0);
 		return (eraseSocket(sock, false));
+	}
 	else if (sock->getResponseLine().empty())
 	{
-		cleanSocket(sock);
-		return (modifyEvent(sock, 0));
+		eraseSocket(sock, false);
+	//	cleanSocket(sock);
+	//	exit (0);
+	//	modifyEvent(sock, 0);
+	//	exit (0);
 	}
+//	exit (0);
 }
 
 // if flag 0 - to in, 1 - to out
@@ -174,9 +191,11 @@ void	Cluster::modifyEvent(Socket *sock, bool flag)
 		_ev.events = EPOLLOUT;
 	else
 		_ev.events = EPOLLIN;
+	
 	_ev.data.fd = sock->getSockFd();
 	_ev.data.ptr = sock;
 	epoll_ctl(_epFd, EPOLL_CTL_MOD, sock->getSockFd(), &_ev);
+
 }
 
 // 0 - not an error, 1 - closing because of the error
@@ -243,24 +262,27 @@ void	Cluster::checkTimeout()
 
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
-    
-
 //	out << "Port:  " << val.getServer() << "\n";
     out << "Port:  " << val.getPort() << "\n";
     out << "IP:  " << val.getIpAdress() << "\n";
     out << "Socket fd:  " << val.getSockFd() << "\n";
     out << "Last activity:  " << val.getLastActivity() << "\n";
     out << "Master:  " << val.getMaster() << "\n\n";
-
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
-   
+	return (out);
+}
+
+std::ostream	&operator<<(std::ostream &out, const std::vector<Socket> &val)
+{
+ 	std::vector<Socket> temp = val;
+    for (std::vector<Socket>::iterator it = temp.begin(); it != temp.end(); it++) {
+        out << "SOCKET ----------------------" << "\n" << (*it) << "\n";
+    }
 	return (out);
 }
 
 std::ostream	&operator<<(std::ostream &out, const Request &val)
 {
-    
-
 //	out << "Port:  " << val.getServer() << "\n";
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
@@ -269,9 +291,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
 	out << "Request line:  " << val.getRequesLine() << "\n";
-    
 	out << "\n\n";
-
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    
 	return (out);
@@ -279,17 +299,14 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
-    
-
-//	out << "Port:  " << val.getServer() << "\n";
+    //	out << "Port:  " << val.getServer() << "\n";
     out << "Response:  " << val.getResponse() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     // out << "Socket fd:  " << val.getSockFd() << "\n";
     // out << "Last activity:  " << val.getLastActivity() << "\n";
     // out << "Master:  " << val.getMaster() << "\n\n";
-
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
-   
+
 	return (out);
 }
 
