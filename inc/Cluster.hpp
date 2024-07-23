@@ -11,7 +11,7 @@ class Cluster {
 	private:
 		std::vector<ServerConfig>	_sconf; 
 		std::vector<Server> 		_servers;
-		std::vector<Socket>			_sockets;
+		std::list<Socket>			_sockets;
 		int							_epFd; //epoll instance id
 		int							_nfds; // number of actual events
 		struct epoll_event			_events[MAX_EVENTS]; // an array used to collect the events that epoll detects.
@@ -35,13 +35,13 @@ class Cluster {
 		void	cleanSocket(Socket *sock);
 		void	checkTimeout();
 
-		std::vector<Socket>::iterator 	eraseSocket(std::vector<Socket>::iterator sock);
+		std::list<Socket>::iterator 	eraseSocket(std::list<Socket>::iterator sock);
 
 };
 
 std::ostream	&operator<<(std::ostream &out, const Socket &val);
 std::ostream	&operator<<(std::ostream &out, const Request &val);
 std::ostream	&operator<<(std::ostream &out, const Response &val);
-std::ostream	&operator<<(std::ostream &out, const std::vector<Socket> &val);
+std::ostream	&operator<<(std::ostream &out, const std::list<Socket> &val);
 
 #endif

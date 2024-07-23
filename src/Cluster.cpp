@@ -7,7 +7,7 @@ Cluster::Cluster() {
 Cluster::~Cluster() {
 	
 	std::string errmsg;
-	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
+	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
 		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
 			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
@@ -58,7 +58,7 @@ void	Cluster::createEpoll()
 		throw std::runtime_error("Error: epoll create failed: " + errmsg.assign(strerror(errno)));
 	
 	_ev.events = EPOLLIN;
-	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
+	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
 		_ev.data.fd = it->getSockFd();
 		_ev.data.ptr = &(*it);
@@ -118,10 +118,12 @@ void	Cluster::acceptConnection(Socket *sock)
 	std::cout << "\033[1;32mcluster accept 107\033[0m" << std::endl;
 	std::cout << "\033[1;32mcluster accept 107: " << socket.getRequest()->getStatus() << "\033[0m" << std::endl;
 	_sockets.push_back(socket);
+	std::list<Socket>::iterator it = _sockets.end();
+    --it;
 
 	_ev.events = EPOLLIN;
 	_ev.data.fd = socket.getSockFd();
-	_ev.data.ptr = _sockets.data() + _sockets.size() - 1;
+	_ev.data.ptr = &(*it);
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 
 		throw std::runtime_error("Error: client epoll control failed: " + errmsg.assign(strerror(errno)));
 
@@ -160,6 +162,7 @@ void	Cluster::sendConnection(Socket *sock)
 {
 	std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
 //	exit (1);
+	// fix here to send not more than MAX
 	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
@@ -203,7 +206,7 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 {
 	std::string errmsg;
 	
-	std::cout << "Eliminamos el socket: " << sock << "\n" << *sock;
+//	std::cout << "Eliminamos el socket: " << sock << "\n" << *sock;
 	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
@@ -214,14 +217,14 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 		std::cout << "Client socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
 	
 		// Find the iterator to the element
-	std::vector<Socket>::iterator it = _sockets.begin();
+	std::list<Socket>::iterator it = _sockets.begin();
 	for (; it != _sockets.end(); it++) 
 	{
 		if (it->getSockFd() == sock->getSockFd()) 
 		{
-			_sockets.erase(it);
 			std::cout << "Eliminamos el socket: " << &(*it) << "\n" << *it;
-			std::cout << "Client socket eliminated from: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+			std::cout << "Client socket eliminated from: " + it->getIpAdress() + ":" << it->getPort() << std::endl;
+			_sockets.erase(it);
 			return ;
 		}
 	}
@@ -229,7 +232,7 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 	std::cerr << "Couldn't eliminate a socket, socket not found: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
 }
 
-std::vector<Socket>::iterator	Cluster::eraseSocket(std::vector<Socket>::iterator sock)
+std::list<Socket>::iterator	Cluster::eraseSocket(std::list<Socket>::iterator sock)
 {
 	std::string errmsg;
 	
@@ -248,17 +251,17 @@ void	Cluster::cleanSocket(Socket *sock)
 	sock->getResponse()->cleanResponse();
 }
 
-void	Cluster::checkTimeout()
-{
-	time_t now = time(NULL);
-	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
-	{
-		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
-			it = eraseSocket(it);
-		else
-			++it;
-	}
-}
+// void	Cluster::checkTimeout()
+// {
+// 	time_t now = time(NULL);
+// 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
+// 	{
+// 		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
+// 			it = eraseSocket(it);
+// 		else
+// 			++it;
+// 	}
+// }
 
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
@@ -272,10 +275,10 @@ std::ostream	&operator<<(std::ostream &out, const Socket &val)
 	return (out);
 }
 
-std::ostream	&operator<<(std::ostream &out, const std::vector<Socket> &val)
+std::ostream	&operator<<(std::ostream &out, const std::list<Socket> &val)
 {
- 	std::vector<Socket> temp = val;
-    for (std::vector<Socket>::iterator it = temp.begin(); it != temp.end(); it++) {
+ 	std::list<Socket> temp = val;
+    for (std::list<Socket>::iterator it = temp.begin(); it != temp.end(); it++) {
         out << "SOCKET ----------------------" << "\n" << (*it) << "\n";
     }
 	return (out);
