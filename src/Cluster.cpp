@@ -69,8 +69,11 @@ void	Cluster::runCluster()
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
         std::cout << "EPOLL WAIT\n";
-		//if (_nfds == -1)
-			//throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
+		if (_nfds == -1) //
+		
+		: ???
+			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
+
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
@@ -91,8 +94,9 @@ void	Cluster::runCluster()
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		//checkTimeout();
+		usleep(100000);
 	}
-	std::cout << "----- END OF LOOP ------ " << std::endl;
+	std::cout << "----- END OF LOOP -----" << std::endl;
 }
 
 
@@ -150,12 +154,11 @@ void	Cluster::readConnection(Socket *sock)
 void	Cluster::sendConnection(Socket *sock)
 {
 	std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
-//	exit (1);
 	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
 	std::cout << "BYTES " << bytes << "\n";
-//	exit (1);
+
 	sock->getResponseLine().clear(); //.erase(0, bytes);
 	sock->setLastActivity(time(NULL));
 

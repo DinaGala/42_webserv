@@ -18,8 +18,6 @@ Server& Server::operator=(const Server& src)
 	_allowedMethods = src.getAllowedMethods();
 	_errorPages = src.getErrorPages();
 	_autoIndex = src.getAutoIndex();
-	_allowUpload = src.getAllowUpload();
-	_uploadDir = src.getUploadDir();
 	_return = src.getReturn();
 	_cgiConf = src.getCgiConf();
 	_serverName = src.getServerName();
@@ -39,8 +37,6 @@ void	Server::initParamsServer(ServerConfig &sconfig)
 	_maxBodySize = sconfig.getMaxBodySize();
 	_errorPages = sconfig.getErrorPages();
 	_autoIndex = sconfig.getAutoIndex();
-	_allowUpload = false;
-	_uploadDir = "";
 	_return = "";
 	_cgiConf = sconfig.getCgiConf();
 	_serverName = sconfig.getServerName();
@@ -77,16 +73,6 @@ bool Server::getAutoIndex() const
 	return (_autoIndex);
 }
 
-bool Server::getAllowUpload() const 
-{
-	return (_allowUpload);
-}
-
-const std::string& 	Server::getUploadDir() const 
-{
-	return (_uploadDir);
-}
-
 const std::string& 	Server::getReturn() const 
 {
 	return (_return);
@@ -117,16 +103,6 @@ void Server::setErrorPages(const std::map<int, std::string>&  errorPages)
 void Server::setAutoIndex(bool autoindex) 
 {
 	_autoIndex = autoindex;
-}
-
-void Server::setAllowUpload(bool allowUpload) 
-{
-	_allowUpload = allowUpload;
-}
-
-void Server::setUploadDir(const std::string& uploadDir) 
-{
-	_uploadDir = uploadDir;
 }
 
 void Server::setReturn(const std::string& alias) 

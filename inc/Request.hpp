@@ -18,6 +18,7 @@ class Request {
 		std::string							_buffer;
 		int									_status;
 		Server&								_server;
+		int									_port;
 		std::vector<std::string>			_requestLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
@@ -47,7 +48,7 @@ class Request {
 		bool								_location;
 
 	public:
-		Request(Server& server);
+		Request(Server& server, int port);
 		Request(const Request& src);
 		Request& operator=(const Request& src);
 		~Request();
@@ -62,14 +63,12 @@ class Request {
 		
 		void 	createRequestLineVector(std::string requestLineStr);
 		void	addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
-		void	checkConnectionKeepAlive();
-		
+
 		void		parseBodyByContentLength();
 		void		parseBodyByChunked();
 		int			findSizeChunk(size_t posEndSIze);
 		uint64_t	convertStrToHex(std::string line);
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
-		void		checkAcceptedContent();
 
 		void		manageMultipartForm();
 		void		getBoundary();
@@ -78,16 +77,21 @@ class Request {
 		void		saveFileName();
 
 		void 		requestValidations();
-		void 		checkPath();
-		std::string checkQuery();
-		size_t		checkLocation(std::string & path);
+		void		checkHost();
+		void		manageAcceptedContent();
+		void		checkConnectionKeepAlive();
+		void 		managePath();
+		void		checkQuery();
+		size_t		checkLocation();
 		void		updateInfoLocation(size_t nLoc);
+		void 		updatePath();
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
-		void 		updatePath();
+		
 		
 		const std::string&								getBuffer() const;
 		Server&											getServer() const;
+		int												getPort() const;
 		int												getStatus() const;
 		const std::vector<std::string>&					getRequesLine() const;
 		const std::map<std::string, std::string>&		getHeaders() const;

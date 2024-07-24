@@ -13,7 +13,7 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
 	std::cout << "client socket port:  " << _port << "\n";
-	_req.push_back(Request(server));
+	_req.push_back(Request(server, this->_port));
 	_resp.push_back(Response());
 	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
