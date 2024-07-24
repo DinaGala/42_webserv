@@ -9,8 +9,8 @@ Cluster::~Cluster() {
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
-			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+		//if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+			//throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
 	}
 	close(_epFd);
@@ -75,9 +75,12 @@ void	Cluster::runCluster()
 	while (signaled)
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
-        std::cout << "EPOLL WAIT\n";
-		if (_nfds == -1) 
+        
+		/*if (_nfds == -1) { //TODO: CHECK THIS LINE
+			std::cout << "INSIDE EROR LOOP\n";
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
+		}*/
+		std::cout << "EPOLL WAIT\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
 			//std::cout << "All sockets:\n" << _sockets;
@@ -99,7 +102,7 @@ void	Cluster::runCluster()
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		//checkTimeout();
-		usleep(100000);
+		usleep(10000);
 	}
 	std::cout << "----- END OF LOOP -----" << std::endl;
 }
@@ -308,8 +311,4 @@ std::ostream	&operator<<(std::ostream &out, const Response &val)
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
 
 	return (out);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> response

@@ -46,37 +46,12 @@ Request& Request::operator=(const Request& src)
 Request::Request(const Request& src): _server(src._server)
 {
 	*this = src;
-<<<<<<< HEAD
-=======
-}
-
-void	Request::initParamsRequest() {
-  	_buffer.clear();
-	_requestLine.clear();
-	_headers.clear();
-	_path = "";
-	_root = "";
-	_code = 200;
-	_maxBodySize = _server.getMaxBodySize();
-	_allowedMethods = _server.getAllowedMethods();
-	_errorPages = _server.getErrorPages();
-	_autoIndex = _server.getAutoIndex();
-	_allowUpload = false;
-	_cgi = false;
-	_cgiConf = _server.getCgiConf();
-	_serverNames = _server.getServerName();
-	_connectionKeepAlive = true;
-	_location = false;
->>>>>>> response
 }
 
 void	Request::initParams() 
 {
-  	
 	_buffer.clear();
 	_status = INITIAL_STATUS;
-	//_server.clear(); DINA: IT IS THE SAME??
-	//_port = src.getPort(); DINA: IT IS THE SAME??
 	_requestLine.clear();
 	_headers.clear();
 	_body = "";
@@ -88,19 +63,18 @@ void	Request::initParams()
 	_maxBodySize = 0;
 	_allowedMethods.clear();
 	_errorPages.clear();
-	_index =  ""; //DINA: DUBTEEE??? -var INDEX al server
+	_index =  "index.html"; //TODO: set as default
 	_autoIndex = false;
-	_allowUpload = false; //DINA: DUBTEEE???
-	_uploadDir = "";   //DINA: DUBTEEE???
+	_allowUpload = false;
+	_uploadDir = "";
 	_return = "";
 	_cgi = false;
 	_cgiConf.clear();
 	_serverNames.clear();
 	_connectionKeepAlive = true;
-<<<<<<< HEAD
+	_multipartHeaders.clear();
 	_acceptedContent.clear();
 	_boundary = "";
-	_multipartHeaders.clear();
 	_fileName = "";
 	_location = false;
 }
@@ -111,11 +85,9 @@ void	Request::setServerParams()
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
 	_autoIndex = _server.getAutoIndex();
+	_return = _server.getReturn();
 	_cgiConf = _server.getCgiConf();
 	_serverNames = _server.getServerName();
-=======
-  // ...
->>>>>>> response
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -125,7 +97,8 @@ void	Request::setServerParams()
 */
 
 // _____________  PARSING REQUEST  _____________ 
-void	Request::parseRequest(const std::string& buffer) {
+void	Request::parseRequest(const std::string& buffer) 
+{
 
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
@@ -423,11 +396,7 @@ void	Request::checkQuery() {
 	}
 }
 
-<<<<<<< HEAD
 size_t Request::checkLocation() {
-=======
-size_t Request::checkLocation(std::string & path) {
->>>>>>> response
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
@@ -520,17 +489,12 @@ Server&  Request::getServer() const
 	return (_server);
 }
 
-<<<<<<< HEAD
-int	Request::getPort() const 
+int  Request::getPort() const 
 {
 	return (_port);
 }
 
-int	Request::getStatus() const 
-{
-=======
 int	Request::getStatus() const {
->>>>>>> response
 	return (_status);
 }
 
@@ -659,10 +623,6 @@ bool Request::getLocation() const
 	return (_location);
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> response
 // _____________  SETTERS _____________ 
 
 void Request::setErrorPages(const std::map<int, std::string>&  errorPages) 

@@ -35,7 +35,7 @@ class Request {
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
-		std::string 						_return; //TODO: is it necessary to add boolean?
+		std::string 						_return;
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
 		std::vector<std::string> 			_serverNames; 
@@ -53,17 +53,17 @@ class Request {
 		Request& operator=(const Request& src);
 		~Request();
 
-		void	initParams();
-		void	setServerParams();
-		void	parseRequest(const std::string& buffer);
-		void	sendBadRequestError(std::string errMssg);
+		void		initParams();
+		void		setServerParams();
+		void		parseRequest(const std::string& buffer);
+		void		sendBadRequestError(std::string errMssg);
 
-		void	parseRequestLine();
-		void	parseHeaders();
-		void	parseBody();
+		void		parseRequestLine();
+		void		parseHeaders();
+		void		parseBody();
 		
-		void 	createRequestLineVector(std::string requestLineStr);
-		void	addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
+		void 		createRequestLineVector(std::string requestLineStr);
+		void		addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
 
 		void		parseBodyByContentLength();
 		void		parseBodyByChunked();
@@ -71,11 +71,11 @@ class Request {
 		uint64_t	convertStrToHex(std::string line);
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
 
-		void	manageMultipartForm();
-		void	getBoundary();
-		void	saveMultipartHeaders();
-		void	updateMultipartBody();
-		void	saveFileName();
+		void		manageMultipartForm();
+		void		getBoundary();
+		void		saveMultipartHeaders();
+		void		updateMultipartBody();
+		void		saveFileName();
 
 		void 		requestValidations();
 		void		checkHost();
