@@ -7,6 +7,7 @@ class Server {
 	
 	private:
 		std::string 						_ipAddress;
+		std::string 						_host;
 		std::vector<int>					_ports;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
@@ -35,6 +36,7 @@ class Server {
 		void 		setCgiConf(const std::map<std::string, std::string>& cgiConf);
 
 		const std::string& 							getIpAdress() const;
+		const std::string& 							getHost() const;
 		const std::vector<int>&						getPort() const;
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;

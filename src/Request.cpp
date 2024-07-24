@@ -23,6 +23,7 @@ Request& Request::operator=(const Request& src)
 	_root = src.getRoot();
 	_method = src.getMethod();
 	_code = src.getCode();
+	_host = src.getHost();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
 	_errorPages = src.getErrorPages();
@@ -61,9 +62,10 @@ void	Request::initParams()
 	_method = "";
 	_code = 200;
 	_maxBodySize = 0;
+	_host = "";
 	_allowedMethods.clear();
 	_errorPages.clear();
-	_index =  "index.html"; //TODO: set as default
+	_index =  ""; //TODO: set as default
 	_autoIndex = false;
 	_allowUpload = false;
 	_uploadDir = "";
@@ -81,6 +83,7 @@ void	Request::initParams()
 
 void	Request::setServerParams() 
 {
+	_host = _server.getHost();
 	_maxBodySize = _server.getMaxBodySize();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
@@ -347,10 +350,11 @@ void	Request::checkConnectionKeepAlive() {
 void	Request::checkHost() {
 	if (_headers.find("Host") == _headers.end())
 		sendBadRequestError("Request parsing error: invalid Host");
-	//DINA - What happens with localHost??
+	//TODO: CHeck host + port
 	std::string hostHeader = _headers.find("Host")->second;
-	std::string hostSaved = _server.getIpAdress() + ":" + ft_itoa(_port);
-	if (hostHeader ==  hostSaved)
+	std::string hostSaved1 = _server.getIpAdress() + ":" + ft_itoa(_port);
+	std::string hostSaved2 = _server.getHost() + ":" + ft_itoa(_port);
+	if (hostHeader ==  hostSaved1 || hostHeader ==  hostSaved2)
 		return;
 	//TODO: Manage server names
 }
@@ -541,6 +545,11 @@ int	Request::getCode() const
 size_t	Request::getMaxBodySize() const 
 {
 	return (_maxBodySize);
+}
+
+const std::string& Request::getHost() const 
+{
+	return (_host);
 }
 
 const std::vector<std::string>& Request::getAllowedMethods() const

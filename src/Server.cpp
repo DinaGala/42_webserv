@@ -13,6 +13,7 @@ Server::Server(const Server& src)
 Server& Server::operator=(const Server& src) 
 {
 	_ipAddress = src.getIpAdress();
+	_host = src.getHost();
 	_ports = src.getPort();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
@@ -32,6 +33,7 @@ Server::~Server()
 void	Server::initParamsServer(ServerConfig &sconfig) 
 {
 	_ipAddress = sconfig.getIp();
+	_host = sconfig.getHost();
 	_ports = sconfig.getPort();
 	_allowedMethods = sconfig.getAllowedMethods();
 	_maxBodySize = sconfig.getMaxBodySize();
@@ -47,6 +49,11 @@ void	Server::initParamsServer(ServerConfig &sconfig)
 const std::string& Server::getIpAdress() const 
 {
 	return (_ipAddress);
+}
+
+const std::string& Server::getHost() const 
+{
+	return (_host);
 }
 
 const std::vector<int>& Server::getPort() const 
