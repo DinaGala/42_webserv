@@ -28,6 +28,7 @@ class Request {
 		std::string							_method;
 		int									_code;
 
+		std::string 						_host;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
@@ -102,6 +103,7 @@ class Request {
 		const std::string& 								getRoot() const;
 		const std::string&								getMethod() const; 
 		int												getCode() const;
+		const std::string& 								getHost() const;
 		size_t											getMaxBodySize() const;
 		const std::vector<std::string>& 				getAllowedMethods() const;
 		const std::map<int, std::string>& 				getErrorPages() const;
