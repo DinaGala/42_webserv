@@ -151,6 +151,7 @@ void Request::createRequestLineVector(std::string requestLineStr){
 	}
 	if (_requestLine.size() != 3) 
 		sendBadRequestError("Request parsing error: invalid request line");
+	_method = _requestLine[0]; 
 }
 
 // _____________  PARSING HEADERS   _____________ 
