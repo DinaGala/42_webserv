@@ -1,13 +1,13 @@
 #include "Server.hpp"
 
-Server::Server(ServerConfig sconfig) {
+Server::Server(ServerConfig &sconfig) {
 	initParamsServer(sconfig);
 }
 
 Server::~Server() {
 }
 
-void	Server::initParamsServer(ServerConfig sconfig) {
+void	Server::initParamsServer(ServerConfig &sconfig) {
 	_ipAddress = sconfig.getIp();
 	_ports = sconfig.getPort();
 	_allowedMethods = sconfig.getAllowedMethods();
@@ -19,7 +19,7 @@ void	Server::initParamsServer(ServerConfig sconfig) {
 	_uploadDir = "";
 	_return = "";
 	_cgiConf = sconfig.getCgiConf();
-	//_serverNames = ; //TODO: update sconfig Dina
+	_serverName = sconfig.getServerName();
 }
 
 // _____________  GETTERS _____________ 
@@ -68,8 +68,12 @@ const std::map<std::string, std::string>&  Server::getCgiConf() const {
 	return (_cgiConf);
 }
 
-const std::vector<std::string>& Server::getServerNames() const{
-	return (_serverNames);
+const std::vector<std::string>& Server::getServerName() const{
+	return (_serverName);
+}
+
+const std::vector<LocationConfig> Server::getLocationConfig() const{
+	return (_locations);
 }
 
 // _____________  SETTERS _____________ 
