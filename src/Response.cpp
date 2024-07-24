@@ -37,7 +37,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_status = Response
 
 //////////////////////////////////////////////////////////////////////////////
 
-Response::Response(): _cgi(false), _keep_alive(true), _code(200), _req(NULL) {}
+Response::Response(): _code(200), _req(NULL) {}
 
 
 Response::Response(const Response &r): _req(r._req)
@@ -45,12 +45,8 @@ Response::Response(const Response &r): _req(r._req)
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
-	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_keep_alive = r._keep_alive;
-	this->_cgi = r._cgi;
 	this->_cgiargs = r._cgiargs;
-	this->_code = r._code;
 }
 
 Response::~Response() {}
@@ -59,10 +55,7 @@ Response	&Response::operator=(const Response &r)
 {
 	this->_body = r._body;
 	this->_response = r._response;
-	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_cgi = r._cgi; //tmp
-	this->_keep_alive = r._keep_alive; //tmp
 	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
 	this->_req = _req;
@@ -92,19 +85,15 @@ std::vector<std::string>	Response::_setCgi(const std::string &path)
 	if (access(path.c_str(), X_OK) == 0) //if executable
 	{
 		args.push_back("./" + path);
-		this->_cgi = true;
 		return (args);
 	}
 	std::string::size_type	found = path.find_last_of(".");
 	std::map<std::string, std::string>	config = this->_req->getCgiConf();
 	std::string	ext;
 	if (found != std::string::npos)// if there's extension
-	ext = path.substr(found);
+		ext = path.substr(found);
 	if (config.find(ext) != config.end()) //if it's not allowed
-	{
-		this->_cgi = true;
 		args.push_back(config[ext]);
-	}
 	args.push_back(path);
 	return (args);
 }
@@ -229,7 +218,7 @@ void	Response::_handleGet()
 			return ;
 		}
 	}
-	if (this->_cgi == true) // if there's cgi
+	if (this->_req->getCgi() == true) // if there's cgi
 	{
 		if (access(this->_req->getPath().c_str(), F_OK)) // if cgi exists = 0
 		{
@@ -389,20 +378,21 @@ void	Response::_makeAutoIndex(void)
 		this->sendError(403);
 		return ;
 	}
-	dir = opendir(this->_req->getPath().c_str());
+	filename = this->_req->getPath();
+	dir = opendir(filename.c_str());
 	if (!dir)
 	{
 		//std::cout << "\033[31;1mmake AutoIndex error dir\033[0m" << std::endl;
 		this->sendError(500);
 		return ;
 	}
-	this->_body = "<html><head><title>INDEX</title><h1>Index of ";
-	this->_body += this->_req->getPath() + "</h1></head><body>";
+	this->_body = "<html><head><title>INDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ";
+	this->_body += filename.substr(1) + "</h1></head><body style=\"font-size:150%;margin:50px;\">";
 	while ((dp = readdir(dir)) != NULL)
 	{
-		filename = this->_req->getPath();
 		if (dp->d_name[0] == '.')
 			continue ;
+		filename = this->_req->getPath();
 		if (filename[filename.size() - 1] != '/')
 			filename += "/";
 		filename += dp->d_name;
@@ -449,7 +439,7 @@ void	Response::putGeneralHeaders(void)
 	std::time_t	date = std::time(NULL);
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
-	if (!this->_keep_alive)
+	if (this->_req->getConnectionKeepAlive() == false)
 		this->_response += "Connection: close\r\n";
 	else
 	{
@@ -542,6 +532,9 @@ void	Response::sendError(int code)
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
 		return ;
 	}
+	std::string::size_type	head = this->_body.find("</head>");
+	if (head != std::string::npos)
+		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
 	this->_response = "Content-Type: text/html\r\n";
 	this->_response.insert(0, this->putStatusLine(code));
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
