@@ -73,13 +73,14 @@ void	Cluster::runCluster()
 
 	while (1) //manage signals
 	{ 
+        std::cout << "\033[1;31m------------- WHILE --------------\033[0m" << std::endl;
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 300000000); // check 2000
-        std::cout << "EPOLL WAIT\n";
+        std::cout << "\033[1;31m------------- EPOLL WAIT --------------\033[0m" << std::endl;
 		if (_nfds == -1)
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
 		{
-			std::cout << "All sockets:\n" << _sockets;
+			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
 			//std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
@@ -136,6 +137,7 @@ void	Cluster::readConnection(Socket *sock)
 		buffer[bytesRead] = '\0';
 			
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
+		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
 	//	exit (0);
 	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
@@ -157,13 +159,13 @@ void	Cluster::readConnection(Socket *sock)
 */
 void	Cluster::sendConnection(Socket *sock)
 {
-	std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
+	//std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
 //	exit (1);
 	// fix here to send not more than MAX
 	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
-	std::cout << "BYTES " << bytes << "\n";
+	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
 //	exit (1);
 	sock->getResponseLine().erase(0, bytes);
 	sock->setLastActivity(time(NULL));
