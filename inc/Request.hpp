@@ -35,7 +35,7 @@ class Request {
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
-		std::string 						_return;
+		std::string 						_return; //TODO: is it necessary to add boolean?
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
 		std::vector<std::string> 			_serverNames; 
@@ -52,6 +52,7 @@ class Request {
 		Request(const Request& src);
 		Request& operator=(const Request& src);
 		~Request();
+
 		void	initParams();
 		void	setServerParams();
 		void	parseRequest(const std::string& buffer);
@@ -70,11 +71,11 @@ class Request {
 		uint64_t	convertStrToHex(std::string line);
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
 
-		void		manageMultipartForm();
-		void		getBoundary();
-		void		saveMultipartHeaders();
-		void		updateMultipartBody();
-		void		saveFileName();
+		void	manageMultipartForm();
+		void	getBoundary();
+		void	saveMultipartHeaders();
+		void	updateMultipartBody();
+		void	saveFileName();
 
 		void 		requestValidations();
 		void		checkHost();

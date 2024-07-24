@@ -46,6 +46,28 @@ Request& Request::operator=(const Request& src)
 Request::Request(const Request& src): _server(src._server)
 {
 	*this = src;
+<<<<<<< HEAD
+=======
+}
+
+void	Request::initParamsRequest() {
+  	_buffer.clear();
+	_requestLine.clear();
+	_headers.clear();
+	_path = "";
+	_root = "";
+	_code = 200;
+	_maxBodySize = _server.getMaxBodySize();
+	_allowedMethods = _server.getAllowedMethods();
+	_errorPages = _server.getErrorPages();
+	_autoIndex = _server.getAutoIndex();
+	_allowUpload = false;
+	_cgi = false;
+	_cgiConf = _server.getCgiConf();
+	_serverNames = _server.getServerName();
+	_connectionKeepAlive = true;
+	_location = false;
+>>>>>>> response
 }
 
 void	Request::initParams() 
@@ -75,6 +97,7 @@ void	Request::initParams()
 	_cgiConf.clear();
 	_serverNames.clear();
 	_connectionKeepAlive = true;
+<<<<<<< HEAD
 	_acceptedContent.clear();
 	_boundary = "";
 	_multipartHeaders.clear();
@@ -90,6 +113,9 @@ void	Request::setServerParams()
 	_autoIndex = _server.getAutoIndex();
 	_cgiConf = _server.getCgiConf();
 	_serverNames = _server.getServerName();
+=======
+  // ...
+>>>>>>> response
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -397,7 +423,11 @@ void	Request::checkQuery() {
 	}
 }
 
+<<<<<<< HEAD
 size_t Request::checkLocation() {
+=======
+size_t Request::checkLocation(std::string & path) {
+>>>>>>> response
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
@@ -490,6 +520,7 @@ Server&  Request::getServer() const
 	return (_server);
 }
 
+<<<<<<< HEAD
 int	Request::getPort() const 
 {
 	return (_port);
@@ -497,6 +528,9 @@ int	Request::getPort() const
 
 int	Request::getStatus() const 
 {
+=======
+int	Request::getStatus() const {
+>>>>>>> response
 	return (_status);
 }
 
@@ -625,6 +659,10 @@ bool Request::getLocation() const
 	return (_location);
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> response
 // _____________  SETTERS _____________ 
 
 void Request::setErrorPages(const std::map<int, std::string>&  errorPages) 
