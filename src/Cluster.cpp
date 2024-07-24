@@ -1,5 +1,5 @@
+
 #include "Cluster.hpp"
-#include "Utils.hpp"
 
 Cluster::Cluster() {
 }
@@ -63,14 +63,14 @@ void	Cluster::createEpoll()
 void	Cluster::runCluster()
 {
 	std::string errmsg;
-	Signals::initSignals();
-
-	while (Signals::signaled)
+	initSignals();
+	
+	while (signaled)
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
         std::cout << "EPOLL WAIT\n";
-		if (_nfds == -1)
-			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
+		//if (_nfds == -1)
+			//throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
@@ -92,7 +92,7 @@ void	Cluster::runCluster()
 		}
 		//checkTimeout();
 	}
-	std::cout << "----- THE END ------ " << std::endl;
+	std::cout << "----- END OF LOOP ------ " << std::endl;
 }
 
 
@@ -226,7 +226,7 @@ std::vector<Socket>::iterator	Cluster::eraseSocket(std::vector<Socket>::iterator
 void	Cluster::cleanSocket(Socket *sock)
 {
 	sock->getResponseLine().clear();
-	sock->getRequest()->cleanRequest();
+	sock->getRequest()->initParams(); //modified by Julia
 	sock->getResponse()->cleanResponse();
 }
 

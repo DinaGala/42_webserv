@@ -11,7 +11,6 @@ class Server {
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
-		std::string 						_index;
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
@@ -42,7 +41,6 @@ class Server {
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;
-		const std::string& 							getIndex() const;
 		bool 										getAutoIndex() const;
 		bool 										getAllowUpload() const;
 		const std::string& 							getUploadDir() const;

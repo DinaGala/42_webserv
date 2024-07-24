@@ -42,6 +42,7 @@
 # include <sys/epoll.h>
 # include <unistd.h>
 # include <stdlib.h>
+# include <signal.h>
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
@@ -56,7 +57,7 @@
 # include <sstream>
 # include <stdexcept> // For standard exceptions
 
-# include "Signals.hpp"
+
 # include "Response.hpp"
 # include "Request.hpp"
 # include "LocationConfig.hpp"
@@ -66,6 +67,7 @@
 # include "Cgi.hpp"
 # include "Socket.hpp"
 # include "Cluster.hpp"
+# include "Signals.hpp"
 
 std::string ltrim(const std::string& s);
 std::string rtrim(const std::string& s);

@@ -1,24 +1,26 @@
 #include "Request.hpp"
 
-Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
-	initParamsRequest();
+Request::Request(Server& server) : _server(server)
+{
+	initParams();
 }
 
-Request::~Request() {
+Request::~Request() 
+{
 }
-
 
 Request& Request::operator=(const Request& src)
 {
-	// _requestLine
 	_buffer = src.getBuffer();
-	_server = src.getServer();
 	_status = src.getStatus();
+	_server = src.getServer();
+	_requestLine = src.getRequesLine();
 	_headers = src.getHeaders();
 	_body = src.getBody();
 	_query = src.getQuery();
 	_path = src.getPath();
 	_root = src.getRoot();
+	_method = src.getMethod();
 	_code = src.getCode();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
@@ -45,35 +47,46 @@ Request::Request(const Request& src): _server(src._server)
 	*this = src;
 }
 
-void	Request::initParamsRequest() {
+void	Request::initParams() 
+{
   	_buffer.clear();
+	_status = INITIAL_STATUS;
+	//_server.clear(); IT IS THE SAME??
 	_requestLine.clear();
 	_headers.clear();
+	_body = "";
+	_query = "";
 	_path = "";
 	_root = "";
+	_method = "";
 	_code = 200;
+	_maxBodySize = 0;
+	_allowedMethods.clear();
+	_errorPages.clear();
+	_index =  ""; //DUBTEEE??? -var INDEX al server
+	_autoIndex = false;
+	_allowUpload = false; //DUBTEEE???
+	_uploadDir = "";   //DUBTEEE???
+	_return = "";
+	_cgi = false;
+	_cgiConf.clear();
+	_serverNames.clear();
+	_connectionKeepAlive = true;
+	_acceptedContent.clear();
+	_boundary = "";
+	_multipartHeaders.clear();
+	_fileName = "";
+	_location = false;
+}
+
+void	Request::setServerParams() 
+{
 	_maxBodySize = _server.getMaxBodySize();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
 	_autoIndex = _server.getAutoIndex();
-	_allowUpload = false;
-	_cgi = false;
 	_cgiConf = _server.getCgiConf();
 	_serverNames = _server.getServerName();
-	_connectionKeepAlive = true;
-	_location = false;
-}
-
-void	Request::cleanRequest() {
-	
-	_buffer.clear();
-	_requestLine.clear();
-	_headers.clear();
-	_body = "";
-	_code = 200; //TODO: error code default?
-	_status = 0;
-	_connectionKeepAlive = true;
-
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -84,14 +97,11 @@ void	Request::cleanRequest() {
 
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(const std::string& buffer) {
-//	std::cout << "REQUEST -------------" << std::endl;
-//	std::cout << buffer << std::endl;
+
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
-	std::cout << "STATUS " << _status << std::endl;
-	std::cout << "CODE " << _code << std::endl;
-
+	setServerParams();
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -495,11 +505,12 @@ const std::string&  Request::getPath() const {
     return (_path);
 }
 
-
-//TODO: aDD GETTER FROM REQUESTLINE[1]
-
 const std::string& 	Request::getRoot() const{
     return (_root);
+}
+
+const std::string&	Request::getMethod() const {
+	return (_method);
 }
 
 int	Request::getCode() const {
@@ -544,10 +555,6 @@ bool Request::getCgi() const {
 
 const std::map<std::string, std::string>&  Request::getCgiConf() const {
 	return (_cgiConf);
-}
-
-const std::string&	Request::getMethod() const {
-	return (_requestLine[0]);
 }
 
 const std::vector<std::string>& Request::getServerNames() const{

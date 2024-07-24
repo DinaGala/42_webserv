@@ -3,15 +3,9 @@
 
 # include "Utils.hpp"
 
-class Signals {
-	
-	private:
-		Signals();
-	public:
-		~Signals();
-		static void	signHandler(int sig);
-		static void	initSignals();
-		static bool signaled;
-};
+extern volatile bool signaled;
+
+void	signHandler(int sig);
+void	initSignals();
 
 #endif

@@ -9,7 +9,6 @@
 # define FINISH_PARSED 4
 # define CRLF "\r\n"
 
-
 # include "Utils.hpp"
 
 class Server;
@@ -25,8 +24,9 @@ class Request {
 		std::string							_query;
 		std::string							_path;
 		std::string							_root;
+		std::string							_method;
 		int									_code;
-	
+
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
@@ -37,7 +37,6 @@ class Request {
 		std::string 						_return;
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
-
 		std::vector<std::string> 			_serverNames; 
 		bool								_connectionKeepAlive;
 		std::multimap<std::string, std::string>	_acceptedContent;
@@ -47,13 +46,13 @@ class Request {
 		std::string							_fileName;
 		bool								_location;
 
-
 	public:
 		Request(Server& server);
 		Request(const Request& src);
 		Request& operator=(const Request& src);
 		~Request();
-		void	initParamsRequest();
+		void	initParams();
+		void	setServerParams();
 		void	parseRequest(const std::string& buffer);
 		void	sendBadRequestError(std::string errMssg);
 
@@ -78,7 +77,6 @@ class Request {
 		void		updateMultipartBody();
 		void		saveFileName();
 
-		void		cleanRequest(); // TODO for multiplexing
 		void 		requestValidations();
 		void 		checkPath();
 		std::string checkQuery();
@@ -88,27 +86,27 @@ class Request {
 		void		checkProtocolHttp();
 		void 		updatePath();
 		
-		const std::string&							getBuffer() const;
-		Server&										getServer() const;
-		int											getStatus() const;
-		const std::vector<std::string>&				getRequesLine() const;
-		const std::map<std::string, std::string>&	getHeaders() const;
-		const std::string&							getBody() const;
-		const std::string&							getQuery() const;
-		const std::string&							getPath() const;
-		const std::string& 							getRoot() const;
-		int											getCode() const;
-		size_t										getMaxBodySize() const;
-		const std::vector<std::string>& 			getAllowedMethods() const;
-		const std::map<int, std::string>& 			getErrorPages() const;
-		const std::string& 							getIndex() const;
-		bool 										getAutoIndex() const;
+		const std::string&								getBuffer() const;
+		Server&											getServer() const;
+		int												getStatus() const;
+		const std::vector<std::string>&					getRequesLine() const;
+		const std::map<std::string, std::string>&		getHeaders() const;
+		const std::string&								getBody() const;
+		const std::string&								getQuery() const;
+		const std::string&								getPath() const;
+		const std::string& 								getRoot() const;
+		const std::string&								getMethod() const; 
+		int												getCode() const;
+		size_t											getMaxBodySize() const;
+		const std::vector<std::string>& 				getAllowedMethods() const;
+		const std::map<int, std::string>& 				getErrorPages() const;
+		const std::string& 								getIndex() const;
+		bool 											getAutoIndex() const;
 		bool 											getAllowUpload() const;
 		const std::string& 								getUploadDir() const;
 		const std::string& 								getReturn() const;
 		bool											getCgi() const; 
 		const std::map<std::string, std::string>&		getCgiConf() const;
-		const std::string&								getMethod() const;
 		const std::vector<std::string>&					getServerNames() const;
 		bool											getConnectionKeepAlive() const;
 		const std::multimap<std::string, std::string>&	getAcceptedContent() const;
