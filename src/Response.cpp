@@ -147,6 +147,8 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_handlePost();
 	else if (method == "DELETE")
 		this->_handleDelete();
+	else
+		this->sendError(403);
 	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
@@ -218,14 +220,14 @@ void	Response::_handleGet()
 			return ;
 		}
 	}
+	else if (access(this->_req->getPath().c_str(), F_OK)) //if file
+	{
+		this->sendError(404);
+		return ;
+	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
-		if (access(this->_req->getPath().c_str(), F_OK)) // if cgi exists = 0
-		{
-			this->sendError(404);
-			return ;
-		}
-		else if (access(this->_req->getPath().c_str(), X_OK))
+		if (access(this->_req->getPath().c_str(), X_OK))
 		{
 			this->sendError(403);
 			return ;
