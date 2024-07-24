@@ -1,24 +1,27 @@
 #include "Request.hpp"
 
-Request::Request(Server& server) : _status(INITIAL_STATUS), _server(server){
-	initParamsRequest();
+Request::Request(Server& server, int port) : _server(server), _port(port)
+{
+	initParams();
 }
 
-Request::~Request() {
+Request::~Request() 
+{
 }
-
 
 Request& Request::operator=(const Request& src)
 {
-	// _requestLine
 	_buffer = src.getBuffer();
-	_server = src.getServer();
 	_status = src.getStatus();
+	_server = src.getServer();
+	_port = src.getPort();
+	_requestLine = src.getRequesLine();
 	_headers = src.getHeaders();
 	_body = src.getBody();
 	_query = src.getQuery();
 	_path = src.getPath();
 	_root = src.getRoot();
+	_method = src.getMethod();
 	_code = src.getCode();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
@@ -45,35 +48,46 @@ Request::Request(const Request& src): _server(src._server)
 	*this = src;
 }
 
-void	Request::initParamsRequest() {
-  	_buffer.clear();
+void	Request::initParams() 
+{
+	_buffer.clear();
+	_status = INITIAL_STATUS;
 	_requestLine.clear();
 	_headers.clear();
+	_body = "";
+	_query = "";
 	_path = "";
 	_root = "";
+	_method = "";
 	_code = 200;
+	_maxBodySize = 0;
+	_allowedMethods.clear();
+	_errorPages.clear();
+	_index =  "index.html"; //TODO: set as default
+	_autoIndex = false;
+	_allowUpload = false;
+	_uploadDir = "";
+	_return = "";
+	_cgi = false;
+	_cgiConf.clear();
+	_serverNames.clear();
+	_connectionKeepAlive = true;
+	_multipartHeaders.clear();
+	_acceptedContent.clear();
+	_boundary = "";
+	_fileName = "";
+	_location = false;
+}
+
+void	Request::setServerParams() 
+{
 	_maxBodySize = _server.getMaxBodySize();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
 	_autoIndex = _server.getAutoIndex();
-	_allowUpload = false;
-	_cgi = false;
+	_return = _server.getReturn();
 	_cgiConf = _server.getCgiConf();
 	_serverNames = _server.getServerName();
-	_connectionKeepAlive = true;
-	_location = false;
-}
-
-void	Request::cleanRequest() {
-	
-	_buffer.clear();
-	_requestLine.clear();
-	_headers.clear();
-	_body = "";
-	_code = 200; //TODO: error code default?
-	_status = 0;
-	_connectionKeepAlive = true;
-  // ...
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -83,15 +97,13 @@ void	Request::cleanRequest() {
 */
 
 // _____________  PARSING REQUEST  _____________ 
-void	Request::parseRequest(const std::string& buffer) {
-//	std::cout << "REQUEST -------------" << std::endl;
-//	std::cout << buffer << std::endl;
+void	Request::parseRequest(const std::string& buffer) 
+{
+
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
-	std::cout << "STATUS " << _status << std::endl;
-	std::cout << "CODE " << _code << std::endl;
-
+	setServerParams();
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -120,7 +132,7 @@ void	Request::parseRequestLine() {
 	createRequestLineVector(_buffer.substr(0, posBuffer));
 
 	_status = REQUEST_LINE_PARSED;
-	_buffer.erase(0, posBuffer + 2); //remove used buffer
+	_buffer.erase(0, posBuffer + 2);
 
 	/*std::cout << "REQ LINE -------------" << std::endl;
 	for (std::vector<std::string>::iterator it = _requestLine.begin(); it != _requestLine.end(); ++it) {
@@ -204,7 +216,7 @@ void	Request::parseBodyByChunked(){
 
 	if (sizeChunk == 0) {
 		_status = BODY_PARSED;
-		_headers.find("Transfer-Encoding")->second = ""; //remove chunked
+		_headers.find("Transfer-Encoding")->second = "";
 		_headers.insert(std::make_pair("Content-Length", ft_itoa(_body.length())));
 		_buffer.clear();
 	}
@@ -238,19 +250,14 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 
 void	Request::parseBodyByContentLength() { 
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
-	
-	if (_buffer.size() > contentLength) //TODO: manage remain body?? Adria - create new request with remain body
-		sendBadRequestError("Request parsing error: Body Length greater than Content length header param");
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size");
-	
 	while (_body.length() < contentLength && _buffer.length() > 0) {
 		_body.push_back(_buffer[0]);
 		_buffer.erase(0);
 	}
 	if (_body.length() == contentLength)
 		_status = BODY_PARSED;
-	
 }
 
 // _____________  MULTIPART FORM BODY   _____________ 
@@ -323,11 +330,11 @@ void	Request::sendBadRequestError(std::string errMssg) {
 
 // _____________  VALIDTATE REQUEST  _____________ 
 void Request::requestValidations(){
+	checkHost(); 	
 	checkConnectionKeepAlive();
-	checkAcceptedContent();
-	checkPath();
-	updatePath();
-	checkProtocolHttp(); 
+	manageAcceptedContent();
+	managePath();
+	checkProtocolHttp();
 	checkAllowMethod();
 }
  
@@ -337,7 +344,18 @@ void	Request::checkConnectionKeepAlive() {
 	}
 }
 
-void	Request::checkAcceptedContent() {
+void	Request::checkHost() {
+	if (_headers.find("Host") == _headers.end())
+		sendBadRequestError("Request parsing error: invalid Host");
+	//DINA - What happens with localHost??
+	std::string hostHeader = _headers.find("Host")->second;
+	std::string hostSaved = _server.getIpAdress() + ":" + ft_itoa(_port);
+	if (hostHeader ==  hostSaved)
+		return;
+	//TODO: Manage server names
+}
+
+void	Request::manageAcceptedContent() {
 	if (_headers.find("Accept") == _headers.end())
 		return ;
 	std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
@@ -356,54 +374,50 @@ void	Request::checkAcceptedContent() {
 	}
 }
 
-void Request::checkPath() {
-	std::string remainedStr = checkQuery();
-	size_t nLoc = checkLocation(remainedStr); //TODO: PENDING TO CHECK
-	if (_location) 
-		updateInfoLocation(nLoc); //TODO: PENDING TO CHECK
-		
-	/*std::string url = _requestLine[1];
-	
-	std::string::size_type	found = 0;
-	std::string::size_type	posQuery;
-	std::string str;
-
-	posQuery = url.find("?", found);
-	if (posQuery != std::string::npos) {
-		_query = url.substr(posQuery + 1, url.size() - posQuery);
-		str = url.substr(0, posQuery);
-	}
-	else
-		str = url;
-	str.insert(0, ".");
-	if (access(str.c_str(), X_OK) == 0)
-		this->_cgi = true;*/
+void Request::managePath() {
+	checkQuery();
+	size_t nLoc = checkLocation(); //TODO: PENDING TO CHECK
+	if (_location)
+		updateInfoLocation(nLoc);
+	updatePath();  //TODO: PENDING TO CHECK
 }
 
-std::string Request::checkQuery() {
+void	Request::checkQuery() {
 	std::string url = _requestLine[1];
 	std::string::size_type	posQuery;
 
 	posQuery = url.find("?");
 	if (posQuery != std::string::npos) {
 		_query = url.substr(posQuery + 1, url.size() - posQuery);
-		return (url.substr(0, posQuery));
+		_path = url.substr(0, posQuery);
 	}
-	return url;
+	else {
+		_path = url;
+	}
 }
 
-size_t Request::checkLocation(std::string & path) {
+size_t Request::checkLocation() {
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
 
-	std::vector<std::string> vecPath = ft_split(path, "/");
+	std::vector<std::string> vecPath = ft_split(_path, "/");
 	
+	std::cout << "VEC PATH -------------" << std::endl;
+	for (std::vector<std::string>::iterator it = vecPath.begin(); it != vecPath.end(); ++it) {
+		std::cout << *it << std::endl;
+	}
+
 	for (size_t i=0; i < vecLocations.size(); i++) {
-		std::vector<std::string> pathLoc = ft_split(vecLocations[i].getUri(), "/");
-		for (j = 0; j < pathLoc.size(); j++) {
-			if (vecPath[j] != pathLoc[j]) {
+		std::vector<std::string> vecLoc = ft_split(vecLocations[i].getUri(), "/");
+		std::cout << "VEC LOC " << i << " ----" << std::endl;
+		for (std::vector<std::string>::iterator itt = vecLoc.begin(); itt != vecLoc.end(); ++itt) {
+			std::cout << *itt << std::endl;
+		}
+		for (j = 0; j < vecLoc.size(); j++) {
+			std::cout << "COMPARE " << vecPath[j] << " vs " << vecLoc[j] << std::endl;
+			if (vecPath[j] != vecLoc[j]) {
 				break;
 			}	
 		}
@@ -413,22 +427,20 @@ size_t Request::checkLocation(std::string & path) {
 			_location = true;
 		}
 	}
+	std::cout << "POSITION LOC " << posLoc << std::endl;
 	return posLoc;
 }
 
 void Request::updatePath() {
 	std::string str = _requestLine[1];
-	if (_requestLine[0] == "GET"){
-		if (_query != ""){
-			str = str.substr(0, str.find("?", 0));
-		}
+	if (_requestLine[0] == "GET" || _requestLine[0] == "DELETE"){
 		_path = str.insert(0, ".");
 		if (access(str.c_str(), X_OK) == 0)
 			this->_cgi = true;
 	} 
 	else if (_requestLine[0] == "POST" && _return != ""){
 		_path = _return;
-		_code = 305;
+		_code = 301;
 	}
 }
 
@@ -452,159 +464,198 @@ void Request::checkAllowMethod(){
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
 	if (it == allowedMethodsVect.end()) {
 		_code = 405;
-		throw std::runtime_error("Request parsing error: metod not allowed");
+		throw std::runtime_error("Request parsing error: method not allowed");
 	}
 }
 
 void Request::checkProtocolHttp(){
-	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
+	if (_requestLine.size() == 3) {
+		if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
 		sendBadRequestError("Request parsing error: invalid http version");
+	}
+	else
+		sendBadRequestError("Request parsing error: invalid request line");
 }
 
 // _____________  GETTERS _____________ 
 
-const std::string& Request::getBuffer() const {
+const std::string& Request::getBuffer() const 
+{
 	return (_buffer);
 }
 
-Server&  Request::getServer() const {
+Server&  Request::getServer() const 
+{
 	return (_server);
+}
+
+int  Request::getPort() const 
+{
+	return (_port);
 }
 
 int	Request::getStatus() const {
 	return (_status);
 }
 
-const std::vector<std::string>& Request::getRequesLine() const{
+const std::vector<std::string>& Request::getRequesLine() const
+{
 	return (_requestLine);
 }
 
-const std::map<std::string, std::string>& Request::getHeaders() const{
+const std::map<std::string, std::string>& Request::getHeaders() const
+{
 	return (_headers);
 }
 
-const std::string& Request::getBody() const {
+const std::string& Request::getBody() const 
+{
 	return (_body);
 }
 
-const std::string& Request::getQuery() const {
+const std::string& Request::getQuery() const 
+{
 	return (_query);
 }
 
-const std::string&  Request::getPath() const {
+const std::string&  Request::getPath() const 
+{
     return (_path);
 }
 
-
-//TODO: aDD GETTER FROM REQUESTLINE[1]
-
-const std::string& 	Request::getRoot() const{
+const std::string& 	Request::getRoot() const
+{
     return (_root);
 }
 
-int	Request::getCode() const {
+const std::string&	Request::getMethod() const 
+{
+	return (_method);
+}
+
+int	Request::getCode() const 
+{
 	return (_code);
 }
 
-size_t	Request::getMaxBodySize() const {
+size_t	Request::getMaxBodySize() const 
+{
 	return (_maxBodySize);
 }
 
-const std::vector<std::string>& Request::getAllowedMethods() const{
+const std::vector<std::string>& Request::getAllowedMethods() const
+{
 	return (_allowedMethods);
 }
 
-const std::map<int, std::string>& Request::getErrorPages() const {
+const std::map<int, std::string>& Request::getErrorPages() const 
+{
 	return (_errorPages);
 }
 
-const std::string& Request::getIndex() const {
+const std::string& Request::getIndex() const 
+{
 	return (_index);
 }
 
-bool Request::getAutoIndex() const {
+bool Request::getAutoIndex() const 
+{
 	return (_autoIndex);
 }
 
-bool Request::getAllowUpload() const {
+bool Request::getAllowUpload() const 
+{
 	return (_allowUpload);
 }
 
-const std::string& 	Request::getUploadDir() const {
+const std::string& 	Request::getUploadDir() const 
+{
 	return (_uploadDir);
 }
 
-const std::string& 	Request::getReturn() const {
+const std::string& 	Request::getReturn() const 
+{
 	return (_return);
 }
 
-bool Request::getCgi() const {
+bool Request::getCgi() const
+{
 	return (_cgi);
 }
 
-const std::map<std::string, std::string>&  Request::getCgiConf() const {
+const std::map<std::string, std::string>&  Request::getCgiConf() const 
+{
 	return (_cgiConf);
 }
 
-const std::string&	Request::getMethod() const {
-	return (_requestLine[0]);
-}
-
-const std::vector<std::string>& Request::getServerNames() const{
+const std::vector<std::string>& Request::getServerNames() const
+{
 	return (_serverNames);
 }
 
-bool Request::getConnectionKeepAlive() const {
+bool Request::getConnectionKeepAlive() const 
+{
 	return (_connectionKeepAlive);
 }
 
-const std::multimap<std::string, std::string>&	Request::getAcceptedContent() const {
+const std::multimap<std::string, std::string>&	Request::getAcceptedContent() const 
+{
 	return (_acceptedContent);
 }
 
-const std::string&  Request::getBoundary() const {
+const std::string&  Request::getBoundary() const 
+{
 	return (_boundary);
 }
 
-const std::map<std::string, std::string>& Request::getMultipartHeaders() const{
+const std::map<std::string, std::string>& Request::getMultipartHeaders() const
+{
 	return (_multipartHeaders);
 }
 
-const std::string&	Request::getFileName() const {
+const std::string&	Request::getFileName() const 
+{
 	return (_fileName);
 }
 
-bool Request::getLocation() const {
+bool Request::getLocation() const 
+{
 	return (_location);
 }
 
-
 // _____________  SETTERS _____________ 
 
-void Request::setErrorPages(const std::map<int, std::string>&  errorPages) {
+void Request::setErrorPages(const std::map<int, std::string>&  errorPages) 
+{
 	_errorPages = errorPages;
 }
 
-void Request::setIndex(const std::string& index) {
+void Request::setIndex(const std::string& index) 
+{
 	_index = index;
 }
 
-void Request::setAutoIndex(bool autoindex) {
+void Request::setAutoIndex(bool autoindex) 
+{
 	_autoIndex = autoindex;
 }
 
-void Request::setAllowUpload(bool allowUpload) {
+void Request::setAllowUpload(bool allowUpload) 
+{
 	_allowUpload = allowUpload;
 }
 
-void Request::setUploadDir(const std::string& uploadDir) {
+void Request::setUploadDir(const std::string& uploadDir) 
+{
 	_uploadDir = uploadDir;
 }
 
-void Request::setReturn(const std::string& alias) {
+void Request::setReturn(const std::string& alias) 
+{
 	_return = alias;
 }
 
-void Request::setCgiConf(const std::map<std::string, std::string>& cgiConf) {
+void Request::setCgiConf(const std::map<std::string, std::string>& cgiConf) 
+{
 	_cgiConf = cgiConf;
 }

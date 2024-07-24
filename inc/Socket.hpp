@@ -6,6 +6,7 @@
 
 class Request;
 class Response;
+class Server;
 
 class Socket {
 	private:
@@ -39,9 +40,9 @@ class Socket {
 		void	setLastActivity(time_t now);
 
 		Server&						getServer() const;
-		int					getPort() const;
+		int							getPort() const;
 		const std::string& 			getIpAdress() const;
-		int					getSockFd() const;
+		int							getSockFd() const;
 		bool						getMaster() const;
 		Request*				getRequest() ;
 		Response*				getResponse() ;

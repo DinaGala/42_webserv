@@ -1,5 +1,5 @@
+
 #include "Cluster.hpp"
-#include "Utils.hpp"
 
 Cluster::Cluster() {
 }
@@ -9,8 +9,8 @@ Cluster::~Cluster() {
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
-			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+		//if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+			//throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
 	}
 	close(_epFd);
@@ -67,22 +67,25 @@ void	Cluster::createEpoll()
 	}
 }
 
-
 void	Cluster::runCluster()
 {
 	std::string errmsg;
-
-	while (1) //manage signals
+	initSignals();
+	
+	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 300000000); // check 2000
-        std::cout << "EPOLL WAIT\n";
-		if (_nfds == -1)
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
+        
+		/*if (_nfds == -1) { //TODO: CHECK THIS LINE
+			std::cout << "INSIDE EROR LOOP\n";
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
+		}*/
+		std::cout << "EPOLL WAIT\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
-			std::cout << "All sockets:\n" << _sockets;
+			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			std::cout << "current socket is:  " << cur << "\n" << *cur;
+			//std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
@@ -99,7 +102,9 @@ void	Cluster::runCluster()
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		//checkTimeout();
+		usleep(10000);
 	}
+	std::cout << "----- END OF LOOP -----" << std::endl;
 }
 
 
@@ -115,8 +120,6 @@ void	Cluster::acceptConnection(Socket *sock)
 	std::string errmsg;
 	Socket socket(sock->getServer(), sock);
 	
-	std::cout << "\033[1;32mcluster accept 107\033[0m" << std::endl;
-	std::cout << "\033[1;32mcluster accept 107: " << socket.getRequest()->getStatus() << "\033[0m" << std::endl;
 	_sockets.push_back(socket);
 	std::list<Socket>::iterator it = _sockets.end();
     --it;
@@ -139,6 +142,7 @@ void	Cluster::readConnection(Socket *sock)
 		buffer[bytesRead] = '\0';
 			
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
+		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
 	//	exit (0);
 	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
@@ -160,20 +164,16 @@ void	Cluster::readConnection(Socket *sock)
 */
 void	Cluster::sendConnection(Socket *sock)
 {
-	std::cout << "IN SEND CONN, before send, socket: " << sock->getSockFd() << ", \nRESPONSELINE:\n" << sock->getResponseLine() << "\n";
-//	exit (1);
-	// fix here to send not more than MAX
 	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
-	std::cout << "BYTES " << bytes << "\n";
-//	exit (1);
+	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
+
 	sock->getResponseLine().erase(0, bytes);
 	sock->setLastActivity(time(NULL));
 	
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
 	{
-	//	exit (0);
 		return (eraseSocket(sock, false));
 	}
 	else if (sock->getResponseLine().empty())
@@ -247,7 +247,7 @@ std::list<Socket>::iterator	Cluster::eraseSocket(std::list<Socket>::iterator soc
 void	Cluster::cleanSocket(Socket *sock)
 {
 	sock->getResponseLine().clear();
-	sock->getRequest()->cleanRequest();
+	sock->getRequest()->initParams(); //modified by Julia
 	sock->getResponse()->cleanResponse();
 }
 
@@ -312,4 +312,3 @@ std::ostream	&operator<<(std::ostream &out, const Response &val)
 
 	return (out);
 }
-
