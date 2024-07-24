@@ -5,8 +5,6 @@ void	Response::cleanResponse()
 	_body.clear();
 	_reqbody.clear();
 	_response.clear();
-	_servname.clear();
-	_method.clear();
 	// ...
 }
 
@@ -49,11 +47,6 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_servname = r._servname;
-	this->_method = r._method;
-	this->_host = r._host;
-	this->_socket = r._socket;
-	this->_port = r._port;
 	this->_keep_alive = r._keep_alive;
 	this->_cgi = r._cgi;
 	this->_cgiargs = r._cgiargs;
@@ -68,11 +61,6 @@ Response	&Response::operator=(const Response &r)
 	this->_response = r._response;
 	this->_query = r._query;
 	this->_reqbody = r._reqbody;
-	this->_servname = r._servname;
-	this->_method = r._method; //tmp
-	this->_host = r._host; //tmp
-	this->_socket = r._socket; //tmp
-	this->_port = r._port; //tmp
 	this->_cgi = r._cgi; //tmp
 	this->_keep_alive = r._keep_alive; //tmp
 	this->_cgiargs = r._cgiargs;
@@ -254,9 +242,9 @@ void	Response::_handleGet()
 			return ;
 		}
 		//std::cout << "\033[1;34mGET: path " << this->_req->getPath() << "\033[0m" << std::endl;
-		Cgi	cgi(this->_socket, *(this->_req));
 		this->_cgiargs = this->_setCgi(this->_req->getPath());
-		cgi.setEnvVars(this->_req->getPath(), this->_host, this->_servname, this->_query, this->_cgiargs);
+		Cgi	cgi(*(this->_req), this->_cgiargs);
+		//this->_cgiargs = this->_setCgi(this->_req->getPath());
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
 		std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
@@ -461,7 +449,6 @@ void	Response::putGeneralHeaders(void)
 	std::time_t	date = std::time(NULL);
 	this->_response += "Date: ";
 	this->_response += std::asctime(std::localtime(&date));
-	this->_response += "Server: " + _servname + "\r\n";
 	if (!this->_keep_alive)
 		this->_response += "Connection: close\r\n";
 	else
