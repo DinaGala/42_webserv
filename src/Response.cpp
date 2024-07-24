@@ -121,26 +121,6 @@ std::vector<std::string>	Response::_setCgi(const std::string &path)
 	return (args);
 }
 ///////////////////////////////////////////////////////////////////////////
-/*
-std::string	Response::_parseUrl(const std::string &url)
-{
-	std::string::size_type	found = 0;
-	std::string::size_type	query;
-	std::string str;
-
-	query = url.find("?", found);
-	if (query != std::string::npos) // if there's a '?'
-	{
-		this->_query = url.substr(query + 1, url.size());
-		str = url.substr(found, query);
-	}
-	else
-		str = url;
-	str.insert(0, ".");
-	if (access(str.c_str(), X_OK) == 0)
-		this->_cgi = true;
-	return (str);
-}*/
 
 //parses Cgi's response: separates headers from body
 void	Response::_parseCgiResponse(void)
@@ -190,6 +170,7 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_handlePost();
 	else if (method == "DELETE")
 		this->_handleDelete();
+	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -448,14 +429,13 @@ void	Response::_makeAutoIndex(void)
 			closedir(dir);
 			return ;
 		}
-		filename = filename.substr(2);
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
 		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
 			continue ;
 		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
-		this->_body += filename;
+		this->_body += filename.substr(1);
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
