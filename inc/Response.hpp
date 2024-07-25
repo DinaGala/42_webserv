@@ -51,11 +51,8 @@ class	Response
 		static std::map<int, std::pair<std::string, std::string> >	_status;
 		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 		std::string		_body;
-		std::string		_query;
 		std::string		_reqbody;
 		std::string		_response;
-		bool			_cgi; //tmp
-		bool			_keep_alive; //tmp
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
 		const Request	*_req;
