@@ -42,7 +42,9 @@ void	Server::initParamsServer(ServerConfig &sconfig)
 	_return = "";
 	_cgiConf = sconfig.getCgiConf();
 	_serverName = sconfig.getServerName();
+	_locations = sconfig.getLocationConfig();
 }
+
 
 // _____________  GETTERS _____________ 
 

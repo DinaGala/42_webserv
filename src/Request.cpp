@@ -61,36 +61,24 @@ void	Request::initParams()
 	_root = "";
 	_method = "";
 	_code = 200;
-	_maxBodySize = 0;
-	_host = "";
-	_allowedMethods.clear();
-	_errorPages.clear();
-	_index =  ""; //TODO: set as default
-	_autoIndex = false;
+	_maxBodySize = _server.getMaxBodySize();
+	_host = _server.getHost();
+	_allowedMethods = _server.getAllowedMethods();
+	_errorPages = _server.getErrorPages();
+	_index =  ""; //NURIA TODO: set as default
+	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
-	_return = "";
+	_return = _server.getReturn();
 	_cgi = false;
-	_cgiConf.clear();
-	_serverNames.clear();
+	_cgiConf = _server.getCgiConf();
+	_serverNames = _server.getServerName();
 	_connectionKeepAlive = true;
 	_multipartHeaders.clear();
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
 	_location = false;
-}
-
-void	Request::setServerParams() 
-{
-	_host = _server.getHost();
-	_maxBodySize = _server.getMaxBodySize();
-	_allowedMethods = _server.getAllowedMethods();
-	_errorPages = _server.getErrorPages();
-	_autoIndex = _server.getAutoIndex();
-	_return = _server.getReturn();
-	_cgiConf = _server.getCgiConf();
-	_serverNames = _server.getServerName();
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -106,7 +94,6 @@ void	Request::parseRequest(const std::string& buffer)
 	_buffer = _buffer + buffer;
 	std::cout << "REQUEST -------------" << std::endl;
 	std::cout << _buffer << std::endl;
-	setServerParams();
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -128,7 +115,8 @@ void	Request::parseRequest(const std::string& buffer)
 }
 
 // _____________  PARSING REQUEST LINE  _____________ 
-void	Request::parseRequestLine() {
+void	Request::parseRequestLine() 
+{
 	size_t posBuffer = _buffer.find(CRLF);
 	if (posBuffer == std::string::npos)
 		return ;
@@ -143,7 +131,8 @@ void	Request::parseRequestLine() {
 	}*/
 }
 
-void Request::createRequestLineVector(std::string requestLineStr){
+void Request::createRequestLineVector(std::string requestLineStr)
+{
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
@@ -337,27 +326,34 @@ void Request::requestValidations(){
 	checkHost(); 	
 	checkConnectionKeepAlive();
 	manageAcceptedContent();
-	managePath();
+	managePath(); //TODO: PENDING TO CHECK
 	checkProtocolHttp();
 	checkAllowMethod();
 }
  
+void	Request::checkHost() {
+	if (_headers.find("Host") == _headers.end())
+		sendBadRequestError("Request parsing error: invalid Host");
+	std::string hostReq = _headers.find("Host")->second;
+	int portReq = 8080;
+	if (hostReq.find(":") != std::string::npos) {
+		size_t posColon = hostReq.find(":");
+		portReq  = ft_atoi(hostReq.substr(posColon + 1, hostReq.size() - posColon - 1));
+		hostReq = hostReq.substr(0, posColon);
+	}
+	if (portReq != _port)
+		sendBadRequestError("Request parsing error: invalid Host");
+	if (hostReq == _host || hostReq == _server.getIpAdress())
+		return;
+	std::vector<std::string>::iterator it = std::find(_serverNames.begin(), _serverNames.end(), hostReq);
+	if (it == _serverNames.end()) 
+		sendBadRequestError("Request parsing error: invalid Host");
+}
+
 void	Request::checkConnectionKeepAlive() {
 	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close") {
 		_connectionKeepAlive = false;
 	}
-}
-
-void	Request::checkHost() {
-	if (_headers.find("Host") == _headers.end())
-		sendBadRequestError("Request parsing error: invalid Host");
-	//TODO: CHeck host + port
-	std::string hostHeader = _headers.find("Host")->second;
-	std::string hostSaved1 = _server.getIpAdress() + ":" + ft_itoa(_port);
-	std::string hostSaved2 = _server.getHost() + ":" + ft_itoa(_port);
-	if (hostHeader ==  hostSaved1 || hostHeader ==  hostSaved2)
-		return;
-	//TODO: Manage server names
 }
 
 void	Request::manageAcceptedContent() {
@@ -381,10 +377,10 @@ void	Request::manageAcceptedContent() {
 
 void Request::managePath() {
 	checkQuery();
-	size_t nLoc = checkLocation(); //TODO: PENDING TO CHECK
+	size_t nLoc = checkLocation(); 
 	if (_location)
 		updateInfoLocation(nLoc);
-	updatePath();  //TODO: PENDING TO CHECK
+	updatePath();
 }
 
 void	Request::checkQuery() {
@@ -409,17 +405,23 @@ size_t Request::checkLocation() {
 
 	std::vector<std::string> vecPath = ft_split(_path, "/");
 	
-	std::cout << "VEC PATH -------------" << std::endl;
+	std::cout << "CHECK LOCATION START -------------" << std::endl;
+	std::cout << "VEC PATH SIZE " << std::endl;
+
 	for (std::vector<std::string>::iterator it = vecPath.begin(); it != vecPath.end(); ++it) {
 		std::cout << *it << std::endl;
 	}
+	std::cout << "VEC PATH END " << std::endl;
+
+
+	//std::cout << "NUMBER OF LOCATIONS " << _server.getLocationConfig() << std::endl;
 
 	for (size_t i=0; i < vecLocations.size(); i++) {
 		std::vector<std::string> vecLoc = ft_split(vecLocations[i].getUri(), "/");
-		std::cout << "VEC LOC " << i << " ----" << std::endl;
-		for (std::vector<std::string>::iterator itt = vecLoc.begin(); itt != vecLoc.end(); ++itt) {
-			std::cout << *itt << std::endl;
-		}
+		std::cout << "Number of parts of location: " << i << std::endl;
+		/*for (std::vector<std::string>::iterator itt = vecLoc.begin(); itt != vecLoc.end(); ++itt) {
+			std::cout << "PART OF LOC: " << *itt << std::endl;
+		}*/
 		for (j = 0; j < vecLoc.size(); j++) {
 			std::cout << "COMPARE " << vecPath[j] << " vs " << vecLoc[j] << std::endl;
 			if (vecPath[j] != vecLoc[j]) {

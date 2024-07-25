@@ -32,9 +32,17 @@ void	Cluster::setUpCluster(int ac, char **av){
 }
 
 void	Cluster::createServers(){
+	std::cout << "START CREATE SERVERS------" << std::endl;
+	
 	for (std::vector<ServerConfig>::iterator it = _sconf.begin(); it != _sconf.end(); it++) {
+		std::cout << "----- Loc vector size SCONF" << it->getLocationConfig().size() << std::endl;
 		Server server(*it);
 		this->_servers.push_back(server);
+		std::cout << "Loc vector size " << server.getLocationConfig().size() << std::endl;
+		std::vector<LocationConfig> vecLoc = server.getLocationConfig();
+		for (size_t i=0; i < vecLoc.size(); i++) {
+			std::cout << "NAME LOC: " << vecLoc[i].getUri() << std::endl;
+		}
 	}
 }
 
