@@ -404,29 +404,11 @@ size_t Request::checkLocation() {
 	size_t 	j=0;
 
 	std::vector<std::string> vecPath = ft_split(_path, "/");
-	
-	std::cout << "CHECK LOCATION START -------------" << std::endl;
-	std::cout << "VEC PATH SIZE " << std::endl;
-
-	for (std::vector<std::string>::iterator it = vecPath.begin(); it != vecPath.end(); ++it) {
-		std::cout << *it << std::endl;
-	}
-	std::cout << "VEC PATH END " << std::endl;
-
-
-	//std::cout << "NUMBER OF LOCATIONS " << _server.getLocationConfig() << std::endl;
-
 	for (size_t i=0; i < vecLocations.size(); i++) {
 		std::vector<std::string> vecLoc = ft_split(vecLocations[i].getUri(), "/");
-		std::cout << "Number of parts of location: " << i << std::endl;
-		/*for (std::vector<std::string>::iterator itt = vecLoc.begin(); itt != vecLoc.end(); ++itt) {
-			std::cout << "PART OF LOC: " << *itt << std::endl;
-		}*/
-		for (j = 0; j < vecLoc.size(); j++) {
-			std::cout << "COMPARE " << vecPath[j] << " vs " << vecLoc[j] << std::endl;
-			if (vecPath[j] != vecLoc[j]) {
+		for (j = 0; j < vecLoc.size() && j < vecPath.size(); j++) {
+			if (vecPath[j] != vecLoc[j])
 				break;
-			}	
 		}
 		if (j > nEqualLocs) {
 			posLoc = i;
@@ -438,11 +420,10 @@ size_t Request::checkLocation() {
 	return posLoc;
 }
 
-void Request::updatePath() {
-	std::string str = _requestLine[1];
-	if (_requestLine[0] == "GET" || _requestLine[0] == "DELETE"){
-		_path = str.insert(0, ".");
-		if (access(str.c_str(), X_OK) == 0)
+void Request::updatePath() { //TODO: RETURN PEL GET???? 
+	if (_method == "GET" || _method == "DELETE"){
+		_path = _path.insert(0, ".");
+		if (access(_path.c_str(), X_OK) == 0)
 			this->_cgi = true;
 	} 
 	else if (_requestLine[0] == "POST" && _return != ""){

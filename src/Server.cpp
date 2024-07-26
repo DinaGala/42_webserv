@@ -55,7 +55,7 @@ const std::string& Server::getIpAdress() const
 
 const std::string& Server::getHost() const 
 {
-	return (_host);
+	return (_host);				
 }
 
 const std::vector<int>& Server::getPort() const 

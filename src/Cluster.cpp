@@ -1,10 +1,12 @@
 
 #include "Cluster.hpp"
 
-Cluster::Cluster() {
+Cluster::Cluster() 
+{
 }
 
-Cluster::~Cluster() {
+Cluster::~Cluster() 
+{
 	
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
@@ -16,7 +18,8 @@ Cluster::~Cluster() {
 	close(_epFd);
 }
 
-void	Cluster::setUpCluster(int ac, char **av){
+void	Cluster::setUpCluster(int ac, char **av)
+{
 	if (ac == 2) {
         _sconf = Parse::configParse(av[1]);
 			std::cout << _sconf;
@@ -31,22 +34,16 @@ void	Cluster::setUpCluster(int ac, char **av){
 	createEpoll();
 }
 
-void	Cluster::createServers(){
-	std::cout << "START CREATE SERVERS------" << std::endl;
-	
+void	Cluster::createServers()
+{
 	for (std::vector<ServerConfig>::iterator it = _sconf.begin(); it != _sconf.end(); it++) {
-		std::cout << "----- Loc vector size SCONF" << it->getLocationConfig().size() << std::endl;
 		Server server(*it);
 		this->_servers.push_back(server);
-		std::cout << "Loc vector size " << server.getLocationConfig().size() << std::endl;
-		std::vector<LocationConfig> vecLoc = server.getLocationConfig();
-		for (size_t i=0; i < vecLoc.size(); i++) {
-			std::cout << "NAME LOC: " << vecLoc[i].getUri() << std::endl;
-		}
 	}
 }
 
-void	Cluster::createSockets(){
+void	Cluster::createSockets()
+{
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
@@ -55,7 +52,6 @@ void	Cluster::createSockets(){
 		}
 	}
 }
-
 
 void	Cluster::createEpoll()
 {
