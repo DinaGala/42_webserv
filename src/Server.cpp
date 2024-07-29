@@ -70,7 +70,7 @@ size_t Server::getMaxBodySize() const {
 	return (_maxBodySize);
 }
 
-const std::map<int, std::string>& Server::getErrorPages() const 
+const std::map<int, std::pair<std::string, std::string> >& Server::getErrorPages() const 
 {
 	return (_errorPages);
 }
@@ -102,11 +102,11 @@ const std::vector<LocationConfig> Server::getLocationConfig() const
 
 // _____________  SETTERS _____________ 
 
-void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
+/*void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
 {
 	_errorPages = errorPages;
 }
-
+*/
 void Server::setAutoIndex(bool autoindex) 
 {
 	_autoIndex = autoindex;

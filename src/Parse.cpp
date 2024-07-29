@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:19 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/29 14:27:02 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -358,6 +358,15 @@ std::ostream	&operator<<(std::ostream &out, const std::map<int, std::string> &va
     std::map<int, std::string> val = valinit;
     for (std::map<int, std::string>::iterator it = val.begin(); it != val.end(); it++)
 		out << "   [\"" << it->first << "\"] = " + it->second << "\n";
+	return (out);
+}
+
+std::ostream	&operator<<(std::ostream &out, const std::map<int, std::pair<std::string, std::string> > &valinit)
+{
+	std::map<int, std::pair<std::string, std::string> > val = valinit;
+
+    for (std::map<int, std::pair<std::string, std::string> >::iterator it = val.begin(); it != val.end(); it++)
+		out << "   [\"" << it->first << "\"] = " + it->second.second << "\n";
 	return (out);
 }
 

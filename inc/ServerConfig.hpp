@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 21:50:18 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/29 12:57:27 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class ServerConfig
 		const std::vector<std::string>	getServerName() const;
 		const std::string			 		getRoot() const;
 		const std::vector<LocationConfig> getLocationConfig() const;
-		const std::map<int, std::string> 	getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> > 	getErrorPages() const;
 		size_t 						getMaxBodySize() const;
 		bool 						getAutoIndex() const;
 //		const std::string 				getHostName() const;
@@ -64,6 +64,8 @@ class ServerConfig
 //		bool		empty;
 
 	private:
+		static std::map<int, std::pair<std::string, std::string> >	_errorPages;
+		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 
 		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
 		std::string 						_host; // Choose the port and host of each ’server’.
@@ -73,7 +75,7 @@ class ServerConfig
 		std::string 						_root; // If empty it setups to default
 		size_t 								_maxBodySize; // Limit client body size
 		bool 								_autoIndex;
-		std::map<int, std::string> 			_errorPages; // The string is the path. Setup default error pages.
+		//std::map<int, std::string> 			_errorPages; // The string is the path. Setup default error pages.
 		std::vector<LocationConfig> 		_locations; // Setup routes with one or multiple of the following rules/configuration (routes wont be using regexp)
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
 		std::map<std::string, std::string> 	_cgiConf;

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 15:49:39 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/29 15:46:37 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class LocationConfig
 		const std::string& 					getIndex() const;
 		const std::string& 					getUploadDir() const;
 		const std::vector<std::string>& 	getAllowedMethods() const;
-		const std::map<int, std::string>& 	getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> >& 	getErrorPages() const;
 		const std::map<std::string, func>& 	getKeys() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;
 		const std::map<std::string, bool>& 	getVars();
@@ -67,7 +67,7 @@ class LocationConfig
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
 		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
-		std::map<int, std::string> 			_errorPages;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		std::map<std::string, std::string> 	_cgiConf; // Execute CGI based on certain file extension (for example .php).
 		std::map<std::string, func>			_keys;
 		std::map<std::string, bool>			_vars; // each variable if is set or not

@@ -6,11 +6,38 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:40 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/29 13:17:19 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ServerConfig.hpp"
+
+// _____________  STATIC ASSETS _____________________________________
+
+std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
+{
+	std::map<int, std::pair<std::string, std::string> > error;
+
+	error[100] = std::make_pair("Continue", "");
+	error[200] = std::make_pair("OK", "");
+	error[201] = std::make_pair("Created", "");
+	error[204] = std::make_pair("No Content", "");
+	error[301] = std::make_pair("Moved Permanently", "");
+	error[302] = std::make_pair("Found", "");
+	error[400] = std::make_pair("Bad Request", "errors/400.html");
+	error[403] = std::make_pair("Forbidden", "errors/403.html");
+	error[404] = std::make_pair("Not Found", "errors/404.html");
+	error[405] = std::make_pair("Method Not Allowed", "errors/405.html");
+	error[406] = std::make_pair("Not Acceptable", "errors/406.html");
+	error[408] = std::make_pair("Request Timeout", "errors/408.html");
+	error[411] = std::make_pair("Length Required", "errors/411.html");
+	error[500] = std::make_pair("Internal Server Error", "errors/500.html");
+	error[501] = std::make_pair("Not Implemented", "errors/501.html");
+	error[504] = std::make_pair("Gateway Timeout", "errors/504.html");
+	return (error);
+}
+
+std::map<int, std::pair<std::string, std::string> > ServerConfig::_errorPages = ServerConfig::_initStatus();
 
 // _____________  CONSTRUCTORS ______________________________________
 
@@ -30,9 +57,9 @@ ServerConfig::ServerConfig(): loc(true)
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
-	_errorPages[403] = "./errors/403.html";
+	/*_errorPages[403] = "./errors/403.html";
 	_errorPages[404] = "./errors/404.html";
-	_errorPages[500] = "./errors/500.html";
+	_errorPages[500] = "./errors/500.html";*/
 	//ERROR PAGES
 }
 
@@ -47,9 +74,9 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
 	_cgiConf[".py"] = "/usr/bin/python3";
-	_errorPages[403] = "./errors/403.html";
+	/*_errorPages[403] = "./errors/403.html";
 	_errorPages[404] = "./errors/404.html";
-	_errorPages[500] = "./errors/500.html";
+	_errorPages[500] = "./errors/500.html";*/
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
@@ -143,7 +170,7 @@ const std::vector<LocationConfig> ServerConfig::getLocationConfig() const
 	return (_locations);
 }
 
-const std::map<int, std::string> ServerConfig::getErrorPages() const
+const std::map<int, std::pair<std::string, std::string> > ServerConfig::getErrorPages() const
 {
 	return (_errorPages);
 }
@@ -248,7 +275,7 @@ void ServerConfig::setLocationConfig(const LocationConfig& location)
 
 void ServerConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages[code] = page;
+	_errorPages[code].second = page;
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
 //	_errorPages.insert(std::make_pair(code, page));
