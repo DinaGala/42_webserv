@@ -43,7 +43,7 @@ class Parse
 
     /* PARSING UTILS ________________________________________________________*/
         static int          ft_getline(std::string &buf, std::string &line, std::string del); //returns 0 - empty line, 1 - first delimiter, 2  - second delimiter
-        static std::string  ft_getword(std::string &buf);
+        static std::string  ft_getword(std::string &buf, std::string del);
         static std::string  checkBrackets(std::ifstream &filename);
         static std::string  blockCrop(std::string &buf);
         static std::vector<std::string>  checkComment(std::vector<std::string> line); 

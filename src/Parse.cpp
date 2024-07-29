@@ -96,7 +96,7 @@ void Parse::blockParse(T &serv, std::string &line)
     if (!serv.loc)
         throw std::invalid_argument("Configuration file error: location inside of a location not permitted: " + line.substr(0, line.find('\n')));
     line.erase(0, 8);
-    std::string path = ft_getword(line);
+    std::string path = ft_getword(line, " \v\t\n\r{");
     if (path.empty())
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
 //    std::cout << "line before location: " << line << std::endl;
@@ -217,12 +217,12 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
     return (res);
 }
 
-std::string Parse::ft_getword(std::string &buf)
+std::string Parse::ft_getword(std::string &buf, std::string del)
 {
     // std::cout << "FT GET WORD START" << "\n";
     // std::cout << "BUF: " << buf << "\n\n";
     std::string str = trim(buf);
-    size_t pos = str.find_first_of(" \v\t\n\r");
+    size_t pos = str.find_first_of(del);
     if (pos != std::string::npos)
         str = str.substr(0, pos);
     // std::cout << "FT GET WORD END" << "\n";
