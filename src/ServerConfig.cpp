@@ -6,13 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/29 13:17:19 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/29 18:07:34 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ServerConfig.hpp"
-
-// _____________  STATIC ASSETS _____________________________________
 
 std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
 {
@@ -57,6 +55,7 @@ ServerConfig::ServerConfig(): loc(true)
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
+	_errorPages = this->_initStatus();
 	/*_errorPages[403] = "./errors/403.html";
 	_errorPages[404] = "./errors/404.html";
 	_errorPages[500] = "./errors/500.html";*/
@@ -95,6 +94,7 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_cgiConf = src._cgiConf;
 	_autoIndex = src._autoIndex;
 	_vars = src._vars;
+	_errorPages = src._errorPages;
 //	empty = src.empty;
 	return (*this);
 }
@@ -110,7 +110,7 @@ ServerConfig::~ServerConfig()
 	_serverName.clear();
 	_locations.clear();
 	_allowedMethods.clear();
-	_errorPages.clear();
+	//_errorPages.clear();
 	_cgiConf.clear();
 }
 
