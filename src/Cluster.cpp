@@ -142,7 +142,7 @@ void	Cluster::readConnection(Socket *sock)
 		buffer[bytesRead] = '\0';
 			
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
-		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
+		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
 	//	exit (0);
 	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());

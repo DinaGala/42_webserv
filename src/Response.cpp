@@ -47,7 +47,8 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_reqbody = r._reqbody;
 	this->_cgiargs = r._cgiargs;
-	this->_status = _req->getErrorPages();
+	if (r._req)
+		this->_status = r._req->getErrorPages();
 }
 
 Response::~Response() {}
@@ -55,12 +56,13 @@ Response::~Response() {}
 Response	&Response::operator=(const Response &r)
 {
 	this->_body = r._body;
+	this->_req = _req;
 	this->_response = r._response;
 	this->_reqbody = r._reqbody;
 	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
-	this->_req = _req;
-
+	if (r._req)
+		this->_status = r._req->getErrorPages();
 	return (*this);
 }
 
@@ -178,7 +180,7 @@ void	Response::_handleGet()
 {
 	int	is_dir;
 
-	//std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
+	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	//std::cout << "\033[32;1mGET path \033[0m" << this->_req->getPath() << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")
 	{
@@ -187,6 +189,7 @@ void	Response::_handleGet()
 		return ;
 	}
 	is_dir = this->_isDir(this->_req->getPath());
+	//std::cout << "\033[32;1mGET is_dir= " << is_dir << "\033[0m" << std::endl;
 	if (is_dir == -1)
 	{
 		this->sendError(500);
