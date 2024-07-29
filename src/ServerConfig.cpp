@@ -294,7 +294,11 @@ void ServerConfig::setLocationConfig(const LocationConfig& location)
 
 void ServerConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages[code] = std::make_pair("", page);
+	std::map<int, std::pair<std::string, std::string> >::iterator it = _errorPages.find(code);
+	if (it == _errorPages.end())
+		_errorPages[code] = std::make_pair("", page);
+	else
+		_errorPages[code] = std::make_pair(it->second.first, page);
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
 //	_errorPages.insert(std::make_pair(code, page));
