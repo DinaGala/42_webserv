@@ -123,9 +123,12 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::makeResponse(const Request *req)
 {
 	if (!req)
-		return (this->sendError(500), this->_response);
+		return (this->sendError(505), this->_response);
 	else
+	{
 		this->_req = req;
+		this->_status = req->getErrorPages();
+	}
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -188,8 +191,13 @@ void	Response::_handleGet()
 		this->_handleFavIcon();
 		return ;
 	}
+	else if (access(this->_req->getPath().c_str(), F_OK)) //if file/dir does not exist
+	{
+		this->sendError(404);
+		return ;
+	}
 	is_dir = this->_isDir(this->_req->getPath());
-	//std::cout << "\033[32;1mGET is_dir= " << is_dir << "\033[0m" << std::endl;
+	std::cout << "\033[32;1mGET is_dir= " << is_dir << "\033[0m" << std::endl;
 	if (is_dir == -1)
 	{
 		this->sendError(500);
@@ -200,10 +208,10 @@ void	Response::_handleGet()
 		std::cout << "\033[32;1mGET else if is_dir\033[0m" << std::endl;
 		if (this->_req->getIndex() != "")
 		{
-			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
+			std::cout << "\033[32;1mGET index\033[0m" << std::endl;
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_req->getPath() + this->_req->getIndex());
+			int code = this->fileToBody(this->_req->getIndex());
 			if (code)
 			{
 				this->sendError(code);
@@ -225,11 +233,6 @@ void	Response::_handleGet()
 			return ;
 		}
 	}
-	else if (access(this->_req->getPath().c_str(), F_OK)) //if file
-	{
-		this->sendError(404);
-		return ;
-	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
 		if (access(this->_req->getPath().c_str(), X_OK))
@@ -242,7 +245,7 @@ void	Response::_handleGet()
 		Cgi	cgi(*(this->_req), this->_cgiargs);
 		//this->_cgiargs = this->_setCgi(this->_req->getPath());
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
-		std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
+		//std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
 		{
 			this->sendError(cgi_status);
@@ -252,7 +255,6 @@ void	Response::_handleGet()
 	}
 	else //if not cgi
 	{
-		std::cout << "\033[1;31mGET: fileToBody\033[0m" << std::endl;
 		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 		{
@@ -293,20 +295,29 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
+
 bool	Response::_createFile(void)
 {
-	struct stat	is_dir;
-	std::string	filename = "new_file.tmp";
-	filename.insert(0, this->_req->getUploadDir());
-	if (stat("uploaded", &is_dir))
-			return (this->sendError(500), 1);
-	if (!S_ISDIR(is_dir.st_mode))// if it doesn't exist
-		std::system("mkdir uploaded");
-	//std::ofstream	newfile(this->_req->getFilename());
+	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
+	std::string	filename = "";
+	std::string	create;
+
+	for (std::vector<std::string>::iterator it = upath.begin(); it != upath.end(); it++)
+	{
+		create = "mkdir ";
+		filename += *it + "/";
+		if (access(filename.c_str(), F_OK) != 0)//if it doesn't exist
+		{
+			std::cout << create + filename << std::endl;
+			create += filename;
+			if (std::system(create.c_str()))
+				return (1);
+		}
+	}
+	filename += this->_req->getFileName();
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
-			return (this->sendError(500), 1);
-	//newfile << this->_req->body;
+			return (1);
 	newfile << this->_body;
 	return (0);
 }
@@ -504,6 +515,7 @@ bool	Response::putPostHeaders(const std::string &file)
 //puts file content in body string. If something's wrong, returns error code
 int	Response::fileToBody(const std::string &path)
 {
+	//std::cout << "\033[1;35mFILEtoBODY path: " << path << "\033[0m" << std::endl;
 	if (access(path.c_str(), F_OK))//if given error page doesn't exist
 		return (404);
 	else if (access(path.c_str(), R_OK))//if server doesn't have the right to read
@@ -521,24 +533,36 @@ int	Response::fileToBody(const std::string &path)
 // a severe internal server error page is sent (505)
 void	Response::sendError(int code)
 {
-	if (this->_status.find(code) == this->_status.end())
+	int error = 0;
+	//std::cout << "SEND ERROR code: " << code << std::endl;
+	if (code != 505 && this->_status.find(code) == this->_status.end())
 		code = 500;
+	//std::cout << "\033[1;33mSEND ERROR code " << code << " exists\033[0m" << std::endl;
 	if (this->_isNotAccepted("text/html"))
 	{
+		//std::cout << "\033[1;33mSEND ERROR html not accepted\033[0m" << std::endl;
 		this->_response = this->putStatusLine(code);
 		this->putGeneralHeaders();
 		this->_response += "Content-Length: " + ft_itoa(this->_status.at(code).first.size()) + "\r\n\n";
 		this->_response += ft_itoa(code) + this->_status.at(code).first;
 		return ;
 	}
-	int error = fileToBody(this->_status.at(code).second);
-	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
+	//std::cout << "\033[1;33mSEND ERROR html accepted\033[0m" << std::endl;
+	if (code != 505)
 	{
+		//std::cout << "\033[1;31mstatus(code).2= " << this->_status.at(code).second << "\033[0m" << std::endl;
+		error = fileToBody(this->_status.at(code).second);
+	}
+	//std::cout << "\033[1;33mSEND ERROR error fileToBody= " << error << "\033[0m" << std::endl;
+	if (code == 505 || (error && fileToBody(this->_status.at(error).second)))//true if we have a double error
+	{
+		//std::cout << "\033[1;33mSEND ERROR filetobody\033[0m" << std::endl;
 		this->_response += "Content-Length: 22\r\n\r\n";
 		this->_response += "Severe Internal Error\n";
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
 		return ;
 	}
+	//std::cout << "\033[1;33mSEND ERROR final part\033[0m" << std::endl;
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
