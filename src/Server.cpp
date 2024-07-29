@@ -26,12 +26,23 @@ Server& Server::operator=(const Server& src)
 	return (*this);
 }
 
+std::map<int, std::pair<std::string, std::string> > Server::operator=(const std::map<int, std::pair<std::string, std::string> > &val)
+{
+	std::map<int, std::pair<std::string, std::string> >	src = val;
+	std::map<int, std::pair<std::string, std::string> >	ret;
+	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
+		ret[it->first] = std::make_pair(it->second.first, it->second.second);
+	return (ret);
+}
+
 Server::~Server() 
 {
 }
 
 void	Server::initParamsServer(ServerConfig &sconfig) 
 {
+//	std::map<int, std::pair<std::string, std::string> > err 
+	
 	_ipAddress = sconfig.getIp();
 	_host = sconfig.getHost();
 	_ports = sconfig.getPort();
@@ -70,7 +81,7 @@ size_t Server::getMaxBodySize() const {
 	return (_maxBodySize);
 }
 
-const std::map<int, std::string>& Server::getErrorPages() const 
+const std::map<int, std::pair<std::string, std::string> >& Server::getErrorPages() const 
 {
 	return (_errorPages);
 }
@@ -102,7 +113,7 @@ const std::vector<LocationConfig> Server::getLocationConfig() const
 
 // _____________  SETTERS _____________ 
 
-void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
+void Server::setErrorPages(const std::map<int, std::pair<std::string, std::string> > &  errorPages) 
 {
 	_errorPages = errorPages;
 }

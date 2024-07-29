@@ -16,7 +16,7 @@
 
 /* Main function: splits the config file in server blocks and saves it in a vector 
 */
-std::vector<ServerConfig>	Parse::configParse(char *filename)
+std::vector<ServerConfig>	Parse::configParse(const char *filename)
 {
     std::ifstream				file(filename);
 	std::vector<ServerConfig>	sconf;
@@ -100,7 +100,7 @@ void Parse::blockParse(T &serv, std::string &line)
     if (path.empty())
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
 //    std::cout << "line before location: " << line << std::endl;
-    serv.setLocationConfig(LocationConfig(path, serv.getRoot(), blockCrop(line)));
+    serv.setLocationConfig(LocationConfig(path, serv.getErrorPages(), blockCrop(line)));
     // std::cout << "------------------------------------------\n";
     // std::cout << serv << "\n";
 }
@@ -132,8 +132,11 @@ std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig> &sconf)
 	{
 		std::map<std::string, bool> svar = it->getVars();
         if (!svar["host"] && !svar["ip"])
+        {
             it->setHost("localhost");
-        if (svar["host"] && !svar["ip"])
+            it->setIp(findIp("localhost"));
+        }
+        else if (svar["host"] && !svar["ip"])
             it->setIp(findIp(it->getHost()));
 	}
 
@@ -142,11 +145,12 @@ std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig> &sconf)
 
 std::string	Parse::findIp(std::string host)
 {
+ //   std::cout << "IN GET IP\n";
     std::ifstream file("/etc/hosts");
     if (!file.is_open())
         throw std::invalid_argument("Error: couldn't open the hosts file to find the host \"" + host + "\"");
     std::string line;
-
+ //   std::cout << "IN GET IP\n";
     while(getline(file, line))
     {
         if (line.empty() || trim(line).empty() || trim(line)[0] == '#')
@@ -353,11 +357,13 @@ std::ostream	&operator<<(std::ostream &out, const std::map<std::string, std::str
 	return (out);
 }
 
-std::ostream	&operator<<(std::ostream &out, const std::map<int, std::string> &valinit)
+std::ostream	&operator<<(std::ostream &out, const std::map<int, std::pair<std::string, std::string> > &valinit)
 {
-    std::map<int, std::string> val = valinit;
-    for (std::map<int, std::string>::iterator it = val.begin(); it != val.end(); it++)
-		out << "   [\"" << it->first << "\"] = " + it->second << "\n";
+    std::map<int, std::pair<std::string, std::string> > val = valinit;
+    for (std::map<int, std::pair<std::string, std::string> >::iterator it = val.begin(); it != val.end(); it++) {
+		out << "    [\"" << it->first << "\"] = \"" + it->second.first + "\", " + it->second.second << "\n";
+//        std::cout << "BZZZZZZZZZZZZ\n";
+    }
 	return (out);
 }
 
@@ -372,6 +378,7 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
     out << "Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
     out << "Error pages:  \n" << val.getErrorPages() << "\n";
+    out << "Error page empty:  " << printBool(val.getErrorPages().empty()) << "\n";
     out << "    CGI:  " << "\n" << val.getCgiConf() << "\n";
     std::vector<LocationConfig> temp = val.getLocationConfig();
     for (std::vector<LocationConfig>::iterator it = temp.begin(); it != temp.end(); it++) {

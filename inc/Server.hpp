@@ -11,7 +11,7 @@ class Server {
 		std::vector<int>					_ports;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
-		std::map<int, std::string> 			_errorPages;
+		std::map<int, std::pair<std::string, std::string> > 			_errorPages;
 		bool 								_autoIndex;
 		std::string 						_return;
 		std::map<std::string, std::string> 	_cgiConf;
@@ -23,13 +23,14 @@ class Server {
 		Server(ServerConfig &sconfig);
 		Server(const Server& src);
 		Server& operator=(const Server& src);
+		std::map<int, std::pair<std::string, std::string> >	operator=(const std::map<int, std::pair<std::string, std::string> > &val);
 		~Server();
 
 		void		initParamsServer(ServerConfig &sconfig);
 		
 		void		setIpAddress(const char* ipAddress);
 		void		setPort(const int port);
-		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
+		void 		setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages);
 		void 		setIndex(const std::string& index);
 		void 		setAutoIndex(bool autoIndex);
 		void 		setReturn(const std::string& alias);
@@ -40,7 +41,7 @@ class Server {
 		const std::vector<int>&						getPort() const;
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
-		const std::map<int, std::string>& 			getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> > & 			getErrorPages() const;
 		bool 										getAutoIndex() const;
 		const std::string& 							getReturn() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;

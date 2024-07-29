@@ -17,16 +17,14 @@ Cluster::~Cluster() {
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
-	if (ac == 2) {
-        _sconf = Parse::configParse(av[1]);
-			std::cout << _sconf;
-	}
-	else if (ac == 1)
-	{
-        _sconf = Parse::configParse();
-			std::cout << _sconf;
-	}
-	exit (1);
+	std::string filename = "conf/basic_test.conf";
+
+	if (ac == 2)
+		filename = av[1];
+	
+	_sconf = Parse::configParse(filename.c_str());
+	std::cout << _sconf;
+//	exit (1);
 	createServers();
 	createSockets();
 	createEpoll();

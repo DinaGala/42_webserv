@@ -82,4 +82,6 @@ std::string ft_itoa(int nb);
 bool isStringOfDigits(std::string line);
 uint64_t strToHex(std::string line);
 
+void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val);
+
 #endif

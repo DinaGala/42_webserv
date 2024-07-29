@@ -86,7 +86,7 @@ void	Request::setServerParams()
 	_host = _server.getHost();
 	_maxBodySize = _server.getMaxBodySize();
 	_allowedMethods = _server.getAllowedMethods();
-	_errorPages = _server.getErrorPages();
+	copyMap(_errorPages, _server.getErrorPages());
 	_autoIndex = _server.getAutoIndex();
 	_return = _server.getReturn();
 	_cgiConf = _server.getCgiConf();
@@ -558,7 +558,7 @@ const std::vector<std::string>& Request::getAllowedMethods() const
 	return (_allowedMethods);
 }
 
-const std::map<int, std::string>& Request::getErrorPages() const 
+const std::map<int, std::pair<std::string, std::string> >& Request::getErrorPages() const 
 {
 	return (_errorPages);
 }
@@ -635,9 +635,9 @@ bool Request::getLocation() const
 
 // _____________  SETTERS _____________ 
 
-void Request::setErrorPages(const std::map<int, std::string>&  errorPages) 
+void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
 {
-	_errorPages = errorPages;
+	copyMap(_errorPages, errorPages);
 }
 
 void Request::setIndex(const std::string& index) 
