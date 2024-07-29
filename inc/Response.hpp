@@ -48,8 +48,9 @@ class	Response
 		void		sendError(int code);
 
 	private:
-		static std::map<int, std::pair<std::string, std::string> >	_status;
-		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		//static std::map<int, std::pair<std::string, std::string> >	_status;
+		//static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		std::map<int, std::pair<std::string, std::string> >	_status;
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;

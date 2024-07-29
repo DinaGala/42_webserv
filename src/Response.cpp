@@ -10,7 +10,7 @@ void	Response::cleanResponse()
 
 //////////////////////// STATIC ASSETS ////////////////////////////////////////
 
-std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
+/*std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 {
 	std::map<int, std::pair<std::string, std::string> > error;
 
@@ -33,7 +33,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 	return (error);
 }
 
-std::map<int, std::pair<std::string, std::string> > Response::_status = Response::_initStatus();
+std::map<int, std::pair<std::string, std::string> > Response::_status = Response::_initStatus();*/
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +47,7 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_reqbody = r._reqbody;
 	this->_cgiargs = r._cgiargs;
+	this->_status = _req->getErrorPages();
 }
 
 Response::~Response() {}
@@ -193,6 +194,7 @@ void	Response::_handleGet()
 	}
 	else if (is_dir)
 	{
+		std::cout << "\033[32;1mGET else if is_dir\033[0m" << std::endl;
 		if (this->_req->getIndex() != "")
 		{
 			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
