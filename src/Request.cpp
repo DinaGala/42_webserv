@@ -105,9 +105,7 @@ void	Request::parseRequest(const std::string& buffer)
 			parseBody();
 		}
 		if (_status == FINISH_PARSED){
-			
 			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
-			std::cout << "EL PATH [110] " << _path << std::endl;
 			requestValidations();
 		}
 	} catch (const std::exception & e){
@@ -585,7 +583,7 @@ const std::vector<std::string>& Request::getAllowedMethods() const
 	return (_allowedMethods);
 }
 
-const std::map<int, std::string>& Request::getErrorPages() const 
+const std::map<int, std::pair<std::string, std::string> >& Request::getErrorPages() const 
 {
 	return (_errorPages);
 }
@@ -657,9 +655,9 @@ const std::string&	Request::getFileName() const
 
 // _____________  SETTERS _____________ 
 
-void Request::setErrorPages(const std::map<int, std::string>&  errorPages) 
+void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
 {
-	_errorPages = errorPages;
+	copyMap(_errorPages, errorPages);
 }
 
 void Request::setIndex(const std::string& index) 
