@@ -86,7 +86,6 @@ class Request {
 		void		checkLocation();
 		void		updateInfoLocation();
 		void		updateRoot();
-		void		addLocMethodsToServVect(std::vector<std::string> itemsLoc, std::vector<std::string> itemsServ);
 		void 		updatePath();
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();

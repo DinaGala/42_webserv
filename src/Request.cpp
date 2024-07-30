@@ -42,7 +42,6 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
-
 	return (*this);
 }
 
@@ -69,7 +68,7 @@ void	Request::initParams()
 	_host = _server.getHost();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
-	_index = "index.html";
+	_index = "index.html"; //TOD: check config
 	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
@@ -321,13 +320,10 @@ void Request::requestValidations(){
 	checkHost(); 	
 	checkConnectionKeepAlive();
 	manageAcceptedContent();
-	std::cout << "EL PATH [329] " << _path << std::endl;
-
 	managePath();
 	checkProtocolHttp();
 	checkAllowMethod();
 	updateIndex();
-	std::cout << "EL PATH [331] " << _path << std::endl;
 }
  
 void	Request::checkHost() {
@@ -385,7 +381,6 @@ void Request::managePath() {
 void	Request::checkQuery() {
 	std::string url = _requestLine[1];
 	std::string::size_type	posQuery;
-
 	posQuery = url.find("?");
 	if (posQuery != std::string::npos) {
 		_query = url.substr(posQuery + 1, url.size() - posQuery);
@@ -424,8 +419,13 @@ void	Request::updateInfoLocation() {
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	LocationConfig location = vecLocations[_posLocation];
 	updateRoot();
-	addLocMethodsToServVect(location.getAllowedMethods(), _allowedMethods);
-	_errorPages.insert(location.getErrorPages().begin(), location.getErrorPages().end());
+	for (std::vector<std::string>::const_iterator it = location.getAllowedMethods().begin(); it != location.getAllowedMethods().end(); ++it) {
+		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), *it) ==  _allowedMethods.end()) {
+			_allowedMethods.push_back(*it);
+		}
+	}
+	std::map<int, std::pair<std::string, std::string> > errorLoc = location.getErrorPages();
+	_errorPages.insert(errorLoc.begin(), errorLoc.end());
 	if (location.getIndex() != "")
 		_index=  vecLocations[_posLocation].getIndex();
 	_autoIndex = vecLocations[_posLocation].getAutoIndex();
@@ -438,23 +438,13 @@ void	Request::updateInfoLocation() {
 void	Request::updateRoot() {
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	LocationConfig location = vecLocations[_posLocation];
-	
 	std::map<std::string, bool>	vars = location.getVars();
-	if (vars["root"] == true) {
+	
+	if (location.getRoot() != "") {
 		_root = location.getRoot();
 		_rootLoc = true;
 	}
-	if (_root[_root.size() - 1] == '/')
-		_root.erase(_root.size() - 1, 1);
 } 
-
-void	Request::addLocMethodsToServVect(std::vector<std::string> methLoc, std::vector<std::string> methServ) {
-	for (std::vector<std::string>::iterator it =  methLoc.begin(); it != methLoc.end(); ++it) {
-		if (std::find(methServ.begin(), methServ.end(), *it) ==  methServ.end()) {
-			methServ.push_back(*it); //TOOO: check if it's work
-		}
-	}
-}
 
 void Request::updatePath() {
 	if (_return != "") {
@@ -463,11 +453,13 @@ void Request::updatePath() {
 		return ;
 	}
 	else {
-		if (_posLocation >= 0 && _rootLoc == true) {  //substitue the part of location for the root in the path
+		if (_posLocation >= 0 && _rootLoc == true) {
 			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 			std::string uri = vecLocations[_posLocation].getUri();
 			_path.erase(0, uri.size());
 		}
+		if (_root[_root.size() - 1] == '/' && _path != "" && _path[0] == '/')
+			_root.erase(_root.size() - 1, 1);
 		_path = _root + _path;
 		if (access(_path.c_str(), X_OK) == 0)
 			this->_cgi = true;
@@ -494,6 +486,8 @@ void Request::checkProtocolHttp(){
 }
 
 void Request::updateIndex(){
+	if (_path[_path.size() - 1] != '/')
+		_path = _path + '/';
 	_index = _path + _index;
 }
 

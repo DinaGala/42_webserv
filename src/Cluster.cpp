@@ -76,11 +76,12 @@ void	Cluster::runCluster()
 	while (signaled)
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
-        
-		/*if (_nfds == -1) { //TODO: CHECK THIS LINE
-			std::cout << "INSIDE EROR LOOP\n";
+
+		if (_nfds == -1) {
+		 	if (errno == EINTR)
+                continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
-		}*/
+		}
 		std::cout << "EPOLL WAIT\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
