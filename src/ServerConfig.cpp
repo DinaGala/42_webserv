@@ -18,7 +18,7 @@ ServerConfig::ServerConfig(): loc(true)
 {
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = "./html";
 	_maxBodySize = 10000000;
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
@@ -41,7 +41,7 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 //	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = "./html";
 	_maxBodySize = 10000000;
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";

@@ -25,28 +25,27 @@ class Request {
 		std::string							_query;
 		std::string							_path;
 		std::string							_root;
+		bool								_rootLoc;
 		std::string							_method;
-		int									_code;
-
+		int									_code;	
+		int									_posLocation;									
 		std::string 						_host;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
-		std::string 						_index;
+		std::string							_index;
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
 		std::string 						_return;
 		bool								_cgi;
 		std::map<std::string, std::string> 	_cgiConf;
-		std::vector<std::string> 			_serverNames; 
+		std::vector<std::string> 			_serverNames;
 		bool								_connectionKeepAlive;
 		std::multimap<std::string, std::string>	_acceptedContent;
-
 		std::string							_boundary;
 		std::map<std::string, std::string>	_multipartHeaders;
 		std::string							_fileName;
-		bool								_location;
 
 	public:
 		Request(Server& server, int port);
@@ -83,12 +82,14 @@ class Request {
 		void		checkConnectionKeepAlive();
 		void 		managePath();
 		void		checkQuery();
-		size_t		checkLocation();
-		void		updateInfoLocation(size_t nLoc);
+		void		checkLocation();
+		void		updateInfoLocation();
+		void		updateRoot();
+		void		addLocMethodsToServVect(std::vector<std::string> itemsLoc, std::vector<std::string> itemsServ);
 		void 		updatePath();
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
-		
+		void		updateIndex();
 		
 		const std::string&								getBuffer() const;
 		Server&											getServer() const;
@@ -100,8 +101,10 @@ class Request {
 		const std::string&								getQuery() const;
 		const std::string&								getPath() const;
 		const std::string& 								getRoot() const;
+		bool											getRootLoc() const;
 		const std::string&								getMethod() const; 
 		int												getCode() const;
+		int												getPosLocation() const;
 		const std::string& 								getHost() const;
 		size_t											getMaxBodySize() const;
 		const std::vector<std::string>& 				getAllowedMethods() const;
@@ -119,7 +122,6 @@ class Request {
 		const std::string&								getBoundary() const;
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;
 		const std::string& 								getFileName() const;
-		bool											getLocation() const;
 
 		void 		setErrorPages(const std::map<int, std::string>&  errorPages);
 		void 		setIndex(const std::string& index);

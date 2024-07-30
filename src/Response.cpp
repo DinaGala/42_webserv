@@ -198,7 +198,7 @@ void	Response::_handleGet()
 			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_req->getPath() + this->_req->getIndex());
+			int code = this->fileToBody(this->_req->getIndex());
 			if (code)
 			{
 				this->sendError(code);

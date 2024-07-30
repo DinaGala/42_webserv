@@ -145,18 +145,14 @@ void	Cluster::readConnection(Socket *sock)
 
 		buffer[bytesRead] = '\0';
 			
-	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
 		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
-	//	exit (0);
-	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
+		std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
 		else
 			return ;
-
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-	//	std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << sock->getResponse()->makeResponse(sock->getRequest());
 		sock->setLastActivity(time(NULL));
 }
 
@@ -298,6 +294,9 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
 	out << "Request line:  " << val.getRequesLine() << "\n";
+	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
+	out << "Path:  " << val.getPath() << "\n";
+	out << "Number Location:  " << val.getPosLocation() << "\n";
 	out << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    

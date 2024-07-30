@@ -21,8 +21,10 @@ Request& Request::operator=(const Request& src)
 	_query = src.getQuery();
 	_path = src.getPath();
 	_root = src.getRoot();
+	_rootLoc = src.getRootLoc(); 
 	_method = src.getMethod();
 	_code = src.getCode();
+	_posLocation = src.getPosLocation();
 	_host = src.getHost();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
@@ -40,7 +42,7 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
-	_location = src.getLocation();
+
 	return (*this);
 }
 
@@ -58,14 +60,16 @@ void	Request::initParams()
 	_body = "";
 	_query = "";
 	_path = "";
-	_root = "";
+	_root = _server.getRoot();
+	_rootLoc = false;
 	_method = "";
 	_code = 200;
+	_posLocation = -1;	
 	_maxBodySize = _server.getMaxBodySize();
 	_host = _server.getHost();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
-	_index =  ""; //NURIA TODO: set as default
+	_index = "index.html";
 	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
@@ -78,7 +82,6 @@ void	Request::initParams()
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
-	_location = false;
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -90,10 +93,7 @@ void	Request::initParams()
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(const std::string& buffer) 
 {
-
 	_buffer = _buffer + buffer;
-	std::cout << "REQUEST -------------" << std::endl;
-	std::cout << _buffer << std::endl;
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -105,7 +105,9 @@ void	Request::parseRequest(const std::string& buffer)
 			parseBody();
 		}
 		if (_status == FINISH_PARSED){
-			std::cout << "FINISH REQUEST PARSING" << std::endl;
+			
+			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
+			std::cout << "EL PATH [110] " << _path << std::endl;
 			requestValidations();
 		}
 	} catch (const std::exception & e){
@@ -124,11 +126,6 @@ void	Request::parseRequestLine()
 
 	_status = REQUEST_LINE_PARSED;
 	_buffer.erase(0, posBuffer + 2);
-
-	/*std::cout << "REQ LINE -------------" << std::endl;
-	for (std::vector<std::string>::iterator it = _requestLine.begin(); it != _requestLine.end(); ++it) {
-		std::cout << *it << std::endl;
-	}*/
 }
 
 void Request::createRequestLineVector(std::string requestLineStr)
@@ -326,9 +323,13 @@ void Request::requestValidations(){
 	checkHost(); 	
 	checkConnectionKeepAlive();
 	manageAcceptedContent();
-	managePath(); //TODO: PENDING TO CHECK
+	std::cout << "EL PATH [329] " << _path << std::endl;
+
+	managePath();
 	checkProtocolHttp();
 	checkAllowMethod();
+	updateIndex();
+	std::cout << "EL PATH [331] " << _path << std::endl;
 }
  
 void	Request::checkHost() {
@@ -377,9 +378,9 @@ void	Request::manageAcceptedContent() {
 
 void Request::managePath() {
 	checkQuery();
-	size_t nLoc = checkLocation(); 
-	if (_location)
-		updateInfoLocation(nLoc);
+	checkLocation(); 
+	if (_posLocation >= 0)
+		updateInfoLocation();
 	updatePath();
 }
 
@@ -397,11 +398,12 @@ void	Request::checkQuery() {
 	}
 }
 
-size_t Request::checkLocation() {
+void	Request::checkLocation() {  //TODO: refractor
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
+	bool	isLocation = false;
 
 	std::vector<std::string> vecPath = ft_split(_path, "/");
 	for (size_t i=0; i < vecLocations.size(); i++) {
@@ -413,38 +415,66 @@ size_t Request::checkLocation() {
 		if (j > nEqualLocs) {
 			posLoc = i;
 			nEqualLocs = j;
-			_location = true;
+			isLocation = true;
 		}
 	}
-	std::cout << "POSITION LOC " << posLoc << std::endl;
-	return posLoc;
+	if (isLocation)
+		_posLocation = posLoc; 
 }
 
-void Request::updatePath() { //TODO: RETURN PEL GET???? 
-	if (_method == "GET" || _method == "DELETE"){
-		_path = _path.insert(0, ".");
-		if (access(_path.c_str(), X_OK) == 0)
-			this->_cgi = true;
-	} 
-	else if (_requestLine[0] == "POST" && _return != ""){
-		_path = _return;
-		_code = 301;
+void	Request::updateInfoLocation() {
+	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+	LocationConfig location = vecLocations[_posLocation];
+	updateRoot();
+	addLocMethodsToServVect(location.getAllowedMethods(), _allowedMethods);
+	_errorPages.insert(location.getErrorPages().begin(), location.getErrorPages().end());
+	if (location.getIndex() != "")
+		_index=  vecLocations[_posLocation].getIndex();
+	_autoIndex = vecLocations[_posLocation].getAutoIndex();
+	_allowUpload = vecLocations[_posLocation].getAllowUpload();
+	_uploadDir = vecLocations[_posLocation].getUploadDir();
+	_return = vecLocations[_posLocation].getReturn();
+	_cgiConf.insert(location.getCgiConf().begin(), location.getCgiConf().end());
+}
+
+void	Request::updateRoot() {
+	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+	LocationConfig location = vecLocations[_posLocation];
+	
+	std::map<std::string, bool>	vars = location.getVars();
+	if (vars["root"] == true) {
+		_root = location.getRoot();
+		_rootLoc = true;
+	}
+	if (_root[_root.size() - 1] == '/')
+		_root.erase(_root.size() - 1, 1);
+} 
+
+void	Request::addLocMethodsToServVect(std::vector<std::string> methLoc, std::vector<std::string> methServ) {
+	for (std::vector<std::string>::iterator it =  methLoc.begin(); it != methLoc.end(); ++it) {
+		if (std::find(methServ.begin(), methServ.end(), *it) ==  methServ.end()) {
+			methServ.push_back(*it); //TOOO: check if it's work
+		}
 	}
 }
 
-void	Request::updateInfoLocation(size_t nLoc) {
- 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
-    LocationConfig location = vecLocations[nLoc];
+void Request::updatePath() {
+	if (_return != "") {
+		_path = _return;
+		_code = 301;
+		return ;
+	}
+	else {
+		if (_posLocation >= 0 && _rootLoc == true) {  //substitue the part of location for the root in the path
+			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+			std::string uri = vecLocations[_posLocation].getUri();
+			_path.erase(0, uri.size());
+		}
+		_path = _root + _path;
+		if (access(_path.c_str(), X_OK) == 0)
+			this->_cgi = true;
+	}
 
-	_root = vecLocations[nLoc].getRoot();
-	_allowedMethods = vecLocations[nLoc].getAllowedMethods();
-	_errorPages = vecLocations[nLoc].getErrorPages();
-	_index =  vecLocations[nLoc].getIndex();
-	_autoIndex = vecLocations[nLoc].getAutoIndex();
-	_allowUpload = vecLocations[nLoc].getAllowUpload();
-	_uploadDir = vecLocations[nLoc].getUploadDir();
-	_return = vecLocations[nLoc].getReturn();
-	_cgiConf = vecLocations[nLoc].getCgiConf();
 }
 
 void Request::checkAllowMethod(){
@@ -463,6 +493,10 @@ void Request::checkProtocolHttp(){
 	}
 	else
 		sendBadRequestError("Request parsing error: invalid request line");
+}
+
+void Request::updateIndex(){
+	_index = _path + _index;
 }
 
 // _____________  GETTERS _____________ 
@@ -516,6 +550,11 @@ const std::string& 	Request::getRoot() const
     return (_root);
 }
 
+bool Request::getRootLoc() const 
+{
+	return (_rootLoc);
+}
+
 const std::string&	Request::getMethod() const 
 {
 	return (_method);
@@ -524,6 +563,11 @@ const std::string&	Request::getMethod() const
 int	Request::getCode() const 
 {
 	return (_code);
+}
+
+int Request::getPosLocation() const 
+{
+	return (_posLocation);
 }
 
 size_t	Request::getMaxBodySize() const 
@@ -609,11 +653,6 @@ const std::map<std::string, std::string>& Request::getMultipartHeaders() const
 const std::string&	Request::getFileName() const 
 {
 	return (_fileName);
-}
-
-bool Request::getLocation() const 
-{
-	return (_location);
 }
 
 // _____________  SETTERS _____________ 

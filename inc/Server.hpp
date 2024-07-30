@@ -9,6 +9,7 @@ class Server {
 		std::string 						_ipAddress;
 		std::string 						_host;
 		std::vector<int>					_ports;
+		std::string							_root;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::string> 			_errorPages;
@@ -38,6 +39,7 @@ class Server {
 		const std::string& 							getIpAdress() const;
 		const std::string& 							getHost() const;
 		const std::vector<int>&						getPort() const;
+		const std::string& 							getRoot() const;
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
 		const std::map<int, std::string>& 			getErrorPages() const;

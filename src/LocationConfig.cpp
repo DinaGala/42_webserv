@@ -21,7 +21,7 @@ LocationConfig::LocationConfig(std::string url, const std::string &root, std::st
 	// std::cout << "UN LOC CONSTRUCT, URL: " + url + "\n";
 	_autoIndex = false;
     _allowUpload = false;
-    _index = "index.html";
+	_index = "index.html";
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
