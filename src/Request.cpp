@@ -68,7 +68,7 @@ void	Request::initParams()
 	_host = _server.getHost();
 	_allowedMethods = _server.getAllowedMethods();
 	_errorPages = _server.getErrorPages();
-	_index = "index.html"; //TOD: check config
+	_index = "";
 	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
@@ -174,6 +174,7 @@ void	Request::parseBody(){
 		return ;
 	}
 	if (_headers.find("Transfer-Encoding") != _headers.end()) {
+		std::cout << "INSIDE TRANSFER ENCODING" << std::endl;
 		if (_headers.find("Transfer-Encoding")->second != "chunked") 
 			sendBadRequestError("Request parsing error: invalid Transfer-Encoding value parameter");
 		parseBodyByChunked();
@@ -236,6 +237,7 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 }
 
 void	Request::parseBodyByContentLength() { 
+	std::cout << "INSIDE CONTENT LENGHT" << std::endl;
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size");
@@ -463,7 +465,6 @@ void Request::updatePath() {
 		_path = _root + _path;
 		setCgi();
 	}
-
 }
 
 void	Request::setCgi()
@@ -499,10 +500,12 @@ void Request::checkProtocolHttp(){
 }
 
 void Request::updateIndex(){
-	if (_path[_path.size() - 1] != '/')
-		_index = _path + '/' + _index;
-	else	
-		_index = _path + _index;
+	if (_index != "") {
+		if (_path[_path.size() - 1] != '/')
+			_index = _path + '/' + _index;
+		else	
+			_index = _path + _index;
+	}
 }
 
 // _____________  GETTERS _____________ 
