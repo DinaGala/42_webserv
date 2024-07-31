@@ -65,7 +65,7 @@ class	Response
 		std::string	_parseUrl(const std::string &url);
 		std::vector<std::string> _setCgi(const std::string &path);
 		bool		_createFile(void);
-		bool		_isNotAccepted(std::string str);
+		bool		_isAccepted(std::string str);
 		void		_makeAutoIndex(void);
 		int			_isDir(const std::string &path) const ;
 		void		_handleFavIcon();
