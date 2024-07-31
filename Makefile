@@ -31,7 +31,7 @@ $(NAME): $(OBJ)
 
 test:
 	@${CPP} ${CPPFLAGS} test.cpp
-	@./a.out
+	@./a.out ${ARGS}
 	@rm -f ./a.out test.d
 
 run: ${NAME}
