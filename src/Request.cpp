@@ -162,7 +162,7 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 	if (posColon == std::string::npos) 
 		sendBadRequestError("Request parsing error: invalid headers");
 	std::string name = trim(line.substr(0, posColon));
-	std::string value = trim(line.substr(posColon + 1, line.size() - posColon - 1));
+	std::string value = trim(line.substr(posColon + 1));
 
 	map.insert(std::make_pair(name, value));
 }
@@ -333,7 +333,7 @@ void	Request::checkHost() {
 	int portReq = 8080;
 	if (hostReq.find(":") != std::string::npos) {
 		size_t posColon = hostReq.find(":");
-		portReq  = ft_atoi(hostReq.substr(posColon + 1, hostReq.size() - posColon - 1));
+		portReq  = ft_atoi(hostReq.substr(posColon + 1));
 		hostReq = hostReq.substr(0, posColon);
 	}
 	if (portReq != _port)
@@ -360,7 +360,7 @@ void	Request::manageAcceptedContent() {
 		if (posSlash == std::string::npos) 
 			sendBadRequestError("Request parsing error: invalid Accept header");
 		std::string type = trim(acceptVec[i].substr(0, posSlash));
-		std::string subtype = trim(acceptVec[i].substr(posSlash + 1, acceptVec[i].length() - posSlash -1));
+		std::string subtype = trim(acceptVec[i].substr(posSlash + 1));
 		
 		size_t posSemicolon = subtype.find(';');
 		if (posSemicolon != std::string::npos) {
@@ -383,7 +383,7 @@ void	Request::checkQuery() {
 	std::string::size_type	posQuery;
 	posQuery = url.find("?");
 	if (posQuery != std::string::npos) {
-		_query = url.substr(posQuery + 1, url.size() - posQuery);
+		_query = url.substr(posQuery + 1);
 		_path = url.substr(0, posQuery);
 	}
 	else {
@@ -461,10 +461,23 @@ void Request::updatePath() {
 		if (_root[_root.size() - 1] == '/' && _path != "" && _path[0] == '/')
 			_root.erase(_root.size() - 1, 1);
 		_path = _root + _path;
-		if (access(_path.c_str(), X_OK) == 0)
-			this->_cgi = true;
+		setCgi();
 	}
 
+}
+
+void	Request::setCgi()
+{
+	if (access(_path.c_str(), X_OK) == 0) //if executable
+		this->_cgi = true;
+	else {
+		std::string::size_type	found = _path.find_last_of(".");
+		if (found != std::string::npos) {
+			std::string ext = _path.substr(found);
+			if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
+				this->_cgi = true;
+		}
+	}
 }
 
 void Request::checkAllowMethod(){
@@ -487,8 +500,9 @@ void Request::checkProtocolHttp(){
 
 void Request::updateIndex(){
 	if (_path[_path.size() - 1] != '/')
-		_path = _path + '/';
-	_index = _path + _index;
+		_index = _path + '/' + _index;
+	else	
+		_index = _path + _index;
 }
 
 // _____________  GETTERS _____________ 

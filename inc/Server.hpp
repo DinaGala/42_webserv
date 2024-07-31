@@ -12,7 +12,7 @@ class Server {
 		std::string							_root;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
-		std::map<int, std::pair<std::string, std::string> > 			_errorPages;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		bool 								_autoIndex;
 		std::string 						_return;
 		std::map<std::string, std::string> 	_cgiConf;
@@ -43,7 +43,7 @@ class Server {
 		const std::string& 							getRoot() const;
 		size_t 										getMaxBodySize() const;
 		const std::vector<std::string>& 			getAllowedMethods() const;
-		const std::map<int, std::pair<std::string, std::string> > & 			getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> >&	getErrorPages() const;
 		bool 										getAutoIndex() const;
 		const std::string& 							getReturn() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;

@@ -78,8 +78,8 @@ void	Cluster::runCluster()
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
 
 		if (_nfds == -1) {
-		 	if (errno == EINTR)
-                continue;
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
 		std::cout << "EPOLL WAIT\n";

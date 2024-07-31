@@ -87,6 +87,7 @@ class Request {
 		void		updateInfoLocation();
 		void		updateRoot();
 		void 		updatePath();
+		void		setCgi();
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
 		void		updateIndex();
