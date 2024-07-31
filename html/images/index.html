@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+        }
+        .container h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+        }
+        .container p {
+            font-size: 1.2em;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2 id="images">Here you can upload you stupid life images</h2>
+    <!-- Form to submit favorite quesadilla type and upload a file -->
+    <!-- <form action="/upload" method="POST" enctype="multipart/form-data"> -->
+    <form method="POST" enctype="multipart/form-data">
+        <label for="fileUpload">Upload a picture:</label>
+        <input type="file" id="upload" name="upload" required>
+        <input type="submit" value="Upload">
+    </form>
+    </div>
+</body>
+</html>

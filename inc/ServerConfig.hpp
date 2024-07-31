@@ -56,7 +56,7 @@ class ServerConfig
 //		void 		setCgiConf(const std::map<std::string, std::string>& cgiConf);
 		void 		setCgiConf(const std::string &ext, const std::string &path);
 		void 		setAutoIndex(bool autoIndex);
-//		void 		setHostName(const std::string& hostName);
+		void 		setHostName(const std::string& hostName);
 		void 		setLocationConfig(const LocationConfig& location);
 		void 		setErrorPage(int code, const std::string& page);
 		void 		setAllowMethod(const std::string& method);

@@ -134,19 +134,28 @@ std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig> &sconf)
         if (!svar["host"] && !svar["ip"])
         {
             it->setHost("localhost");
-            it->setIp(findIp("localhost"));
+            it->setIp(findIp("localhost", true));
         }
         else if (svar["host"] && !svar["ip"])
-            it->setIp(findIp(it->getHost()));
+            it->setIp(findIp(it->getHost(), true));
+        else if (!svar["host"] && svar["ip"])
+            it->setHostName(findIp(it->getIp(), false));
 	}
 
     return (sconf);
 }
 
-std::string	Parse::findIp(std::string host)
+// if flag = true - we are looking for ip, 
+// if flag = false - we are looking for the hostname
+std::string	Parse::findIp(std::string host, bool flag)
 {
  //   std::cout << "IN GET IP\n";
     std::ifstream file("/etc/hosts");
+    if (!file.is_open())
+    {
+        file.open(".hosts");
+        std::cout << "Couldn't find /etc/hosts, used local host file.\n";
+    }
     if (!file.is_open())
         throw std::invalid_argument("Error: couldn't open the hosts file to find the host \"" + host + "\"");
     std::string line;
@@ -158,12 +167,22 @@ std::string	Parse::findIp(std::string host)
         std::vector<std::string>    arr = ft_split(trim(line), WS);
         if (arr.size() < 2)
             continue ;
-        if (arr[1] == host)
-            return (arr[0]);   
+        if (arr[1] == host && flag == true)
+        {
+            file.close();
+            return (arr[0]);
+        }
+        if (arr[0] == host && flag == false)
+        {
+            file.close();
+            return (arr[1]);
+        }
     }
+    file.close();
     throw std::invalid_argument("Configuration file error: host not found in \"" + host + "\" of the \"listen\" directive");
     return (line);
 }
+
 
 int  Parse::checkDupsPort(ServerConfig &serv, std::vector<int> &all)
 {
@@ -205,7 +224,7 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
      //   buf.clear();
         throw std::invalid_argument("Configuration file error: unfinished line " + line.substr(0, line.find('\n')) + ". Use a delimiter: \"" + del + "\"");
     }
-    else 
+    else
     {
         if (buf[pos] == '{')
         {
