@@ -486,11 +486,11 @@ void Request::checkProtocolHttp(){
 }
 
 void Request::updateIndex(){
-	if (_path[_path.size() - 1] != '/')
-		_path = _path + '/';
-	_index = _path + _index;
+    if (_path[_path.size() - 1] != '/')
+        _index = _path + '/' + _index;
+    else
+        _index = _path + _index;
 }
-
 // _____________  GETTERS _____________ 
 
 const std::string& Request::getBuffer() const 
