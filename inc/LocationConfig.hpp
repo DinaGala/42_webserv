@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/29 15:46:37 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:15:21 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,10 @@
 class LocationConfig
 {
 	public:
-		LocationConfig(std::string uri, const std::string &root, std::string file);
+		LocationConfig(std::string url, std::map<int, std::pair<std::string, std::string> > err, std::string file);
 		LocationConfig(const LocationConfig& src);
 		LocationConfig& operator=(const LocationConfig& src);
+		std::map<int, std::pair<std::string, std::string> >	operator=(const std::map<int, std::pair<std::string, std::string> > &val);
 		~LocationConfig();
 
 		typedef void (*func)(LocationConfig &, std::vector<std::string> &);

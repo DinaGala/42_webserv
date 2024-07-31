@@ -125,3 +125,10 @@ uint64_t    strToHex(std::string line)
 	ss >> result;
 	return result;
 }
+
+void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val)
+{
+	std::map<int, std::pair<std::string, std::string> >	src = val;
+	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
+		res[it->first] = std::make_pair(it->second.first, it->second.second);
+}

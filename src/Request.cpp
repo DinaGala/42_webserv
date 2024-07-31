@@ -21,8 +21,10 @@ Request& Request::operator=(const Request& src)
 	_query = src.getQuery();
 	_path = src.getPath();
 	_root = src.getRoot();
+	_rootLoc = src.getRootLoc(); 
 	_method = src.getMethod();
 	_code = src.getCode();
+	_posLocation = src.getPosLocation();
 	_host = src.getHost();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
@@ -40,7 +42,6 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
-	_location = src.getLocation();
 	return (*this);
 }
 
@@ -58,39 +59,28 @@ void	Request::initParams()
 	_body = "";
 	_query = "";
 	_path = "";
-	_root = "";
+	_root = _server.getRoot();
+	_rootLoc = false;
 	_method = "";
 	_code = 200;
-	_maxBodySize = 0;
-	_host = "";
-	_allowedMethods.clear();
-	_errorPages.clear();
-	_index =  ""; //TODO: set as default
-	_autoIndex = false;
+	_posLocation = -1;	
+	_maxBodySize = _server.getMaxBodySize();
+	_host = _server.getHost();
+	_allowedMethods = _server.getAllowedMethods();
+	_errorPages = _server.getErrorPages();
+	_index = "index.html"; //TOD: check config
+	_autoIndex = _server.getAutoIndex();
 	_allowUpload = false;
 	_uploadDir = "";
-	_return = "";
+	_return = _server.getReturn();
 	_cgi = false;
-	_cgiConf.clear();
-	_serverNames.clear();
+	_cgiConf = _server.getCgiConf();
+	_serverNames = _server.getServerName();
 	_connectionKeepAlive = true;
 	_multipartHeaders.clear();
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
-	_location = false;
-}
-
-void	Request::setServerParams() 
-{
-	_host = _server.getHost();
-	_maxBodySize = _server.getMaxBodySize();
-	_allowedMethods = _server.getAllowedMethods();
-	_errorPages = _server.getErrorPages();
-	_autoIndex = _server.getAutoIndex();
-	_return = _server.getReturn();
-	_cgiConf = _server.getCgiConf();
-	_serverNames = _server.getServerName();
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -102,11 +92,7 @@ void	Request::setServerParams()
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(const std::string& buffer) 
 {
-
 	_buffer = _buffer + buffer;
-	std::cout << "REQUEST -------------" << std::endl;
-	std::cout << _buffer << std::endl;
-	setServerParams();
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -118,7 +104,7 @@ void	Request::parseRequest(const std::string& buffer)
 			parseBody();
 		}
 		if (_status == FINISH_PARSED){
-			std::cout << "FINISH REQUEST PARSING" << std::endl;
+			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 			requestValidations();
 		}
 	} catch (const std::exception & e){
@@ -128,7 +114,8 @@ void	Request::parseRequest(const std::string& buffer)
 }
 
 // _____________  PARSING REQUEST LINE  _____________ 
-void	Request::parseRequestLine() {
+void	Request::parseRequestLine() 
+{
 	size_t posBuffer = _buffer.find(CRLF);
 	if (posBuffer == std::string::npos)
 		return ;
@@ -136,14 +123,10 @@ void	Request::parseRequestLine() {
 
 	_status = REQUEST_LINE_PARSED;
 	_buffer.erase(0, posBuffer + 2);
-
-	/*std::cout << "REQ LINE -------------" << std::endl;
-	for (std::vector<std::string>::iterator it = _requestLine.begin(); it != _requestLine.end(); ++it) {
-		std::cout << *it << std::endl;
-	}*/
 }
 
-void Request::createRequestLineVector(std::string requestLineStr){
+void Request::createRequestLineVector(std::string requestLineStr)
+{
 	std::stringstream ss(requestLineStr);
 	std::string element;
 	while (ss >> element) {
@@ -151,7 +134,7 @@ void Request::createRequestLineVector(std::string requestLineStr){
 	}
 	if (_requestLine.size() != 3) 
 		sendBadRequestError("Request parsing error: invalid request line");
-	_method = _requestLine[0]; 
+	_method = _requestLine[0];
 }
 
 // _____________  PARSING HEADERS   _____________ 
@@ -340,24 +323,32 @@ void Request::requestValidations(){
 	managePath();
 	checkProtocolHttp();
 	checkAllowMethod();
+	updateIndex();
 }
  
+void	Request::checkHost() {
+	if (_headers.find("Host") == _headers.end())
+		sendBadRequestError("Request parsing error: invalid Host");
+	std::string hostReq = _headers.find("Host")->second;
+	int portReq = 8080;
+	if (hostReq.find(":") != std::string::npos) {
+		size_t posColon = hostReq.find(":");
+		portReq  = ft_atoi(hostReq.substr(posColon + 1, hostReq.size() - posColon - 1));
+		hostReq = hostReq.substr(0, posColon);
+	}
+	if (portReq != _port)
+		sendBadRequestError("Request parsing error: invalid Host");
+	if (hostReq == _host || hostReq == _server.getIpAdress())
+		return;
+	std::vector<std::string>::iterator it = std::find(_serverNames.begin(), _serverNames.end(), hostReq);
+	if (it == _serverNames.end()) 
+		sendBadRequestError("Request parsing error: invalid Host");
+}
+
 void	Request::checkConnectionKeepAlive() {
 	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close") {
 		_connectionKeepAlive = false;
 	}
-}
-
-void	Request::checkHost() {
-	if (_headers.find("Host") == _headers.end())
-		sendBadRequestError("Request parsing error: invalid Host");
-	//TODO: CHeck host + port
-	std::string hostHeader = _headers.find("Host")->second;
-	std::string hostSaved1 = _server.getIpAdress() + ":" + ft_itoa(_port);
-	std::string hostSaved2 = _server.getHost() + ":" + ft_itoa(_port);
-	if (hostHeader ==  hostSaved1 || hostHeader ==  hostSaved2)
-		return;
-	//TODO: Manage server names
 }
 
 void	Request::manageAcceptedContent() {
@@ -381,16 +372,15 @@ void	Request::manageAcceptedContent() {
 
 void Request::managePath() {
 	checkQuery();
-	size_t nLoc = checkLocation(); //TODO: PENDING TO CHECK
-	if (_location)
-		updateInfoLocation(nLoc);
-	updatePath();  //TODO: PENDING TO CHECK
+	checkLocation(); 
+	if (_posLocation >= 0)
+		updateInfoLocation();
+	updatePath();
 }
 
 void	Request::checkQuery() {
 	std::string url = _requestLine[1];
 	std::string::size_type	posQuery;
-
 	posQuery = url.find("?");
 	if (posQuery != std::string::npos) {
 		_query = url.substr(posQuery + 1, url.size() - posQuery);
@@ -401,67 +391,80 @@ void	Request::checkQuery() {
 	}
 }
 
-size_t Request::checkLocation() {
+void	Request::checkLocation() {  //TODO: refractor
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
 	size_t 	j=0;
+	bool	isLocation = false;
 
 	std::vector<std::string> vecPath = ft_split(_path, "/");
-	
-	std::cout << "VEC PATH -------------" << std::endl;
-	for (std::vector<std::string>::iterator it = vecPath.begin(); it != vecPath.end(); ++it) {
-		std::cout << *it << std::endl;
-	}
-
 	for (size_t i=0; i < vecLocations.size(); i++) {
 		std::vector<std::string> vecLoc = ft_split(vecLocations[i].getUri(), "/");
-		std::cout << "VEC LOC " << i << " ----" << std::endl;
-		for (std::vector<std::string>::iterator itt = vecLoc.begin(); itt != vecLoc.end(); ++itt) {
-			std::cout << *itt << std::endl;
-		}
-		for (j = 0; j < vecLoc.size(); j++) {
-			std::cout << "COMPARE " << vecPath[j] << " vs " << vecLoc[j] << std::endl;
-			if (vecPath[j] != vecLoc[j]) {
+		for (j = 0; j < vecLoc.size() && j < vecPath.size(); j++) {
+			if (vecPath[j] != vecLoc[j])
 				break;
-			}	
 		}
 		if (j > nEqualLocs) {
 			posLoc = i;
 			nEqualLocs = j;
-			_location = true;
+			isLocation = true;
 		}
 	}
-	std::cout << "POSITION LOC " << posLoc << std::endl;
-	return posLoc;
+	if (isLocation)
+		_posLocation = posLoc; 
 }
+
+void	Request::updateInfoLocation() {
+	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+	LocationConfig location = vecLocations[_posLocation];
+	updateRoot();
+	for (std::vector<std::string>::const_iterator it = location.getAllowedMethods().begin(); it != location.getAllowedMethods().end(); ++it) {
+		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), *it) ==  _allowedMethods.end()) {
+			_allowedMethods.push_back(*it);
+		}
+	}
+	std::map<int, std::pair<std::string, std::string> > errorLoc = location.getErrorPages();
+	_errorPages.insert(errorLoc.begin(), errorLoc.end());
+	if (location.getIndex() != "")
+		_index=  vecLocations[_posLocation].getIndex();
+	_autoIndex = vecLocations[_posLocation].getAutoIndex();
+	_allowUpload = vecLocations[_posLocation].getAllowUpload();
+	_uploadDir = vecLocations[_posLocation].getUploadDir();
+	_return = vecLocations[_posLocation].getReturn();
+	_cgiConf.insert(location.getCgiConf().begin(), location.getCgiConf().end());
+}
+
+void	Request::updateRoot() {
+	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+	LocationConfig location = vecLocations[_posLocation];
+	std::map<std::string, bool>	vars = location.getVars();
+	
+	if (location.getRoot() != "") {
+		_root = location.getRoot();
+		_rootLoc = true;
+	}
+} 
 
 void Request::updatePath() {
-	std::string str = _requestLine[1];
-	if (_requestLine[0] == "GET" || _requestLine[0] == "DELETE"){
-		_path = str.insert(0, ".");
-		if (access(str.c_str(), X_OK) == 0)
-			this->_cgi = true;
-	} 
-	else if (_requestLine[0] == "POST" && _return != ""){
+	if (_return != "") {
 		_path = _return;
 		_code = 301;
+		return ;
 	}
-}
+	else {
+		if (_posLocation >= 0 && _rootLoc == true) {
+			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
+			std::string uri = vecLocations[_posLocation].getUri();
+			_path.erase(0, uri.size());
+		}
+		if (_root[_root.size() - 1] == '/' && _path != "" && _path[0] == '/')
+			_root.erase(_root.size() - 1, 1);
+		_path = _root + _path;
+		if (access(_path.c_str(), X_OK) == 0)
+			this->_cgi = true;
+	}
 
-void	Request::updateInfoLocation(size_t nLoc) {
- 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
-    LocationConfig location = vecLocations[nLoc];
-
-	_root = vecLocations[nLoc].getRoot();
-	_allowedMethods = vecLocations[nLoc].getAllowedMethods();
-	_errorPages = vecLocations[nLoc].getErrorPages();
-	_index =  vecLocations[nLoc].getIndex();
-	_autoIndex = vecLocations[nLoc].getAutoIndex();
-	_allowUpload = vecLocations[nLoc].getAllowUpload();
-	_uploadDir = vecLocations[nLoc].getUploadDir();
-	_return = vecLocations[nLoc].getReturn();
-	_cgiConf = vecLocations[nLoc].getCgiConf();
 }
 
 void Request::checkAllowMethod(){
@@ -480,6 +483,12 @@ void Request::checkProtocolHttp(){
 	}
 	else
 		sendBadRequestError("Request parsing error: invalid request line");
+}
+
+void Request::updateIndex(){
+	if (_path[_path.size() - 1] != '/')
+		_path = _path + '/';
+	_index = _path + _index;
 }
 
 // _____________  GETTERS _____________ 
@@ -533,6 +542,11 @@ const std::string& 	Request::getRoot() const
     return (_root);
 }
 
+bool Request::getRootLoc() const 
+{
+	return (_rootLoc);
+}
+
 const std::string&	Request::getMethod() const 
 {
 	return (_method);
@@ -541,6 +555,11 @@ const std::string&	Request::getMethod() const
 int	Request::getCode() const 
 {
 	return (_code);
+}
+
+int Request::getPosLocation() const 
+{
+	return (_posLocation);
 }
 
 size_t	Request::getMaxBodySize() const 
@@ -628,17 +647,20 @@ const std::string&	Request::getFileName() const
 	return (_fileName);
 }
 
-bool Request::getLocation() const 
-{
-	return (_location);
-}
-
 // _____________  SETTERS _____________ 
 
-/*void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
+//TODO
+/*<<<<<<< HEAD
+void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
 {
 	_errorPages = errorPages;
-}*/
+}
+=======
+void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
+{
+	copyMap(_errorPages, errorPages);
+}
+>>>>>>> http*/
 
 void Request::setIndex(const std::string& index) 
 {

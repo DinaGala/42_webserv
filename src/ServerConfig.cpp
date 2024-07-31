@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/29 18:07:34 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:23:15 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,12 @@ std::map<int, std::pair<std::string, std::string> > ServerConfig::_errorPages = 
 
 // _____________  CONSTRUCTORS ______________________________________
 
+
 ServerConfig::ServerConfig(): loc(true)
 {
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = "./html";
 	_maxBodySize = 10000000;
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
@@ -52,10 +53,10 @@ ServerConfig::ServerConfig(): loc(true)
 	_host = "localhost";
 	_ip = "127.0.0.1";
 	_port.push_back(8080);
+	_allowedMethods.clear();
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
-	_errorPages = this->_initStatus();
 	/*_errorPages[403] = "./errors/403.html";
 	_errorPages[404] = "./errors/404.html";
 	_errorPages[500] = "./errors/500.html";*/
@@ -67,8 +68,12 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 //	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = "./html";
 	_maxBodySize = 10000000;
+	_allowedMethods.clear();
+	_port.clear();
+	_serverName.clear();
+	_locations.clear();
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
@@ -89,14 +94,25 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_ip = src._ip;
 	_allowedMethods = src._allowedMethods;
 	_locations = src._locations;
+//	copyMap(_errorPages, src._errorPages);
 	_errorPages = src._errorPages;
 	_maxBodySize = src._maxBodySize;
 	_cgiConf = src._cgiConf;
 	_autoIndex = src._autoIndex;
 	_vars = src._vars;
 	_errorPages = src._errorPages;
+	_keys = src._keys;
 //	empty = src.empty;
 	return (*this);
+}
+
+std::map<int, std::pair<std::string, std::string> > ServerConfig::operator=(const std::map<int, std::pair<std::string, std::string> > &val)
+{
+	std::map<int, std::pair<std::string, std::string> >	src = val;
+	std::map<int, std::pair<std::string, std::string> >	ret;
+	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
+		ret[it->first] = std::make_pair(it->second.first, it->second.second);
+	return (ret);
 }
 
 ServerConfig::ServerConfig(const ServerConfig& src): loc(true)
@@ -112,6 +128,8 @@ ServerConfig::~ServerConfig()
 	_allowedMethods.clear();
 	//_errorPages.clear();
 	_cgiConf.clear();
+	_keys.clear();
+	_vars.clear();
 }
 
 void ServerConfig::_initKeys()
@@ -275,7 +293,11 @@ void ServerConfig::setLocationConfig(const LocationConfig& location)
 
 void ServerConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages[code].second = page;
+	std::map<int, std::pair<std::string, std::string> >::iterator it = _errorPages.find(code);
+	if (it == _errorPages.end())
+		_errorPages[code] = std::make_pair("", page);
+	else
+		_errorPages[code] = std::make_pair(it->second.first, page);
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
 //	_errorPages.insert(std::make_pair(code, page));
@@ -307,6 +329,8 @@ void ServerConfig::setAutoIndex(bool autoindex)
 void 	ServerConfig::setAllowMethod(const std::string& method)
 {
 //	std::cout << "SET ALLOW METHODS, METHOD: " << method << std::endl;
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		throw std::invalid_argument("Error: unknown method in allowed_method: " + method);	
 	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
 	{
 		if (*it == method)

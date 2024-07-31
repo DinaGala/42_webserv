@@ -15,6 +15,7 @@ Server& Server::operator=(const Server& src)
 	_ipAddress = src.getIpAdress();
 	_host = src.getHost();
 	_ports = src.getPort();
+	_root = src.getRoot();
 	_maxBodySize = src.getMaxBodySize();
 	_allowedMethods = src.getAllowedMethods();
 	_errorPages = src.getErrorPages();
@@ -26,15 +27,27 @@ Server& Server::operator=(const Server& src)
 	return (*this);
 }
 
+std::map<int, std::pair<std::string, std::string> > Server::operator=(const std::map<int, std::pair<std::string, std::string> > &val)
+{
+	std::map<int, std::pair<std::string, std::string> >	src = val;
+	std::map<int, std::pair<std::string, std::string> >	ret;
+	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
+		ret[it->first] = std::make_pair(it->second.first, it->second.second);
+	return (ret);
+}
+
 Server::~Server() 
 {
 }
 
 void	Server::initParamsServer(ServerConfig &sconfig) 
 {
+//	std::map<int, std::pair<std::string, std::string> > err 
+	
 	_ipAddress = sconfig.getIp();
 	_host = sconfig.getHost();
 	_ports = sconfig.getPort();
+	_root = sconfig.getRoot();
 	_allowedMethods = sconfig.getAllowedMethods();
 	_maxBodySize = sconfig.getMaxBodySize();
 	_errorPages = sconfig.getErrorPages();
@@ -42,7 +55,9 @@ void	Server::initParamsServer(ServerConfig &sconfig)
 	_return = "";
 	_cgiConf = sconfig.getCgiConf();
 	_serverName = sconfig.getServerName();
+	_locations = sconfig.getLocationConfig();
 }
+
 
 // _____________  GETTERS _____________ 
 
@@ -53,7 +68,7 @@ const std::string& Server::getIpAdress() const
 
 const std::string& Server::getHost() const 
 {
-	return (_host);
+	return (_host);				
 }
 
 const std::vector<int>& Server::getPort() const 
@@ -61,7 +76,13 @@ const std::vector<int>& Server::getPort() const
 	return (_ports);
 }
 
-const std::vector<std::string>& Server::getAllowedMethods() const{
+const std::string& Server::getRoot() const{
+
+	return (_root);
+}
+
+const std::vector<std::string>& Server::getAllowedMethods() const
+{
 
 	return (_allowedMethods);
 }
@@ -102,7 +123,12 @@ const std::vector<LocationConfig> Server::getLocationConfig() const
 
 // _____________  SETTERS _____________ 
 
-/*void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
+//TODO
+/*<<<<<<< HEAD
+void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
+=======
+void Server::setErrorPages(const std::map<int, std::pair<std::string, std::string> > &  errorPages) 
+>>>>>>> http
 {
 	_errorPages = errorPages;
 }

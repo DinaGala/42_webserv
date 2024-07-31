@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/29 14:24:54 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:15:43 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class Parse
     public: 
 
     /* MAIN PARSING ENGINE: PARSING COMPLEX DIRECTIVES ______________________*/
-        static std::vector<ServerConfig>	configParse(char *name);
+        static std::vector<ServerConfig>	configParse(const char *name);
         static std::vector<ServerConfig>    configParse();
         template <typename T>
         static void complexParse(T &serv, std::string &block);       
@@ -43,7 +43,7 @@ class Parse
 
     /* PARSING UTILS ________________________________________________________*/
         static int          ft_getline(std::string &buf, std::string &line, std::string del); //returns 0 - empty line, 1 - first delimiter, 2  - second delimiter
-        static std::string  ft_getword(std::string &buf);
+        static std::string  ft_getword(std::string &buf, std::string del);
         static std::string  checkBrackets(std::ifstream &filename);
         static std::string  blockCrop(std::string &buf);
         static std::vector<std::string>  checkComment(std::vector<std::string> line); 
@@ -75,7 +75,7 @@ class Parse
         static void  returnParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  uploadDirParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  allowUploadParse(LocationConfig &serv, std::vector<std::string> &line);
-
+        
         static std::string	isHostName();
         static std::string	isPath();
         static std::string	isUrl();
@@ -91,5 +91,6 @@ std::ostream	&operator<<(std::ostream &out, std::map<int, std::pair<std::string,
 std::ostream	&operator<<(std::ostream &out, const ServerConfig &val);
 std::ostream	&operator<<(std::ostream &out, const LocationConfig &val);
 std::ostream	&operator<<(std::ostream &out, const std::vector<ServerConfig> &val);
+
 
 #endif
