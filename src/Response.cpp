@@ -143,10 +143,9 @@ std::string	&Response::makeResponse(const Request *req)
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
 	//std::cout << "\033[33;1mPATH: " << this->_req->getPath() << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ CGI: " << this->_req->getCgi() << "\033[0m" << std::endl;
 	//std::cout << "\033[33;1mREQ CODE: " << this->_req->getCode() << "\033[0m" << std::endl;
 
-	if (this->_req->getCgi())
-		this->_cgiargs = this->_setCgi(this->_req->getPath());
 	if (method == "GET")
 		this->_handleGet();
 	else if (method == "POST")
@@ -235,6 +234,7 @@ void	Response::_handleGet()
 	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
+		std::cout << "\033[1;31mGET let's go CGI!\033[0m" << std::endl;
 		if (access(this->_req->getPath().c_str(), X_OK))
 		{
 			this->sendError(403);
