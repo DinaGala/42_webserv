@@ -46,6 +46,7 @@
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
+# include <netinet/tcp.h>
 # include <netdb.h>
 # include <netinet/in.h>
 # include <cstdlib> // For exit() and EXIT_FAILURE 

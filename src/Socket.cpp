@@ -3,7 +3,7 @@
 Socket::Socket(Server &server, int port): _server(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
-	_lastActivity = time(NULL); // TOFIX
+//	_lastActivity = time(NULL); // TOFIX
 	initMaster();
 	setNonBlocking();
 }
@@ -15,12 +15,14 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 	std::cout << "client socket port:  " << _port << "\n";
 	_req.push_back(Request(server, this->_port));
 	_resp.push_back(Response());
-	_lastActivity = time(NULL);
+//	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
 	setNonBlocking();
 }
 
 Socket::~Socket() {
+	_req.clear();
+	_resp.clear();
 }
 
 Socket& Socket::operator=(const Socket& src)
@@ -87,7 +89,15 @@ void	Socket::initMaster()
         _fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (_fd == -1) 
 			continue;
-        if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
+        
+		int opt = 1;
+		if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+                close(_fd);
+                freeaddrinfo(servinfo);
+                throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+            }
+
+		if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
 			break;
         close(_fd);
     }
@@ -106,12 +116,12 @@ void	Socket::initMaster()
 	std::cout << "Master socket is listening from: "  + _ipAddress + ":" << _port << std::endl;
 
 	// NOT SURE ABOUT IT
-	int opt = 1;
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
-	{
-		close(_fd);
-        throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
-	}
+	// int opt = 1;
+	// if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
+	// {
+	// 	close(_fd);
+    //     throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+	// }
 }
 
 /*ACCEPT
@@ -141,6 +151,19 @@ void	Socket::initClient(int masterfd)
 	if (_fd < 0)
 		throw std::runtime_error("Error: socket failed when aaccepting connection for: " + _ipAddress + ":" + ft_itoa(_port));
 	std::cout << "Client is accepted from: "  + _ipAddress + ":" << _port << std::endl;
+
+	int one = 1;
+    if (setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) == -1) {
+        close(_fd);
+        throw std::runtime_error("Error: setsockopt TCP_NODELAY failed");
+    }
+}
+
+void	Socket::cleanRequestResponse(){
+	_req.clear();
+	_resp.clear();
+	_req.push_back(Request(_server, this->_port));
+	_resp.push_back(Response());
 }
 
 
@@ -157,10 +180,10 @@ void	Socket::setResponse(std::string response){
 	this->_response = response;
 }
 
-void	Socket::setLastActivity(time_t now)
-{
-	_lastActivity = now;
-}
+// void	Socket::setLastActivity(time_t now)
+// {
+// 	_lastActivity = now;
+// }
 
 
 //GETTERS
@@ -196,6 +219,6 @@ std::string& Socket::getResponseLine() {
 	return (_response);
 }
 
-time_t Socket::getLastActivity() const {
-	return (_lastActivity);
-}
+// time_t Socket::getLastActivity() const {
+// 	return (_lastActivity);
+// }

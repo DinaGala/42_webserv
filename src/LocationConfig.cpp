@@ -66,6 +66,8 @@ LocationConfig::~LocationConfig()
 	_allowedMethods.clear();
     _errorPages.clear();
 	_cgiConf.clear();
+	_keys.clear();
+	_vars.clear();
 }
 
 void LocationConfig::_initKeys()
