@@ -56,7 +56,7 @@ class Request {
 
 		void		initParams();
 		void		parseRequest(const std::string& buffer);
-		void		sendBadRequestError(std::string errMssg);
+		void		sendBadRequestError(std::string errMssg, int code);
 
 		void		parseRequestLine();
 		void		parseHeaders();

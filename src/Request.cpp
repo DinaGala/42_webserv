@@ -120,9 +120,8 @@ void	Request::parseRequestLine()
 	if (posBuffer == std::string::npos)
 		return ;
 	createRequestLineVector(_buffer.substr(0, posBuffer));
-
-	_status = REQUEST_LINE_PARSED;
 	_buffer.erase(0, posBuffer + 2);
+	_status = REQUEST_LINE_PARSED;
 }
 
 void Request::createRequestLineVector(std::string requestLineStr)
@@ -133,7 +132,7 @@ void Request::createRequestLineVector(std::string requestLineStr)
 		this->_requestLine.push_back(element);
 	}
 	if (_requestLine.size() != 3) 
-		sendBadRequestError("Request parsing error: invalid request line");
+		sendBadRequestError("Request parsing error: invalid request line", 400);
 	_method = _requestLine[0];
 }
 
@@ -151,19 +150,14 @@ void	Request::parseHeaders() {
 			_buffer.erase(0, line.size() + 2);
 		}
 	}
-	/*std::cout << "HEADERS -------------" << std::endl;
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it) {
-		std::cout << it->first << " :: " << it->second << std::endl;
-	}*/
 }
 
 void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map){
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid headers");
+		sendBadRequestError("Request parsing error: invalid headers", 400);
 	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1));
-
 	map.insert(std::make_pair(name, value));
 }
 
@@ -174,9 +168,8 @@ void	Request::parseBody(){
 		return ;
 	}
 	if (_headers.find("Transfer-Encoding") != _headers.end()) {
-		std::cout << "INSIDE TRANSFER ENCODING" << std::endl;
 		if (_headers.find("Transfer-Encoding")->second != "chunked") 
-			sendBadRequestError("Request parsing error: invalid Transfer-Encoding value parameter");
+			sendBadRequestError("Request parsing error: invalid Transfer-Encoding value parameter", 400);
 		parseBodyByChunked();
 	}
 	else if (_headers.find("Content-Length") != _headers.end())
@@ -194,11 +187,11 @@ void	Request::parseBodyByChunked(){
 	do {
 		size_t	posEndSIze = _buffer.find(CRLF);
 		sizeChunk = findSizeChunk(posEndSIze);
-		if (sizeChunk <= 0 || posEndSIze + sizeChunk + 4 > _buffer.length()) //final of shunk or chunk incompleted
+		if (sizeChunk <= 0 || posEndSIze + sizeChunk + 4 > _buffer.length()) //final of chunk or chunk incompleted
 			break ;
 		size_t posEndLine = _buffer.find(CRLF, posEndSIze + 2 + sizeChunk);
 		if (posEndLine == std::string::npos || posEndLine != posEndSIze + 2 + sizeChunk) //there is not CRLF at the end of chunk
-			sendBadRequestError("Request parsing error: invalid Transfre encoding");
+			sendBadRequestError("Request parsing error: invalid Transfre encoding", 400);
 		manageLineChunk(posEndSIze, sizeChunk);
 	} while (1);
 
@@ -222,36 +215,37 @@ uint64_t	Request::convertStrToHex(std::string line){
 	if (endSizeChunk != std::string::npos)
 		line = line.substr(0, endSizeChunk);
 	if (line.empty() || !isStringOfDigits(line)) 
-		sendBadRequestError("Error Bad Request: Invalid shunked body");
+		sendBadRequestError("Error Bad Request: Invalid shunked body", 400);
 	uint64_t result = strToHex(line);
 	return (result);
 }
 
 void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 	std::string line = _buffer.substr(posEndSIze + 2, sizeChunk);
-		
 	if (line.length() + _body.length() > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body is too large");
+		sendBadRequestError("Request parsing error: Body is too large", 400);
 	_body = _body + line;
 	_buffer.erase(0, posEndSIze + sizeChunk + 4);
 }
 
 void	Request::parseBodyByContentLength() { 
-	std::cout << "INSIDE CONTENT LENGHT" << std::endl;
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
 	if (contentLength > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body Length greater than Max body size");
-	while (_body.length() < contentLength && _buffer.length() > 0) {
-		_body.push_back(_buffer[0]);
-		_buffer.erase(0);
-	}
+		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	size_t chrToCopy;
+	if (_buffer.size() + _body.size() <= contentLength) 
+		chrToCopy = _buffer.size();
+	else 
+		chrToCopy = contentLength - _body.size();
+	_body = _body + _buffer.substr(0, chrToCopy);
 	if (_body.length() == contentLength)
 		_status = BODY_PARSED;
 }
 
 // _____________  MULTIPART FORM BODY   _____________ 
 void	Request::manageMultipartForm(){
-	if (_headers.find("Content-Type") != _headers.end() && _headers.find("Content-Type")->second.find("multipart/form-data")) {
+	std::map<std::string, std::string>::iterator it =  _headers.find("Content-Type");
+	if (it != _headers.end() && it->second.find("multipart/form-data") != std::string::npos) {
 		getBoundary();
 		saveMultipartHeaders();
 		updateMultipartBody();
@@ -263,14 +257,14 @@ void	Request::getBoundary() {
 	std::string content = _headers.find("Content-Type")->second;
 	size_t pos = content.find("boundary=");
 	if (pos == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter");
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
 	_boundary = content.substr(pos+9, content.length() - (pos+9));
 }
 
 void	Request::saveMultipartHeaders() {
 	size_t pos = _body.find("--" + _boundary);
 	if (pos == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter");
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
 	size_t startPos = _boundary.length() + pos + 4; //4 - \r\n + initial --
 	while (_body.find(CRLF, startPos) != std::string::npos){
 		std::string line = _body.substr(startPos, _body.find(CRLF, startPos) - startPos);
@@ -280,22 +274,18 @@ void	Request::saveMultipartHeaders() {
 			addHeaderToMap(line, _multipartHeaders);
 		startPos = _body.find(CRLF, startPos) + 2; 
 	}
-		
 	if (_multipartHeaders.find("Content-Type") == _multipartHeaders.end() || _multipartHeaders.find("Content-Disposition") == _multipartHeaders.end())
-		sendBadRequestError("Request parsing error: invalid Multipart headers");
-	/*for (std::map<std::string, std::string>::iterator it = _multipartHeaders.begin(); it != _multipartHeaders.end(); ++it) {
-		std::cout << it->first << " :: " << it->second << std::endl;
-	}*/
+		sendBadRequestError("Request parsing error: invalid Multipart headers", 301);
 }
 
 void	Request::updateMultipartBody() {
 	size_t startBody = _body.find("\r\n\r\n") + 4;
 	if (startBody == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter");
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
 	size_t finishBody = _body.find(_boundary + "--", startBody);
 	
 	if (finishBody == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter");
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
 	_body.erase(finishBody);
 	_body.erase(0, startBody);
 }
@@ -311,12 +301,6 @@ void	Request::saveFileName() {
 	_fileName = content.substr(initFilename + 1, endFilename - initFilename);
 }
 
-// _____________  SEND BAD REQUEST ERROR  _____________ 
-void	Request::sendBadRequestError(std::string errMssg) {
-	throw std::runtime_error(errMssg);
-	_code = 400;
-}
-
 // _____________  VALIDTATE REQUEST  _____________ 
 void Request::requestValidations(){
 	checkHost(); 	
@@ -330,27 +314,26 @@ void Request::requestValidations(){
  
 void	Request::checkHost() {
 	if (_headers.find("Host") == _headers.end())
-		sendBadRequestError("Request parsing error: invalid Host");
+		sendBadRequestError("Request parsing error: invalid Host", 400);
 	std::string hostReq = _headers.find("Host")->second;
 	int portReq = 8080;
-	if (hostReq.find(":") != std::string::npos) {
-		size_t posColon = hostReq.find(":");
+	size_t posColon = hostReq.find(":");
+	if (posColon != std::string::npos) {
 		portReq  = ft_atoi(hostReq.substr(posColon + 1));
 		hostReq = hostReq.substr(0, posColon);
 	}
 	if (portReq != _port)
-		sendBadRequestError("Request parsing error: invalid Host");
+		sendBadRequestError("Request parsing error: invalid Host", 400);
 	if (hostReq == _host || hostReq == _server.getIpAdress())
-		return;
+		return; //it's ok
 	std::vector<std::string>::iterator it = std::find(_serverNames.begin(), _serverNames.end(), hostReq);
-	if (it == _serverNames.end()) 
-		sendBadRequestError("Request parsing error: invalid Host");
+	if (it == _serverNames.end())
+		sendBadRequestError("Request parsing error: invalid Host", 400);
 }
 
 void	Request::checkConnectionKeepAlive() {
-	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close") {
+	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close")
 		_connectionKeepAlive = false;
-	}
 }
 
 void	Request::manageAcceptedContent() {
@@ -360,7 +343,7 @@ void	Request::manageAcceptedContent() {
 	for (unsigned int i=0; i < acceptVec.size(); i++) {
 		size_t posSlash = acceptVec[i].find('/');
 		if (posSlash == std::string::npos) 
-			sendBadRequestError("Request parsing error: invalid Accept header");
+			sendBadRequestError("Request parsing error: invalid Accept header", 400);
 		std::string type = trim(acceptVec[i].substr(0, posSlash));
 		std::string subtype = trim(acceptVec[i].substr(posSlash + 1));
 		
@@ -374,9 +357,8 @@ void	Request::manageAcceptedContent() {
 
 void Request::managePath() {
 	checkQuery();
-	checkLocation(); 
-	if (_posLocation >= 0)
-		updateInfoLocation();
+	checkLocation();
+	updateInfoLocation();
 	updatePath();
 }
 
@@ -393,12 +375,10 @@ void	Request::checkQuery() {
 	}
 }
 
-void	Request::checkLocation() {  //TODO: refractor
+void	Request::checkLocation() {
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
-	size_t 	posLoc = 0;
 	size_t	nEqualLocs = 0;
-	size_t 	j=0;
-	bool	isLocation = false;
+	size_t 	j = 0;
 
 	std::vector<std::string> vecPath = ft_split(_path, "/");
 	for (size_t i=0; i < vecLocations.size(); i++) {
@@ -408,16 +388,15 @@ void	Request::checkLocation() {  //TODO: refractor
 				break;
 		}
 		if (j > nEqualLocs) {
-			posLoc = i;
+			_posLocation = i;
 			nEqualLocs = j;
-			isLocation = true;
 		}
 	}
-	if (isLocation)
-		_posLocation = posLoc; 
 }
 
 void	Request::updateInfoLocation() {
+	if (_posLocation < 0)
+		return ;
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	LocationConfig location = vecLocations[_posLocation];
 	updateRoot();
@@ -440,8 +419,6 @@ void	Request::updateInfoLocation() {
 void	Request::updateRoot() {
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	LocationConfig location = vecLocations[_posLocation];
-	std::map<std::string, bool>	vars = location.getVars();
-	
 	if (location.getRoot() != "") {
 		_root = location.getRoot();
 		_rootLoc = true;
@@ -452,7 +429,6 @@ void Request::updatePath() {
 	if (_return != "") {
 		_path = _return;
 		_code = 301;
-		return ;
 	}
 	else {
 		if (_posLocation >= 0 && _rootLoc == true) {
@@ -484,219 +460,25 @@ void	Request::setCgi()
 void Request::checkAllowMethod(){
 	std::vector<std::string> allowedMethodsVect = _server.getAllowedMethods();
 	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
-	if (it == allowedMethodsVect.end()) {
-		_code = 405;
-		throw std::runtime_error("Request parsing error: method not allowed");
-	}
+	if (it == allowedMethodsVect.end())
+		sendBadRequestError("Request parsing error: method not allowed", 405);
 }
 
 void Request::checkProtocolHttp(){
-	if (_requestLine.size() == 3) {
-		if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
-		sendBadRequestError("Request parsing error: invalid http version");
-	}
-	else
-		sendBadRequestError("Request parsing error: invalid request line");
+	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
+		sendBadRequestError("Request parsing error: invalid http version", 400);
 }
 
 void Request::updateIndex(){
-	if (_index != "") {
+	if (_index != "" ) {
 		if (_path[_path.size() - 1] != '/')
-			_index = _path + '/' + _index;
-		else	
-			_index = _path + _index;
+			_index = '/' + _index;
+		_index = _path + _index;
 	}
 }
 
-// _____________  GETTERS _____________ 
-
-const std::string& Request::getBuffer() const 
-{
-	return (_buffer);
-}
-
-Server&  Request::getServer() const 
-{
-	return (_server);
-}
-
-int  Request::getPort() const 
-{
-	return (_port);
-}
-
-int	Request::getStatus() const {
-	return (_status);
-}
-
-const std::vector<std::string>& Request::getRequesLine() const
-{
-	return (_requestLine);
-}
-
-const std::map<std::string, std::string>& Request::getHeaders() const
-{
-	return (_headers);
-}
-
-const std::string& Request::getBody() const 
-{
-	return (_body);
-}
-
-const std::string& Request::getQuery() const 
-{
-	return (_query);
-}
-
-const std::string&  Request::getPath() const 
-{
-    return (_path);
-}
-
-const std::string& 	Request::getRoot() const
-{
-    return (_root);
-}
-
-bool Request::getRootLoc() const 
-{
-	return (_rootLoc);
-}
-
-const std::string&	Request::getMethod() const 
-{
-	return (_method);
-}
-
-int	Request::getCode() const 
-{
-	return (_code);
-}
-
-int Request::getPosLocation() const 
-{
-	return (_posLocation);
-}
-
-size_t	Request::getMaxBodySize() const 
-{
-	return (_maxBodySize);
-}
-
-const std::string& Request::getHost() const 
-{
-	return (_host);
-}
-
-const std::vector<std::string>& Request::getAllowedMethods() const
-{
-	return (_allowedMethods);
-}
-
-const std::map<int, std::pair<std::string, std::string> >& Request::getErrorPages() const 
-{
-	return (_errorPages);
-}
-
-const std::string& Request::getIndex() const 
-{
-	return (_index);
-}
-
-bool Request::getAutoIndex() const 
-{
-	return (_autoIndex);
-}
-
-bool Request::getAllowUpload() const 
-{
-	return (_allowUpload);
-}
-
-const std::string& 	Request::getUploadDir() const 
-{
-	return (_uploadDir);
-}
-
-const std::string& 	Request::getReturn() const 
-{
-	return (_return);
-}
-
-bool Request::getCgi() const
-{
-	return (_cgi);
-}
-
-const std::map<std::string, std::string>&  Request::getCgiConf() const 
-{
-	return (_cgiConf);
-}
-
-const std::vector<std::string>& Request::getServerNames() const
-{
-	return (_serverNames);
-}
-
-bool Request::getConnectionKeepAlive() const 
-{
-	return (_connectionKeepAlive);
-}
-
-const std::multimap<std::string, std::string>&	Request::getAcceptedContent() const 
-{
-	return (_acceptedContent);
-}
-
-const std::string&  Request::getBoundary() const 
-{
-	return (_boundary);
-}
-
-const std::map<std::string, std::string>& Request::getMultipartHeaders() const
-{
-	return (_multipartHeaders);
-}
-
-const std::string&	Request::getFileName() const 
-{
-	return (_fileName);
-}
-
-// _____________  SETTERS _____________ 
-
-void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 
-{
-	copyMap(_errorPages, errorPages);
-}
-
-void Request::setIndex(const std::string& index) 
-{
-	_index = index;
-}
-
-void Request::setAutoIndex(bool autoindex) 
-{
-	_autoIndex = autoindex;
-}
-
-void Request::setAllowUpload(bool allowUpload) 
-{
-	_allowUpload = allowUpload;
-}
-
-void Request::setUploadDir(const std::string& uploadDir) 
-{
-	_uploadDir = uploadDir;
-}
-
-void Request::setReturn(const std::string& alias) 
-{
-	_return = alias;
-}
-
-void Request::setCgiConf(const std::map<std::string, std::string>& cgiConf) 
-{
-	_cgiConf = cgiConf;
+// _____________  SEND BAD REQUEST ERROR  _____________ 
+void	Request::sendBadRequestError(std::string errMssg, int code) {
+	throw std::runtime_error(errMssg);
+	_code = code;
 }

@@ -288,6 +288,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     out << "Buffer:  " << val.getBuffer() << "\n";
+	out << "Body:  " << val.getBody() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
