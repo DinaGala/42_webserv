@@ -12,7 +12,7 @@ class Server {
 		std::string							_root;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
-		std::map<int,std::pair<std::string, std::string> > 	_errorPages;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		bool 								_autoIndex;
 		std::string 						_return;
 		std::map<std::string, std::string> 	_cgiConf;

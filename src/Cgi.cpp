@@ -1,13 +1,5 @@
 #include "Cgi.hpp"
 
-/*static void	error(int sock, const char *ft, const std::string &msg)
-{
-	std::cerr << "Error: " << ft << ": " << msg << std::endl;
-	if (close(sock))
-		std::cerr << "Failed to close socket" << std::endl;
-	exit(EXIT_FAILURE);
-}*/
-
 Cgi::Cgi(const Request &rq, std::vector<std::string> &args): _status(0)
 {
 	this->_env["SERVER_SOFTWARE"] = "webserver";
@@ -19,13 +11,6 @@ Cgi::Cgi(const Request &rq, std::vector<std::string> &args): _status(0)
 	this->_env["SCRIPT_NAME"] = rq.getPath();
 	this->_env["QUERY_STRING"] = rq.getQuery();
 	this->_args = args;
-	//this->_url = rq.getPath();
-	///////// 	TMP VARS   /////////////
-//	this->_config[".sh"] = "/bin/bash";
-//	this->_config[".js"] = "/usr/bin/node";
-//	this->_config[".php"] = "/usr/bin/php";
-//	this->_config[".py"] = "/usr/bin/python3";
-	///////////////////////////////////
 }
 
 Cgi::~Cgi() {}
@@ -123,33 +108,6 @@ void	Cgi::_setPathInfo(std::vector<std::string>::iterator it,
 	this->_env["PATH_INFO"].erase(this->_env["PATH_INFO"].size() - 1);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/*
-std::vector<std::string> Cgi::getArgs(void)
-{
-		std::vector<std::string> args;
-		std::string::size_type found = this->_env["SCRIPT_NAME"].find_last_of(".");
-		std::string	ext;
-
-		if (found != std::string::npos)
-		{
-			ext = this->_env["SCRIPT_NAME"].substr(found);
-			std::cerr << "\033[1;31m getArgs ext " << ext << "\033[1;31m" << std::endl;
-			if (this->_config.find(ext) == this->_config.end())
-			{
-				std::cerr << "\033[1;31mgetArgs args size " << args.size()<< "\033[0m" << std::endl;
-				return (args);
-			}
-			args.push_back(this->_config[ext]);
-		}
-		args.push_back(this->_env["SCRIPT_NAME"]);
-	//	std::cerr << "\tgetArgs script name " << this->_env["SCRIPT_NAME"] << std::endl;
-	//	for (int i = 0; i < (int)args.size(); i++)
-	//		std::cerr << i << ". " << args[i] << std::endl;
-	//	std::cerr << "\tgetArgs args.size() = " << args.size();
-		return (args);
-}*/
-
 /////////////////////////////// EXECUTION //////////////////////////////////////
 
 void	Cgi::_childProcess(int *req, int *cgi)
@@ -168,10 +126,6 @@ void	Cgi::_childProcess(int *req, int *cgi)
 	if (close(req[0]) || close(cgi[1]))
 		exit(50);
 	execve(args[0], args, env);
-	/*std::cerr << "\033[1;31mCHILDPROCESS" << std::endl;
-	for (int i = 0; args[i]; i++)
-		std::cerr << i << ". " << args[i] << std::endl;
-	std::cerr << "\033[0m";*/
 	exit(50);
 }
 
@@ -199,7 +153,10 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	{
 		std::time_t now = std::time(NULL);
 		if (now - epoch > timeout)
+		{
+			kill(pid, 0);
 			return (504);
+		}
 		if (waitpid(pid, &status, WNOHANG) == -1)
 			return (500);
 		if (WIFEXITED(status))

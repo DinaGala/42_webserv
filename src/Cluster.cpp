@@ -78,8 +78,8 @@ void	Cluster::runCluster()
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
 
 		if (_nfds == -1) {
-		 	if (errno == EINTR)
-                continue;
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
 		std::cout << "EPOLL WAIT\n";
@@ -289,6 +289,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     out << "Buffer:  " << val.getBuffer() << "\n";
+	out << "Body:  " << val.getBody() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
