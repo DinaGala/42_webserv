@@ -19,7 +19,7 @@ Cluster::~Cluster()
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
-	std::string filename = "conf/basic_test.conf";
+	std::string filename = "conf/default.conf";
 
 	if (ac == 2)
 		filename = av[1];

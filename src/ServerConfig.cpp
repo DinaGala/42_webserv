@@ -229,10 +229,16 @@ void ServerConfig::setHost(const std::string& host)
 {
 	if (_vars["host"] || _vars["ip"])
 		throw std::invalid_argument("Error: host duplication in listen: " + host);
-	_host = host;
-	_vars["host"] = true;
 	if (Parse::ipCheck(host))
 		setIp(host);
+	else
+		setHostName(host);
+}
+
+void ServerConfig::setHostName(const std::string& host)
+{
+		_host = host;
+		_vars["host"] = true;
 }
 
 void ServerConfig::setIp(const std::string& ip)

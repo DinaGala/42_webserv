@@ -38,7 +38,7 @@ class Parse
         static void lineParse(T &obj, std::vector<std::string> args);
         static std::vector<ServerConfig>	portDefault(std::vector<ServerConfig> &sconf);
         static std::vector<ServerConfig>	hostDefault(std::vector<ServerConfig> &sconf);
-        static std::string	findIp(std::string host);
+        static std::string	findIp(std::string host, bool flag); // flag = true - looking for ip, flag = false - for hostname
         static int  checkDupsPort(ServerConfig &serv, std::vector<int> &all);
 
     /* PARSING UTILS ________________________________________________________*/
@@ -65,7 +65,7 @@ class Parse
         static void     hostParse(ServerConfig &serv, std::vector<std::string> &line);
         static std::string  hostCheck(std::string host);
         static bool     hostNameCheck(std::string host);
-        static bool     ipCheck(std::string host);
+        static bool     ipCheck(std::string host); 
         static int      portCheck(std::string port);
         static void     servNameParse(ServerConfig &serv, std::vector<std::string> &line);
         static void     bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
