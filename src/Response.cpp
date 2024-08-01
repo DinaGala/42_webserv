@@ -434,9 +434,9 @@ void	Response::_makeAutoIndex(void)
 			filename += "/";
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
-		std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
-				<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
-				<< dp->d_name<< "\033[0m" << std::endl;
+		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
+		//		<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
+		//		<< dp->d_name<< "\033[0m" << std::endl;
 		if (is_dir == -1)
 		{
 			std::cout << "\033[31;1mAutoIdx error while: " << filename << "\033[0m" << std::endl;
@@ -446,9 +446,9 @@ void	Response::_makeAutoIndex(void)
 		}
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
-		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
+		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin" || "./mime.types")
 			continue ;
-		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
+		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
 		//this->_body += filename.substr(1);
 		this->_body += dp->d_name;
