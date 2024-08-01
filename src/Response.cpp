@@ -426,8 +426,8 @@ void	Response::_makeAutoIndex(void)
 		return ;
 	}
 	filename = path;
-	std::cout << "autoindex: init filename: " << filename << std::endl;
-	std::cout << "autoindex: getRoot: " << _req->getRoot() << std::endl;
+	//std::cout << "autoindex: init filename: " << filename << std::endl;
+	//std::cout << "autoindex: getRoot: " << _req->getRoot() << std::endl;
 	dir = opendir(filename.c_str());
 	if (!dir)
 	{
@@ -445,11 +445,13 @@ void	Response::_makeAutoIndex(void)
 		filename = path;
 		if (filename.size() && filename[filename.size() - 1] != '/')
 			filename += "/";
+		if (filename.size() && filename[0] == '/')
+			filename.erase(0);
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
-		std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
-				<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
-				<< dp->d_name<< "\033[0m" << std::endl;
+		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
+		//		<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
+		//		<< dp->d_name<< "\033[0m" << std::endl;
 		if (is_dir == -1)
 		{
 			std::cout << "\033[31;1mAutoIdx error while: " << filename << "\033[0m" << std::endl;
