@@ -182,6 +182,7 @@ void	Response::_handleFavIcon()
 void	Response::_handleGet()
 {
 	int	is_dir;
+	int code = 0;
 
 	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	//std::cout << "\033[32;1mGET path \033[0m" << this->_req->getPath() << std::endl;
@@ -209,26 +210,23 @@ void	Response::_handleGet()
 			std::cout << "\033[32;1mGET index " << _req->getIndex() << "\033[0m" << std::endl;
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_req->getIndex());
-			if (code)
+			code = this->fileToBody(this->_req->getIndex());
+			if (code && code != 404)
 			{
 				this->sendError(code);
 				return ;
 			}
-			this->_response += "\n\n" + this->_body;
-			return ;
+			if (code == 0)
+				this->_response += "\n\n" + this->_body;
 		}
-		else if (this->_req->getAutoIndex() == true)
+		if (this->_req->getAutoIndex() == true || code == 404)
 		{
 			std::cout << "\033[32;1mGET autoindex\033[0m" << std::endl;
 			this->_makeAutoIndex();
-			return ;
 		}
 		else
-		{
 			this->sendError(403);
-			return ;
-		}
+		return ;
 	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
@@ -403,19 +401,33 @@ int	Response::_isDir(const std::string &path) const
 	return (0);
 }
 
+/*std::string	Response::ft_strnstr(const std::string &haystack, const std::string &needle)
+{
+	std::string	hay = haystack;
+	std::string::size_type	found = hay.find(needle);
+
+	if (found == std::string::npos)
+		return ("");
+	else
+		return (hay.erase(found, needle.size()));
+}*/
+
 void	Response::_makeAutoIndex(void)
 {
 	struct dirent	*dp;
 	DIR				*dir;
 	int				is_dir;
 	std::string		filename;
+	std::string		path = this->_req->getPath();
 
 	if (this->_isAccepted("text/html") == false)
 	{
 		this->sendError(403);
 		return ;
 	}
-	filename = this->_req->getPath();
+	filename = path;
+	std::cout << "autoindex: init filename: " << filename << std::endl;
+	std::cout << "autoindex: getRoot: " << _req->getRoot() << std::endl;
 	dir = opendir(filename.c_str());
 	if (!dir)
 	{
@@ -423,20 +435,21 @@ void	Response::_makeAutoIndex(void)
 		this->sendError(500);
 		return ;
 	}
-	this->_body = "<html><head><title>INDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ";
+	this->_body = "<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ";
 	this->_body += filename.substr(1) + "</h1></head><body style=\"font-size:150%;margin:50px;\">";
+	path = ft_strstr(path, this->_req->getRoot());
 	while ((dp = readdir(dir)) != NULL)
 	{
 		if (dp->d_name[0] == '.')
 			continue ;
-		filename = this->_req->getPath();
-		if (filename[filename.size() - 1] != '/')
+		filename = path;
+		if (filename.size() && filename[filename.size() - 1] != '/')
 			filename += "/";
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
-		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
-		//		<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
-		//		<< dp->d_name<< "\033[0m" << std::endl;
+		std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
+				<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
+				<< dp->d_name<< "\033[0m" << std::endl;
 		if (is_dir == -1)
 		{
 			std::cout << "\033[31;1mAutoIdx error while: " << filename << "\033[0m" << std::endl;
@@ -446,12 +459,12 @@ void	Response::_makeAutoIndex(void)
 		}
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
-		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin" || "./mime.types")
+		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin" || filename == "./mime.types")
 			continue ;
 		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
-		//this->_body += filename.substr(1);
-		this->_body += dp->d_name;
+		this->_body += filename.substr(1);
+		//this->_body += dp->d_name;
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";

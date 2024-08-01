@@ -46,6 +46,7 @@ class	Response
 
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
+		std::string	ft_strnstr(const std::string &h, const std::string &n);
 
 	private:
 		//static std::map<int, std::pair<std::string, std::string> >	_status;
