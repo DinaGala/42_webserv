@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/23 22:16:41 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/08/01 21:26:02 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,5 +83,6 @@ bool isStringOfDigits(std::string line);
 uint64_t strToHex(std::string line);
 
 void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val);
+std::string	ft_strstr(const std::string &h, const std::string &n);
 
 #endif
