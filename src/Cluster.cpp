@@ -9,11 +9,13 @@ Cluster::~Cluster() {
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		//if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
-			//throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
 	}
 	close(_epFd);
+
+	std::cout << "DISTRUCTOR CALLED\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -151,7 +153,7 @@ void	Cluster::readConnection(Socket *sock)
 			return ;
 
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-	//	std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << sock->getResponse()->makeResponse(sock->getRequest());
+		std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
 		sock->setLastActivity(time(NULL));
 }
 

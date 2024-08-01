@@ -396,8 +396,8 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
     out << "Max Body Size:  " << val.getMaxBodySize() << "\n";
     out << "Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
-    out << "Error pages:  \n" << val.getErrorPages() << "\n";
-    out << "Error page empty:  " << printBool(val.getErrorPages().empty()) << "\n";
+//    out << "Error pages:  \n" << val.getErrorPages() << "\n";
+  //  out << "Error page empty:  " << printBool(val.getErrorPages().empty()) << "\n";
     out << "    CGI:  " << "\n" << val.getCgiConf() << "\n";
     std::vector<LocationConfig> temp = val.getLocationConfig();
     for (std::vector<LocationConfig>::iterator it = temp.begin(); it != temp.end(); it++) {
@@ -425,7 +425,7 @@ std::ostream	&operator<<(std::ostream &out, const LocationConfig &val)
     out << "    |___    Allow upload:  " << printBool(val.getAllowUpload()) << "\n";
     out << "    |___    Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "    |___    Allowed methods:  " << val.getAllowedMethods() << "\n";
-    out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
+ //   out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
     out << "    |______     CGI:  " << "\n" << val.getCgiConf() << "\n";
 
 	return (out);
