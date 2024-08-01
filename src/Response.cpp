@@ -155,7 +155,7 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(403);
 	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
-	std::cout << "\033[35;1mRESPONSE:\n" << this->_response << "\033[0m" << std::endl;
+	//std::cout << "\033[35;1mRESPONSE:\n" << this->_response << "\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -385,11 +385,17 @@ bool	Response::_isAccepted(std::string mime)
 //	show listing
 //else
 //	show 403
-
+/* checks if path is a directory.
+	0 = it's not a directory
+	1 = it is a directory
+	-1 = error
+*/
 int	Response::_isDir(const std::string &path) const
 {
 	struct stat	status;
 
+	if (access(path.c_str(), F_OK | X_OK))
+		return (0);
 	if (stat(path.c_str(), &status))
 		return (-1);
 	if (S_ISDIR(status.st_mode))
@@ -428,9 +434,9 @@ void	Response::_makeAutoIndex(void)
 			filename += "/";
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
-		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
-		//		<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
-		//		<< dp->d_name<< "\033[0m" << std::endl;
+		std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
+				<< "\n\tpath: " << this->_req->getPath() << "\n\td_name: "
+				<< dp->d_name<< "\033[0m" << std::endl;
 		if (is_dir == -1)
 		{
 			std::cout << "\033[31;1mAutoIdx error while: " << filename << "\033[0m" << std::endl;
@@ -442,9 +448,10 @@ void	Response::_makeAutoIndex(void)
 			continue ;
 		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
 			continue ;
-		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
+		std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
-		this->_body += filename.substr(1);
+		//this->_body += filename.substr(1);
+		this->_body += dp->d_name;
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
