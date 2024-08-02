@@ -156,6 +156,10 @@ const std::string&	Request::getFileName() const
 	return (_fileName);
 }
 
+int Request::getContentLenght() const {
+	return (_contentLenght);
+}
+
 // _____________  SETTERS _____________ 
 
 void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 

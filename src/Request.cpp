@@ -230,6 +230,7 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 
 void	Request::parseBodyByContentLength() { 
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
+	_contentLenghtl = contentLength;
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t chrToCopy;
@@ -359,7 +360,7 @@ void	Request::manageAcceptedContent() {
 }
 
 void Request::managePath() {
-	checkQuery();
+	checkQuery(); //TODO: pending to add to the body ?? NURIA
 	checkLocation();
 	updateInfoLocation();
 	updatePath();
@@ -482,11 +483,12 @@ void Request::updateIndex(){
 
 void Request::updateUploadDir(){
 	if (_uploadDir != "" ) {
-		if (_path[_path.size() - 1] != '/' && _uploadDir[0] != '/')
-			_uploadDir = '/' + _uploadDir;
-		else if (_path[_path.size() - 1] == '/' && _uploadDir[0] == '/')
+		std::string::size_type	found = _path.find_last_of("/");
+		if (found == std::string::npos)
+			sendBadRequestError("Request parsing error: invalid request", 400);
+		if (_uploadDir[0] == '/')
 			_uploadDir.erase(0, 1);
-		_uploadDir = _path + _uploadDir;
+		_uploadDir = _path.substr(0, found + 1) + _uploadDir;
 	}
 }
 
