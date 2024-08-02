@@ -238,6 +238,7 @@ void	Request::parseBodyByContentLength() {
 	else 
 		chrToCopy = contentLength - _body.size();
 	_body = _body + _buffer.substr(0, chrToCopy);
+	_buffer.erase(0, chrToCopy);
 	if (_body.length() == contentLength)
 		_status = BODY_PARSED;
 }
@@ -282,13 +283,14 @@ void	Request::updateMultipartBody() {
 	size_t startBody = _body.find("\r\n\r\n") + 4;
 	if (startBody == std::string::npos)
 		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
-	size_t finishBody = _body.find(_boundary + "--", startBody);
+	size_t finishBody = _body.find("--" + _boundary + "--", startBody);
 	
 	if (finishBody == std::string::npos) 
 		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
-	_body.erase(finishBody);
+	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
 }
+
 
 //Content-Disposition: form-data; name="file"; filename="example.txt"
 void	Request::saveFileName() {
