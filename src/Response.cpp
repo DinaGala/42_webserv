@@ -385,10 +385,10 @@ void	Response::_makeAutoIndex(void)
 		}
 		if (!is_dir && access(filename.c_str(), X_OK) == 0)
 			continue ;
-		AUTOINDEX_FILES(filename, dp->d_name);
-//		this->_body += "<p><a href= " + filename + ">";
-//		this->_body += dp->d_name;
-//		this->_body += "</a></p>\n";
+		//AUTOINDEX_FILES(filename, dp->d_name);
+		this->_body += "<p><a href= " + filename + ">";
+		this->_body += dp->d_name;
+		this->_body += "</a></p>\n";
 	}
 	closedir(dir);
 	this->_body += "</body></html>";
