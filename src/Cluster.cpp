@@ -321,6 +321,8 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Path:  " << val.getPath() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
+	out << "Filename:  " << val.getFileName() << "\n";
+	out << "Upload dir:  " << val.getUploadDir() << "\n";
 	out << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    

@@ -312,6 +312,7 @@ void Request::requestValidations(){
 	checkProtocolHttp();
 	checkAllowMethod();
 	updateIndex();
+	updateUploadDir();
 }
  
 void	Request::checkHost() {
@@ -476,6 +477,16 @@ void Request::updateIndex(){
 		if (_path[_path.size() - 1] != '/')
 			_index = '/' + _index;
 		_index = _path + _index;
+	}
+}
+
+void Request::updateUploadDir(){
+	if (_uploadDir != "" ) {
+		if (_path[_path.size() - 1] != '/' && _uploadDir[0] != '/')
+			_uploadDir = '/' + _uploadDir;
+		else if (_path[_path.size() - 1] == '/' && _uploadDir[0] == '/')
+			_uploadDir.erase(0, 1);
+		_uploadDir = _path + _uploadDir;
 	}
 }
 
