@@ -446,7 +446,7 @@ void	Response::_makeAutoIndex(void)
 		if (filename.size() && filename[filename.size() - 1] != '/')
 			filename += "/";
 		if (filename.size() && filename[0] == '/')
-			filename.erase(0);
+			filename.erase(0, 1);
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
 		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
@@ -465,8 +465,9 @@ void	Response::_makeAutoIndex(void)
 			continue ;
 		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
-		this->_body += filename.substr(1);
+		//this->_body += filename.substr(1);
 		//this->_body += dp->d_name;
+		this->_body += filename;
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
