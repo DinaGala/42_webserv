@@ -32,7 +32,7 @@ class Request {
 		std::string 						_host;
 		size_t 								_maxBodySize;
 		std::vector<std::string> 			_allowedMethods;
-		std::map<int, std::pair<std::string, std::string> >			_errorPages;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		std::string 						_index;
 		bool 								_autoIndex;
 		bool 								_allowUpload;
@@ -109,7 +109,7 @@ class Request {
 		const std::string& 								getHost() const;
 		size_t											getMaxBodySize() const;
 		const std::vector<std::string>& 				getAllowedMethods() const;
-		const std::map<int, std::pair<std::string, std::string> >& 				getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> >& getErrorPages() const;
 		const std::string& 								getIndex() const;
 		bool 											getAutoIndex() const;
 		bool 											getAllowUpload() const;

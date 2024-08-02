@@ -87,7 +87,14 @@ void	Socket::initMaster()
         _fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (_fd == -1) 
 			continue;
-        if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
+		int opt = 1;
+		if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+        {
+			close(_fd);
+            freeaddrinfo(servinfo);
+            throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+    	}
+	    if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
 			break;
         close(_fd);
     }
@@ -106,12 +113,12 @@ void	Socket::initMaster()
 	std::cout << "Master socket is listening from: "  + _ipAddress + ":" << _port << std::endl;
 
 	// NOT SURE ABOUT IT
-	int opt = 1;
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
-	{
-		close(_fd);
-        throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
-	}
+	// int opt = 1;
+	// if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
+	// {
+	// 	close(_fd);
+    //     throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+	// }
 }
 
 /*ACCEPT

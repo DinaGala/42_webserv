@@ -123,11 +123,16 @@ const std::vector<LocationConfig> Server::getLocationConfig() const
 
 // _____________  SETTERS _____________ 
 
+//TODO
+/*<<<<<<< HEAD
+void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
+=======
 void Server::setErrorPages(const std::map<int, std::pair<std::string, std::string> > &  errorPages) 
+>>>>>>> http
 {
 	_errorPages = errorPages;
 }
-
+*/
 void Server::setAutoIndex(bool autoindex) 
 {
 	_autoIndex = autoindex;

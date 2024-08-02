@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 22:02:33 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:15:43 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Parse
         static void lineParse(T &obj, std::vector<std::string> args);
         static std::vector<ServerConfig>	portDefault(std::vector<ServerConfig> &sconf);
         static std::vector<ServerConfig>	hostDefault(std::vector<ServerConfig> &sconf);
-        static std::string	findIp(std::string host);
+        static std::string	findIp(std::string host, bool flag); // flag = true - looking for ip, flag = false - for hostname
         static int  checkDupsPort(ServerConfig &serv, std::vector<int> &all);
 
     /* PARSING UTILS ________________________________________________________*/
@@ -65,7 +65,7 @@ class Parse
         static void     hostParse(ServerConfig &serv, std::vector<std::string> &line);
         static std::string  hostCheck(std::string host);
         static bool     hostNameCheck(std::string host);
-        static bool     ipCheck(std::string host);
+        static bool     ipCheck(std::string host); 
         static int      portCheck(std::string port);
         static void     servNameParse(ServerConfig &serv, std::vector<std::string> &line);
         static void     bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
@@ -85,6 +85,7 @@ class Parse
 /* OVERLOADED OPERATORS _____________________________________________________*/
 std::ostream	&operator<<(std::ostream &out, const std::vector<std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<std::string, std::string> &val);
+std::ostream	&operator<<(std::ostream &out, std::map<int, std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<int, std::pair<std::string, std::string> > &val);
 //std::ostream	&operator<<(std::ostream &out, const bool val);
 std::ostream	&operator<<(std::ostream &out, const ServerConfig &val);

@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:39 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/22 14:59:38 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/08/01 21:25:22 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,4 +131,16 @@ void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std
 	std::map<int, std::pair<std::string, std::string> >	src = val;
 	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
 		res[it->first] = std::make_pair(it->second.first, it->second.second);
+}
+
+/*Removes a whole string from another string*/
+std::string	ft_strstr(const std::string &haystack, const std::string &needle)
+{
+	std::string	hay = haystack;
+	std::string::size_type	found = hay.find(needle);
+
+	if (found == std::string::npos)
+		return ("");
+	else
+		return (hay.erase(found, needle.size()));
 }

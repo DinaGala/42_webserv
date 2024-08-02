@@ -19,7 +19,7 @@ Cluster::~Cluster()
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
-	std::string filename = "conf/basic_test.conf";
+	std::string filename = "conf/default.conf";
 
 	if (ac == 2)
 		filename = av[1];
@@ -143,7 +143,8 @@ void	Cluster::readConnection(Socket *sock)
 
 		buffer[bytesRead] = '\0';
 			
-		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
+	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
+		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
 		std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)

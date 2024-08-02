@@ -51,4 +51,5 @@ class Server {
 		const std::vector<LocationConfig> 			getLocationConfig() const;
 };
 
+
 #endif
