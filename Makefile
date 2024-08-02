@@ -10,7 +10,7 @@ FLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -Wshadow -Wno-shadow -fsanitize=ad
 RM = rm -f
 
 SRC =  main.cpp ServerConfig.cpp Parse.cpp ParseDir.cpp LocationConfig.cpp \
-Utils.cpp Cluster.cpp Server.cpp Cgi.cpp Socket.cpp Request.cpp Response.cpp Signals.cpp
+Utils.cpp Cluster.cpp Server.cpp Cgi.cpp Socket.cpp Request.cpp Response.cpp Signals.cpp RequestGetSet.cpp
 F_SRC = src/
 F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
