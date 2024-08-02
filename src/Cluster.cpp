@@ -185,13 +185,18 @@ void	Cluster::sendConnection(Socket *sock)
 
 	sock->getResponseLine().erase(0, bytes);
 //	sock->setLastActivity(time(NULL));
-	
+	if (sock->getRequest()->getConnectionKeepAlive() == true)
+		std::cout << "\033[1;31mKEEP ALIVE\033[0m" << std::endl;
+	else
+		std::cout << "\033[1;31mCLOSE\033[0m" << std::endl;
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
 	{
+		std::cout << "\033[1;31mDelete socket\033[0m" << std::endl;
 		return (eraseSocket(sock, false));
 	}
 	else if (sock->getResponseLine().empty())
 	{
+		std::cout << "\033[1;31mShutdown socket\033[0m" << std::endl;
 	//	eraseSocket(sock, false);
 		shutdown(sock->getSockFd(), SHUT_WR);
 
