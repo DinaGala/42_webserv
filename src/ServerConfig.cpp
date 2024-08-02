@@ -69,7 +69,7 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 //	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = ".";
 	_maxBodySize = 10000000;
 	_allowedMethods.clear();
 	_port.clear();
