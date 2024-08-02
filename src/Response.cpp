@@ -255,7 +255,7 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
-
+// hi ha una barra de mes
 bool	Response::_createFile(void)
 {
 	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
@@ -275,30 +275,36 @@ bool	Response::_createFile(void)
 		}
 	}
 	filename += this->_req->getFileName();
+	std::cout << "\033[1;31mFile to create: " << filename << "\033[0m" << std::endl;
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
 			return (1);
-	newfile << this->_body;
+	newfile << this->_req->getBody();
 	return (0);
 }
 
 void	Response::_handlePost()
 {
+	std::cout << "\033[1;31mhandlePost: filename: " << _req->getFileName() << std::endl;
 	if (this->_req->getFileName() != "")
 	{
-		if (this->_req->getAllowUpload())
+		if (this->_req->getAllowUpload() == false)
 		{
 			this->sendError(403);
 			return ;
 		}
 		if (this->_createFile())
+		{
+			this->sendError(500);
 			return ;
+		}
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
 	}
 	else
 	{
+		std::cout << "\033[1;31mhandlePost: else" << std::endl;
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
 		this->_body = "<html><body>Form submitted!</body></html>";
