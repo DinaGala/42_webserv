@@ -143,7 +143,8 @@ void	Response::_handleFavIcon()
 	}
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
-	this->_response += "Content-Type: image/png\r\n\r\n";
+	this->_response += "Content-Type: image/png\r\n";
+	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 	this->_response += this->_body;
 }
 
@@ -183,7 +184,8 @@ void	Response::_handleGet()
 			}
 			if (code == 0)
 			{
-				this->_response += "\n\n" + this->_body;
+				this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+				this->_response += this->_body;
 				return ;
 			}
 		}
@@ -299,7 +301,9 @@ void	Response::_handlePost()
 	{
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_response += "\n\n<html><body>Form submitted!</body></html>";
+		this->_body = "<html><body>Form submitted!</body></html>";
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+		this->_response += this->_body;
 	}
 }
 
@@ -394,7 +398,8 @@ void	Response::_makeAutoIndex(void)
 	this->_body += "</body></html>";
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
-	this->_response += "\r\n\r\n" + this->_body;
+	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+	this->_response += this->_body;
 }
 
 /////////////////////// PUT HEADERS (AND STATUS LINE) //////////////////////////
