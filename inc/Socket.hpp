@@ -14,7 +14,7 @@ class Socket {
 		int					_port;
 		std::string			_ipAddress;
 		int					_fd;
-		time_t				_lastActivity;
+	//	time_t				_lastActivity;
 		bool				_master; // true if it's a master, false if a client
 
 	//	int					_nClients; //TODO: de 0 a MAX_CON
@@ -33,11 +33,12 @@ class Socket {
 		void	initMaster();
 		void	initClient(int masterfd);
 		void	setNonBlocking();
+		void	cleanRequestResponse();
 
 		void	setIpAddress(const std::string& ipAddress);
 		void	setPort(const int port);
 		void	setResponse(std::string response);
-		void	setLastActivity(time_t now);
+//		void	setLastActivity(time_t now);
 
 		Server&						getServer() const;
 		int							getPort() const;
@@ -47,7 +48,7 @@ class Socket {
 		Request*				getRequest() ;
 		Response*				getResponse() ;
 		std::string& 		getResponseLine() ;
-		time_t				getLastActivity() const;
+//		time_t				getLastActivity() const;
 };
 
 #endif
