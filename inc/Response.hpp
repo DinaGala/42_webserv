@@ -46,10 +46,12 @@ class	Response
 
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
+		std::string	ft_strnstr(const std::string &h, const std::string &n);
 
 	private:
-		static std::map<int, std::pair<std::string, std::string> >	_status;
-		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		//static std::map<int, std::pair<std::string, std::string> >	_status;
+		//static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		std::map<int, std::pair<std::string, std::string> >	_status;
 		std::string		_body;
 		std::string		_reqbody;
 		std::string		_response;
@@ -64,7 +66,7 @@ class	Response
 		std::string	_parseUrl(const std::string &url);
 		std::vector<std::string> _setCgi(const std::string &path);
 		bool		_createFile(void);
-		bool		_isNotAccepted(std::string str);
+		bool		_isAccepted(std::string str);
 		void		_makeAutoIndex(void);
 		int			_isDir(const std::string &path) const ;
 		void		_handleFavIcon();

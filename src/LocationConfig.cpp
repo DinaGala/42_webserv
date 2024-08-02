@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:00 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:18:38 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ const std::vector<std::string>& 	LocationConfig::getAllowedMethods() const
     return (_allowedMethods);
 }
 
-const std::map<int, std::pair<std::string, std::string> > 	LocationConfig::getErrorPages() const
+const std::map<int, std::pair<std::string, std::string> >& 	LocationConfig::getErrorPages() const
 {
     return (_errorPages);
 }
@@ -166,7 +166,7 @@ void LocationConfig::setRoot(const std::string& root)
 
 void LocationConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages[code] = std::make_pair("", page);
+	_errorPages[code].second = page;
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
 }

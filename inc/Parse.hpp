@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 18:23:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 22:02:33 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:15:43 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ class Parse
 /* OVERLOADED OPERATORS _____________________________________________________*/
 std::ostream	&operator<<(std::ostream &out, const std::vector<std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<std::string, std::string> &val);
+std::ostream	&operator<<(std::ostream &out, std::map<int, std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<int, std::pair<std::string, std::string> > &val);
 //std::ostream	&operator<<(std::ostream &out, const bool val);
 std::ostream	&operator<<(std::ostream &out, const ServerConfig &val);

@@ -10,7 +10,7 @@ void	Response::cleanResponse()
 
 //////////////////////// STATIC ASSETS ////////////////////////////////////////
 
-std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
+/*std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 {
 	std::map<int, std::pair<std::string, std::string> > error;
 
@@ -33,7 +33,7 @@ std::map<int, std::pair<std::string, std::string> > Response::_initStatus()
 	return (error);
 }
 
-std::map<int, std::pair<std::string, std::string> > Response::_status = Response::_initStatus();
+std::map<int, std::pair<std::string, std::string> > Response::_status = Response::_initStatus();*/
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +47,8 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_reqbody = r._reqbody;
 	this->_cgiargs = r._cgiargs;
+	if (r._req)
+		this->_status = r._req->getErrorPages();
 }
 
 Response::~Response() {}
@@ -54,12 +56,13 @@ Response::~Response() {}
 Response	&Response::operator=(const Response &r)
 {
 	this->_body = r._body;
+	this->_req = _req;
 	this->_response = r._response;
 	this->_reqbody = r._reqbody;
 	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
-	this->_req = _req;
-
+	if (r._req)
+		this->_status = r._req->getErrorPages();
 	return (*this);
 }
 
@@ -120,9 +123,12 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::makeResponse(const Request *req)
 {
 	if (!req)
-		return (this->sendError(500), this->_response);
+		return (this->sendError(505), this->_response);
 	else
+	{
 		this->_req = req;
+		this->_status = req->getErrorPages();
+	}
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -137,10 +143,9 @@ std::string	&Response::makeResponse(const Request *req)
 	std::cout << "\033[33;1mMETHOD: " << method << "\033[0m" << std::endl;
 	//std::cout << "\033[33;1mPATH: " << this->_req->getPath() << "\033[0m" << std::endl;
 	std::cout << "\033[33;1mREQ PATH: " << this->_req->getPath() << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mREQ CGI: " << this->_req->getCgi() << "\033[0m" << std::endl;
 	//std::cout << "\033[33;1mREQ CODE: " << this->_req->getCode() << "\033[0m" << std::endl;
 
-	if (this->_req->getCgi())
-		this->_cgiargs = this->_setCgi(this->_req->getPath());
 	if (method == "GET")
 		this->_handleGet();
 	else if (method == "POST")
@@ -150,6 +155,7 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(403);
 	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
+	//std::cout << "\033[35;1mRESPONSE:\n" << this->_response << "\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -176,16 +182,22 @@ void	Response::_handleFavIcon()
 void	Response::_handleGet()
 {
 	int	is_dir;
+	int code = 0;
 
-	//std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
+	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	//std::cout << "\033[32;1mGET path \033[0m" << this->_req->getPath() << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")
 	{
-		std::cout << "\033[32;1mhandle favicon\033[0m" << std::endl;
 		this->_handleFavIcon();
 		return ;
 	}
+	else if (access(this->_req->getPath().c_str(), F_OK)) //if file/dir does not exist
+	{
+		this->sendError(404);
+		return ;
+	}
 	is_dir = this->_isDir(this->_req->getPath());
+	std::cout << "\033[32;1mGET is_dir= " << is_dir << "\033[0m" << std::endl;
 	if (is_dir == -1)
 	{
 		this->sendError(500);
@@ -195,49 +207,38 @@ void	Response::_handleGet()
 	{
 		if (this->_req->getIndex() != "")
 		{
-			std::cout << "\033[32;1mGET not index\033[0m" << std::endl;
+			std::cout << "\033[32;1mGET index " << _req->getIndex() << "\033[0m" << std::endl;
 			this->_response = this->putStatusLine(200);
 			this->putGeneralHeaders();
-			int code = this->fileToBody(this->_req->getPath() + this->_req->getIndex());
-			if (code)
+			code = this->fileToBody(this->_req->getIndex());
+			if (code && code != 404)
 			{
 				this->sendError(code);
 				return ;
 			}
-			this->_response += "\n\n" + this->_body;
-			return ;
+			if (code == 0)
+				this->_response += "\n\n" + this->_body;
 		}
-		//else if (this->_req->getAutoIndex() == true)
-		else if (this->_req->getAutoIndex() == false)// TMP
+		if (this->_req->getAutoIndex() == true || code == 404)
 		{
 			std::cout << "\033[32;1mGET autoindex\033[0m" << std::endl;
 			this->_makeAutoIndex();
-			return ;
 		}
 		else
-		{
 			this->sendError(403);
-			return ;
-		}
-	}
-	else if (access(this->_req->getPath().c_str(), F_OK)) //if file
-	{
-		this->sendError(404);
 		return ;
 	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
+		std::cout << "\033[1;31mGET let's go CGI!\033[0m" << std::endl;
 		if (access(this->_req->getPath().c_str(), X_OK))
 		{
 			this->sendError(403);
 			return ;
 		}
-		//std::cout << "\033[1;34mGET: path " << this->_req->getPath() << "\033[0m" << std::endl;
 		this->_cgiargs = this->_setCgi(this->_req->getPath());
 		Cgi	cgi(*(this->_req), this->_cgiargs);
-		//this->_cgiargs = this->_setCgi(this->_req->getPath());
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
-		std::cout << "GET->CGI->cgi_status: " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
 		{
 			this->sendError(cgi_status);
@@ -247,7 +248,6 @@ void	Response::_handleGet()
 	}
 	else //if not cgi
 	{
-		std::cout << "\033[1;31mGET: fileToBody\033[0m" << std::endl;
 		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 		{
@@ -264,22 +264,28 @@ void	Response::_handleGet()
 
 void	Response::_handleDelete()
 {
+	std::cout << "\033[1;31mHandle DELETE\033[0m" << std::endl;
+	std::cout << "\033[1;31mDELETE: " << this->_req->getPath() << "\033[0m" << std::endl;
 	if (access(this->_req->getPath().c_str(), F_OK))// file not found
 	{
+		std::cout << "\033[1;31mDELETE 404\033[0m" << std::endl;
 		this->sendError(404);
 		return ;
 	}
 	if (access(this->_req->getPath().c_str(), W_OK))// no permissions
 	{
+		std::cout << "\033[1;31mDELETE 403\033[0m" << std::endl;
 		this->sendError(403);
 		return ;
 	}
-	if (std::remove(this->_req->getPath().c_str()))
+	if (std::remove(this->_req->getPath().c_str()))// can't delete file
 	{
+		std::cout << "\033[1;31mDELETE 500\033[0m" << std::endl;
 		this->sendError(500);
 		return ;
 	}
-	this->putStatusLine(204); // Success + No Content
+	std::cout << "\033[1;31mDELETE 204\033[0m" << std::endl;
+	this->_response = this->putStatusLine(204); // Success + No Content
 	this->putGeneralHeaders();
 }
 
@@ -288,20 +294,29 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
+
 bool	Response::_createFile(void)
 {
-	struct stat	is_dir;
-	std::string	filename = "new_file.tmp";
-	filename.insert(0, this->_req->getUploadDir());
-	if (stat("uploaded", &is_dir))
-			return (this->sendError(500), 1);
-	if (!S_ISDIR(is_dir.st_mode))// if it doesn't exist
-		std::system("mkdir uploaded");
-	//std::ofstream	newfile(this->_req->getFilename());
+	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
+	std::string	filename = "";
+	std::string	create;
+
+	for (std::vector<std::string>::iterator it = upath.begin(); it != upath.end(); it++)
+	{
+		create = "mkdir ";
+		filename += *it + "/";
+		if (access(filename.c_str(), F_OK) != 0)//if it doesn't exist
+		{
+			std::cout << create + filename << std::endl;
+			create += filename;
+			if (std::system(create.c_str()))
+				return (1);
+		}
+	}
+	filename += this->_req->getFileName();
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
-			return (this->sendError(500), 1);
-	//newfile << this->_req->body;
+			return (1);
 	newfile << this->_body;
 	return (0);
 }
@@ -336,18 +351,30 @@ void	Response::_handlePost()
 //checks if it's all accepted (*/*). If it's not, it checks if type is accepted
 //(in text/html, text is type and html is subtype). If type is accepted, checks if
 //subtype is accepted or it's *
-bool	Response::_isNotAccepted(std::string mime)
+bool	Response::_isAccepted(std::string mime)
 {
-	if (mime == "*/*")
-		return (0);
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)
-		return (1);
-	const std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
-	std::multimap<std::string, std::string>::const_iterator it = mp.find(mime.substr(0, found));
-	if (it != mp.end() && (it->second == mime.substr(found + 1) || mime.substr(found + 1) == "*"))
-		return (0);
-	return (1);
+		return (false);
+	std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
+	std::pair<std::multimap<std::string, std::string>::iterator, std::multimap<std::string, std::string>::iterator> range;
+	range = mp.equal_range("*");
+	std::multimap<std::string, std::string>::iterator	it = range.first;
+	while (it != range.second)
+	{
+		if (it->second == "*" || it->second == mime.substr(found + 1))
+			return (true);
+		it++;
+	}
+	range = mp.equal_range(mime.substr(0, found));
+	it = range.first;
+	while (it != range.second)
+	{
+		if (it->second == "*" || it->second == mime.substr(found + 1))
+			return (true);
+		it++;
+	}
+	return (false);
 }
 
 //if index.html
@@ -356,11 +383,17 @@ bool	Response::_isNotAccepted(std::string mime)
 //	show listing
 //else
 //	show 403
-
+/* checks if path is a directory.
+	0 = it's not a directory
+	1 = it is a directory
+	-1 = error
+*/
 int	Response::_isDir(const std::string &path) const
 {
 	struct stat	status;
 
+	if (access(path.c_str(), F_OK | X_OK))
+		return (0);
 	if (stat(path.c_str(), &status))
 		return (-1);
 	if (S_ISDIR(status.st_mode))
@@ -368,19 +401,33 @@ int	Response::_isDir(const std::string &path) const
 	return (0);
 }
 
+/*std::string	Response::ft_strnstr(const std::string &haystack, const std::string &needle)
+{
+	std::string	hay = haystack;
+	std::string::size_type	found = hay.find(needle);
+
+	if (found == std::string::npos)
+		return ("");
+	else
+		return (hay.erase(found, needle.size()));
+}*/
+
 void	Response::_makeAutoIndex(void)
 {
 	struct dirent	*dp;
 	DIR				*dir;
 	int				is_dir;
 	std::string		filename;
+	std::string		path = this->_req->getPath();
 
-	if (this->_isNotAccepted("text/html"))
+	if (this->_isAccepted("text/html") == false)
 	{
 		this->sendError(403);
 		return ;
 	}
-	filename = this->_req->getPath();
+	filename = path;
+	//std::cout << "autoindex: init filename: " << filename << std::endl;
+	//std::cout << "autoindex: getRoot: " << _req->getRoot() << std::endl;
 	dir = opendir(filename.c_str());
 	if (!dir)
 	{
@@ -388,15 +435,18 @@ void	Response::_makeAutoIndex(void)
 		this->sendError(500);
 		return ;
 	}
-	this->_body = "<html><head><title>INDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ";
+	this->_body = "<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ";
 	this->_body += filename.substr(1) + "</h1></head><body style=\"font-size:150%;margin:50px;\">";
+	path = ft_strstr(path, this->_req->getRoot());
 	while ((dp = readdir(dir)) != NULL)
 	{
 		if (dp->d_name[0] == '.')
 			continue ;
-		filename = this->_req->getPath();
-		if (filename[filename.size() - 1] != '/')
+		filename = path;
+		if (filename.size() && filename[filename.size() - 1] != '/')
 			filename += "/";
+		if (filename.size() && filename[0] == '/')
+			filename.erase(0);
 		filename += dp->d_name;
 		is_dir = this->_isDir(filename);
 		//std::cout << "\033[33;1mmake AutoIndex:\n\t filename" << filename
@@ -411,11 +461,12 @@ void	Response::_makeAutoIndex(void)
 		}
 		if (!access(filename.c_str(), X_OK) && !is_dir)
 			continue ;
-		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin")
+		if (filename == "./conf" || filename == "./errors" || filename == "./cgi-bin" || filename == "./mime.types")
 			continue ;
 		//std::cout << "\033[31;1mmake AutoIndex file: " << filename << "\033[0m" << std::endl;
 		this->_body += "<p><a href= ";
 		this->_body += filename.substr(1);
+		//this->_body += dp->d_name;
 		this->_body += ">";
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
@@ -467,20 +518,19 @@ bool	Response::putPostHeaders(const std::string &file)
 		if (line.find(ext) != std::string::npos)
 			break ;
 	}
-	//this->_response += "Location: " + this->_req->getUploadDir();
-	this->_response += "Location: /"; //TMP
+	this->_response += "Location: " + this->_req->getUploadDir();
 	if (line == "" || mime.eof())
 	{
 		if (access(file.c_str(), X_OK)) // if not executable
 		{
-			if (this->_isNotAccepted("text/plain"))
+			if (this->_isAccepted("text/plain") == false)
 				return (this->sendError(406), 1);
 			else
 				this->_response += "Content-Type: text/plain\r\n";
 		}
 		else
 		{
-			if (this->_isNotAccepted("application/octet-stream"))
+			if (this->_isAccepted("application/octet-stream") == false)
 				return (this->sendError(406), 1);
 			else
 				this->_response += "Content-Type: application/octet-stream\r\n";
@@ -488,7 +538,7 @@ bool	Response::putPostHeaders(const std::string &file)
 		return (0);
 	}
 	line = line.substr(line.find_first_not_of("\t \n\v\r", ext.size()));
-	if (this->_isNotAccepted(line))
+	if (this->_isAccepted(line) == false)
 		return (this->sendError(406), 1);
 	this->_response += "Content-Type: " + line + "\r\n";
 	return (0);
@@ -499,6 +549,7 @@ bool	Response::putPostHeaders(const std::string &file)
 //puts file content in body string. If something's wrong, returns error code
 int	Response::fileToBody(const std::string &path)
 {
+	std::cout << "\033[1;32mFILEtoBODY path: " << path << "\033[0m" << std::endl;
 	if (access(path.c_str(), F_OK))//if given error page doesn't exist
 		return (404);
 	else if (access(path.c_str(), R_OK))//if server doesn't have the right to read
@@ -516,19 +567,25 @@ int	Response::fileToBody(const std::string &path)
 // a severe internal server error page is sent (505)
 void	Response::sendError(int code)
 {
-	if (this->_status.find(code) == this->_status.end())
+	int error = 0;
+	if (code != 505 && this->_status.find(code) == this->_status.end())
 		code = 500;
-	if (this->_isNotAccepted("text/html"))
+	std::cout << "SEND_ERROR: error path: " << this->_status.at(code).second << std::endl;
+	if (this->_isAccepted("text/html") == false)
 	{
+		std::cout << "send error: not accepted" << std::endl;
 		this->_response = this->putStatusLine(code);
 		this->putGeneralHeaders();
 		this->_response += "Content-Length: " + ft_itoa(this->_status.at(code).first.size()) + "\r\n\n";
 		this->_response += ft_itoa(code) + this->_status.at(code).first;
 		return ;
 	}
-	int error = fileToBody(this->_status.at(code).second);
-	if (error && fileToBody(this->_status.at(error).second))//true if we have a double error
+	if (code != 505)
+		error = fileToBody(this->_status.at(code).second);
+	std::cout << "SEND_ERROR: error: " << error << " error path: " << this->_status.at(code).second << std::endl;
+	if (code == 505 || (error && fileToBody(this->_status.at(error).second)))//true if we have a double error
 	{
+		this->_response = "Content-Type: text/plain\r\n";
 		this->_response += "Content-Length: 22\r\n\r\n";
 		this->_response += "Severe Internal Error\n";
 		this->_response.insert(0, "HTTP/1.1 505 Severe Internal Server Error\r\n");
@@ -537,9 +594,9 @@ void	Response::sendError(int code)
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
-	this->_response = "Content-Type: text/html\r\n";
-	this->_response.insert(0, this->putStatusLine(code));
-	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\n\n";
+	this->_response = this->putStatusLine(code);
+	this->_response += "Content-Type: text/html\r\n";
+	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 	this->_response += this->_body;
 }
 

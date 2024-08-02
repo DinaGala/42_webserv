@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/07 21:50:18 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:17:40 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,8 @@ class ServerConfig
 //		bool		empty;
 
 	private:
-		std::map<int, std::pair<std::string, std::string> >	_errorPages;
-		std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		static std::map<int, std::pair<std::string, std::string> >	_errorPages;
+		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 		std::vector<int> 					_port; // Choose the port and host of each ’server’.		
 		std::string 						_host; // Choose the port and host of each ’server’.
 		std::string							_ip;

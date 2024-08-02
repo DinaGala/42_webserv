@@ -1,10 +1,12 @@
 
 #include "Cluster.hpp"
 
-Cluster::Cluster() {
+Cluster::Cluster() 
+{
 }
 
-Cluster::~Cluster() {
+Cluster::~Cluster() 
+{
 	
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
@@ -33,20 +35,21 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
-//	exit (1);
 	createServers();
 	createSockets();
 	createEpoll();
 }
 
-void	Cluster::createServers(){
+void	Cluster::createServers()
+{
 	for (std::vector<ServerConfig>::iterator it = _sconf.begin(); it != _sconf.end(); it++) {
 		Server server(*it);
 		this->_servers.push_back(server);
 	}
 }
 
-void	Cluster::createSockets(){
+void	Cluster::createSockets()
+{
 	for (size_t i = 0; i < _servers.size(); i++) {
 		std::vector<int> ports = _servers[i].getPort();
 		for (size_t j = 0; j < ports.size(); j++) {
@@ -55,7 +58,6 @@ void	Cluster::createSockets(){
 		}
 	}
 }
-
 
 void	Cluster::createEpoll()
 {
@@ -83,11 +85,12 @@ void	Cluster::runCluster()
 	while (signaled)
 	{ 
 		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
-        
-		/*if (_nfds == -1) { //TODO: CHECK THIS LINE
-			std::cout << "INSIDE EROR LOOP\n";
+
+		if (_nfds == -1) {
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
-		}*/
+		}
 		std::cout << "EPOLL WAIT\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
@@ -150,15 +153,13 @@ void	Cluster::readConnection(Socket *sock)
 		buffer[bytesRead] = '\0';
 			
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
-		std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
+		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
-	//	exit (0);
-	//	std::cout << "IN READ CONN, after parsing REQUEST: \n" << *(sock->getRequest());
+		std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
 		else
 			return ;
-
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 		std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
 //		sock->setLastActivity(time(NULL));
@@ -307,10 +308,14 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     out << "Buffer:  " << val.getBuffer() << "\n";
+	out << "Body:  " << val.getBody() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
 	out << "Request line:  " << val.getRequesLine() << "\n";
+	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
+	out << "Path:  " << val.getPath() << "\n";
+	out << "Number Location:  " << val.getPosLocation() << "\n";
 	out << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    

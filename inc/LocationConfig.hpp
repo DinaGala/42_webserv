@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/04 15:49:39 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:15:21 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class LocationConfig
 		const std::string& 					getIndex() const;
 		const std::string& 					getUploadDir() const;
 		const std::vector<std::string>& 	getAllowedMethods() const;
-		const std::map<int, std::pair<std::string, std::string> > 	getErrorPages() const;
+		const std::map<int, std::pair<std::string, std::string> >& 	getErrorPages() const;
 		const std::map<std::string, func>& 	getKeys() const;
 		const std::map<std::string, std::string>&	getCgiConf() const;
 		const std::map<std::string, bool>& 	getVars();

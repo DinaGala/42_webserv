@@ -6,12 +6,11 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:40 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:23:15 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ServerConfig.hpp"
-
 
 std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
 {
@@ -36,7 +35,7 @@ std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
 	return (error);
 }
 
-//std::map<int, std::pair<std::string, std::string> > ServerConfig::_errorPages = ServerConfig::_initStatus();
+std::map<int, std::pair<std::string, std::string> > ServerConfig::_errorPages = ServerConfig::_initStatus();
 
 // _____________  CONSTRUCTORS ______________________________________
 
@@ -45,7 +44,7 @@ ServerConfig::ServerConfig(): loc(true)
 {
 	_initKeys();
 	_autoIndex = false;
-	_root = "html";
+	_root = "./html";
 	_maxBodySize = 10000000;
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
@@ -58,9 +57,9 @@ ServerConfig::ServerConfig(): loc(true)
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
-	// _errorPages[403] = "./errors/403.html";
-	// _errorPages[404] = "./errors/404.html";
-	// _errorPages[500] = "./errors/500.html";
+	/*_errorPages[403] = "./errors/403.html";
+	_errorPages[404] = "./errors/404.html";
+	_errorPages[500] = "./errors/500.html";*/
 	//ERROR PAGES
 }
 
@@ -79,10 +78,9 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
 	_cgiConf[".py"] = "/usr/bin/python3";
-	_errorPages = _initStatus();
-	// _errorPages[403] = "./errors/403.html";
-	// _errorPages[404] = "./errors/404.html";
-	// _errorPages[500] = "./errors/500.html";
+	/*_errorPages[403] = "./errors/403.html";
+	_errorPages[404] = "./errors/404.html";
+	_errorPages[500] = "./errors/500.html";*/
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
@@ -102,6 +100,7 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_cgiConf = src._cgiConf;
 	_autoIndex = src._autoIndex;
 	_vars = src._vars;
+	_errorPages = src._errorPages;
 	_keys = src._keys;
 //	empty = src.empty;
 	return (*this);
@@ -127,7 +126,7 @@ ServerConfig::~ServerConfig()
 	_serverName.clear();
 	_locations.clear();
 	_allowedMethods.clear();
-	_errorPages.clear();
+	//_errorPages.clear();
 	_cgiConf.clear();
 	_keys.clear();
 	_vars.clear();
