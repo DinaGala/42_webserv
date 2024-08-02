@@ -13,7 +13,7 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
 	std::cout << "client socket port:  " << _port << "\n";
-	_req.push_back(Request(server));
+	_req.push_back(Request(server, this->_port));
 	_resp.push_back(Response());
 	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
@@ -87,7 +87,14 @@ void	Socket::initMaster()
         _fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (_fd == -1) 
 			continue;
-        if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
+		int opt = 1;
+		if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+        {
+			close(_fd);
+            freeaddrinfo(servinfo);
+            throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+    	}
+	    if (bind(_fd, p->ai_addr, p->ai_addrlen) == 0) 
 			break;
         close(_fd);
     }
@@ -106,12 +113,12 @@ void	Socket::initMaster()
 	std::cout << "Master socket is listening from: "  + _ipAddress + ":" << _port << std::endl;
 
 	// NOT SURE ABOUT IT
-	int opt = 1;
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
-	{
-		close(_fd);
-        throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
-	}
+	// int opt = 1;
+	// if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
+	// {
+	// 	close(_fd);
+    //     throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
+	// }
 }
 
 /*ACCEPT
@@ -171,14 +178,6 @@ int	Socket::getSockFd() const {
 bool	Socket::getMaster() const {
 	return(_master);
 }
-
-// const struct sockaddr_in& Socket::getSockaddr() const {
-// 	return(_sockaddr);
-// }
-
-// const Server& Socket::getServer() const {
-// 	return(_server);
-// }
 
 Server& Socket::getServer() const {
 	return(_server);

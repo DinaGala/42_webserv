@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:24:19 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:00 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:18:38 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,13 @@
 
 LocationConfig::LocationConfig(): loc(false) {}
 
-LocationConfig::LocationConfig(std::string url, const std::string &root, std::string file): loc(false), _uri(url), _root(root)
+LocationConfig::LocationConfig(std::string url, std::map<int, std::pair<std::string, std::string> > err, std::string file): loc(false), _uri(url)
 {
 	// std::cout << "UN LOC CONSTRUCT, URL: " + url + "\n";
 	_autoIndex = false;
     _allowUpload = false;
+	_root = "";
+	_errorPages = err;
     _index = "index.html";
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
@@ -43,6 +45,15 @@ LocationConfig& LocationConfig::operator=(const LocationConfig& src)
 	_errorPages = src._errorPages;
 	_cgiConf = src._cgiConf;
 	return (*this);
+}
+
+std::map<int, std::pair<std::string, std::string> > LocationConfig::operator=(const std::map<int, std::pair<std::string, std::string> > &val)
+{
+	std::map<int, std::pair<std::string, std::string> >	src = val;
+	std::map<int, std::pair<std::string, std::string> >	ret;
+	for (std::map<int, std::pair<std::string, std::string> >::iterator it = src.begin(); it != src.end(); it++)
+		ret[it->first] = std::make_pair(it->second.first, it->second.second);
+	return (ret);
 }
 
 LocationConfig::LocationConfig(const LocationConfig& src): loc(false)
@@ -126,7 +137,7 @@ const std::vector<std::string>& 	LocationConfig::getAllowedMethods() const
     return (_allowedMethods);
 }
 
-const std::map<int, std::string>& 	LocationConfig::getErrorPages() const
+const std::map<int, std::pair<std::string, std::string> >& 	LocationConfig::getErrorPages() const
 {
     return (_errorPages);
 }
@@ -153,7 +164,7 @@ void LocationConfig::setRoot(const std::string& root)
 
 void LocationConfig::setErrorPage(int code, const std::string& page)
 {
-	_errorPages[code] = page;
+	_errorPages[code].second = page;
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
 }
