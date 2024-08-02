@@ -217,7 +217,10 @@ void	Response::_handleGet()
 				return ;
 			}
 			if (code == 0)
+			{
 				this->_response += "\n\n" + this->_body;
+				return ;
+			}
 		}
 		if (this->_req->getAutoIndex() == true || code == 404)
 		{
