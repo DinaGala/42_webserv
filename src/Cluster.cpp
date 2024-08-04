@@ -155,7 +155,7 @@ void	Cluster::readConnection(Socket *sock)
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
 		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
 		sock->getRequest()->parseRequest(buffer);
-		std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
+		//std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
 		else
@@ -185,18 +185,10 @@ void	Cluster::sendConnection(Socket *sock)
 
 	sock->getResponseLine().erase(0, bytes);
 //	sock->setLastActivity(time(NULL));
-	if (sock->getRequest()->getConnectionKeepAlive() == true)
-		std::cout << "\033[1;31mKEEP ALIVE\033[0m" << std::endl;
-	else
-		std::cout << "\033[1;31mCLOSE\033[0m" << std::endl;
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
-	{
-		std::cout << "\033[1;31mDelete socket\033[0m" << std::endl;
 		return (eraseSocket(sock, false));
-	}
 	else if (sock->getResponseLine().empty())
 	{
-		std::cout << "\033[1;31mShutdown socket\033[0m" << std::endl;
 	//	eraseSocket(sock, false);
 		shutdown(sock->getSockFd(), SHUT_WR);
 
