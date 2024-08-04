@@ -1,5 +1,21 @@
 #include "Response.hpp"
 
+const std::set<std::string> Response::_initSensitive(void)
+{
+	std::set<std::string> sen;
+
+	sen.insert("./conf");
+	sen.insert("./errors");
+	sen.insert("./src");
+	sen.insert("./inc");
+	sen.insert("./assets");
+	sen.insert("./mime.types");
+	sen.insert("./assets");
+	return (sen);
+}
+
+const std::set<std::string> Response::_sensitive = _initSensitive();
+
 void	Response::cleanResponse()
 {
 	_body.clear();
@@ -312,8 +328,6 @@ int	Response::_isDir(const std::string &path) const
 		return (0);
 	if (stat(path.c_str(), &status)) // stat error
 		return (-1);
-	if (!(status.st_mode & S_IRWXG) || !(status.st_mode & S_IRWXO))
-		return (2);
 	if (S_ISDIR(status.st_mode)) //it is a directory
 		return (1);
 	return (0);
@@ -334,24 +348,22 @@ void	Response::_makeAutoIndex(void)
 	this->_body = AUTOINDEX(path);
 	path = ft_strstr(path, this->_req->getRoot());
 	if (path.empty())
-		path.insert(0, "/");
+		path.insert(0, "./");
 	else if (path.at(path.size() - 1) != '/')
 		path += "/";
-	
 	while ((dp = readdir(dir)) != NULL)
 	{
 		filename = path + dp->d_name;
-		if (dp->d_name[0] == '.')
+		std::cout << "\033[1;31mFILE: " << filename << "\033[0m" << std::endl;
+		if (dp->d_name[0] == '.' || this->_sensitive.count("." + filename))
 			continue ;
-		if (path[0] != '.')
-			path.insert(0, ".");
 		if ((is_dir = this->_isDir(filename)) == -1)
 		{
 			closedir(dir);
 			this->sendError(500);
 			return ;
 		}
-		if (is_dir == 2 || (is_dir != 1 && access(filename.c_str(), X_OK) == 0))
+		if (is_dir != 1 && access(filename.c_str(), X_OK) == 0)
 			continue ;
 		this->_body += AUTOINDEX_FILES(filename, dp->d_name);
 	}

@@ -17,6 +17,7 @@
 				"Severe Internal Error.\nPlease, try again later\n"
 
 #include <map>
+#include <set>
 #include <string>
 #include <ctime>
 #include <fstream>
@@ -45,6 +46,8 @@ class	Response
 
 	private:
 		std::map<int, std::pair<std::string, std::string> >	_status;
+		static const std::set<std::string>	_sensitive;
+		static const std::set<std::string>	_initSensitive();
 		std::vector<std::string>	_cgiargs;
 		std::string		_body;
 		std::string		_response;
