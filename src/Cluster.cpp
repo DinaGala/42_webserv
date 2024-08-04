@@ -161,7 +161,7 @@ void	Cluster::readConnection(Socket *sock)
 		else
 			return ;
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
+		//std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
 //		sock->setLastActivity(time(NULL));
 }
 
