@@ -156,8 +156,6 @@ void	Response::_handleGet()
 	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
-	else if (access(this->_req->getPath().c_str(), F_OK)) //if file/dir does not exist
-		return (void)this->sendError(404);
 	is_dir = this->_isDir(this->_req->getPath());
 	if (is_dir == -1)
 		return (void)this->sendError(500);
@@ -189,6 +187,7 @@ void	Response::_handleGet()
 		this->_cgiargs = this->_findCgiArgs(this->_req->getPath());
 		Cgi	cgi(*(this->_req), this->_cgiargs);
 		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
+		std::cout << "\033[1;31mCGI STATUS " << cgi_status << std::endl;
 		if (cgi_status) // if cgi returns status != 0 -> error
 			return (void)this->sendError(cgi_status);
 		this->_parseCgiResponse();
@@ -354,7 +353,6 @@ void	Response::_makeAutoIndex(void)
 	while ((dp = readdir(dir)) != NULL)
 	{
 		filename = path + dp->d_name;
-		std::cout << "\033[1;31mFILE: " << filename << "\033[0m" << std::endl;
 		if (dp->d_name[0] == '.' || this->_sensitive.count("." + filename))
 			continue ;
 		if ((is_dir = this->_isDir(filename)) == -1)
