@@ -114,7 +114,6 @@ void	Cgi::_childProcess(int *req, int *cgi)
 {
 	char	**args;
 	char	**env;
-	std::cerr << "\033[1;31mchildProcess args.size() " << this->_args.size()<< "\033[0m" << std::endl;
 	if (this->_args.size() == 0)
 		exit(40);
 	args = this->_vecToMat(this->_args);
@@ -140,6 +139,11 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 
 	if (pipe(req) || pipe(cgi))
 		return (500);
+	fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(req[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	write(req[1], "\0", 1);
 	pid = fork();
@@ -154,11 +158,19 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		std::time_t now = std::time(NULL);
 		if (now - epoch > timeout)
 		{
-			kill(pid, 0);
+			if (kill(pid, SIGKILL))
+			{
+				std::cout << "I've killed the child!" << std::endl;
+				waitpid(pid, &status, 0);// wait until the child is actually dead
+				return (500);
+			}
 			return (504);
 		}
 		if (waitpid(pid, &status, WNOHANG) == -1)
+		{
+			std::cout << "FUCK, waitpid returns -1" << std::endl;
 			return (500);
+		}
 		if (WIFEXITED(status))
 			break ;
 	}
