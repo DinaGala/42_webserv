@@ -7,6 +7,9 @@
 # define MAXCONNECT 10
 #endif
 
+# define AUTOINDEX(content) std::string("<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ") + content + std::string("</h1></head><body style=\"font-size:150%;margin:50px;\">")
+# define AUTOINDEX_FILES(href, name) std::string("<p><a href= ") + href + std::string(">") + name + std::string("</a></p>\n")
+
 #include <map>
 #include <string>
 #include <ctime>
@@ -64,7 +67,7 @@ class	Response
 		void		_handlePost(void);
 		void		_handleDelete(void);
 		std::string	_parseUrl(const std::string &url);
-		std::vector<std::string> _setCgi(const std::string &path);
+		std::vector<std::string> _findCgiArgs(const std::string &path);
 		bool		_createFile(void);
 		bool		_isAccepted(std::string str);
 		void		_makeAutoIndex(void);

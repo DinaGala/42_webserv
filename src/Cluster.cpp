@@ -11,15 +11,24 @@ Cluster::~Cluster()
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		//if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
-			//throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
+		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
 	}
 	close(_epFd);
+	_sconf.clear();
+	_servers.clear();
+	_sockets.clear();
+		// int fd[2];
+		// pipe(fd);
+		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
+		// close(fd[0]);
+		// close(fd[1]); 
+	std::cout << "DISTRUCTOR CALLED\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
-	std::string filename = "conf/default.conf";
+	std::string filename = "conf/basic_test.conf";
 
 	if (ac == 2)
 		filename = av[1];
@@ -152,7 +161,8 @@ void	Cluster::readConnection(Socket *sock)
 		else
 			return ;
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		sock->setLastActivity(time(NULL));
+		std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
+//		sock->setLastActivity(time(NULL));
 }
 
 /*SEND 
@@ -163,24 +173,37 @@ void	Cluster::readConnection(Socket *sock)
 */
 void	Cluster::sendConnection(Socket *sock)
 {
-	size_t	bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), 0); // a flag??
+	size_t	bytes;
+
+	if (sock->getResponseLine().size() < BUFFER_SIZE)
+		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), MSG_DONTWAIT); // a flag??
+	else
+		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), BUFFER_SIZE, MSG_DONTWAIT); // a flag??	
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
 	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
 
 	sock->getResponseLine().erase(0, bytes);
-	sock->setLastActivity(time(NULL));
-	
+//	sock->setLastActivity(time(NULL));
+	if (sock->getRequest()->getConnectionKeepAlive() == true)
+		std::cout << "\033[1;31mKEEP ALIVE\033[0m" << std::endl;
+	else
+		std::cout << "\033[1;31mCLOSE\033[0m" << std::endl;
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
 	{
+		std::cout << "\033[1;31mDelete socket\033[0m" << std::endl;
 		return (eraseSocket(sock, false));
 	}
 	else if (sock->getResponseLine().empty())
 	{
-		eraseSocket(sock, false);
-	//	cleanSocket(sock);
+	//	std::cout << "\033[1;31mShutdown socket\033[0m" << std::endl;
+	//	eraseSocket(sock, false);
+	//	shutdown(sock->getSockFd(), SHUT_WR);
+
+
+		cleanSocket(sock);
 	//	exit (0);
-	//	modifyEvent(sock, 0);
+		modifyEvent(sock, 0);
 	//	exit (0);
 	}
 //	exit (0);
@@ -189,7 +212,7 @@ void	Cluster::sendConnection(Socket *sock)
 // if flag 0 - to in, 1 - to out
 void	Cluster::modifyEvent(Socket *sock, bool flag)
 {
-	if (flag == 1)
+	if (flag)
 		_ev.events = EPOLLOUT;
 	else
 		_ev.events = EPOLLIN;
@@ -246,8 +269,9 @@ std::list<Socket>::iterator	Cluster::eraseSocket(std::list<Socket>::iterator soc
 void	Cluster::cleanSocket(Socket *sock)
 {
 	sock->getResponseLine().clear();
-	sock->getRequest()->initParams(); //modified by Julia
-	sock->getResponse()->cleanResponse();
+	sock->cleanRequestResponse();
+//	sock->getRequest()->initParams(); //modified by Julia
+//	sock->getResponse()->cleanResponse();
 }
 
 // void	Cluster::checkTimeout()
@@ -268,7 +292,7 @@ std::ostream	&operator<<(std::ostream &out, const Socket &val)
     out << "Port:  " << val.getPort() << "\n";
     out << "IP:  " << val.getIpAdress() << "\n";
     out << "Socket fd:  " << val.getSockFd() << "\n";
-    out << "Last activity:  " << val.getLastActivity() << "\n";
+//    out << "Last activity:  " << val.getLastActivity() << "\n";
     out << "Master:  " << val.getMaster() << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
 	return (out);
@@ -297,6 +321,8 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Path:  " << val.getPath() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
+	out << "Filename:  " << val.getFileName() << "\n";
+	out << "Upload Dir:  " << val.getUploadDir() << "\n";
 	out << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    
