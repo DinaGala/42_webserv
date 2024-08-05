@@ -84,7 +84,7 @@ void	Cluster::runCluster()
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 300); // check 2000
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 20000); 
 
 		if (_nfds == -1) {
 			if (errno == EINTR)
@@ -325,7 +325,12 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Upload dir:  " << val.getUploadDir() << "\n";
 	out << "Status:  " << val.getStatus() << "\n";
 	out << "Body size:  " << val.getBody().size() << "\n";
+	out << "Buffer size:  " << val.getBuffer().size() << "\n";
 	out << "cont lenght:  " << val.getContentLenght() << "\n";
+	
+	std::map<std::string, std::string>::const_iterator it = val.getHeaders().find("Content-Length");
+	if (it != val.getHeaders().end())
+		out << "cont lenght STRING :  " << it->second << "\n";
 	out << "\n\n";
  //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
    

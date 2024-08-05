@@ -230,16 +230,24 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 
 void	Request::parseBodyByContentLength() { 
 	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
-	_contentLenghtl = contentLength;
+	_contentLenght = contentLength;
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
-	size_t chrToCopy;
-	if (_buffer.size() + _body.size() <= contentLength) 
+	//size_t chrToCopy;
+	if (_buffer.size() == contentLength) {
+		_body = _buffer;
+		_buffer.clear();
+
+	}
+	
+	
+	
+	/*if (_buffer.size() + _body.size() <= contentLength) 
 		chrToCopy = _buffer.size();
 	else 
 		chrToCopy = contentLength - _body.size();
 	_body = _body + _buffer.substr(0, chrToCopy);
-	_buffer.erase(0, chrToCopy);
+	_buffer.erase(0, chrToCopy);*/
 	if (_body.length() == contentLength)
 		_status = BODY_PARSED;
 }
@@ -301,7 +309,7 @@ void	Request::saveFileName() {
 		return;
 	size_t initFilename = content.find('\"', auxPos);
 	size_t endFilename = content.find('\"', initFilename + 1);
-	_fileName = content.substr(initFilename + 1, endFilename - initFilename);
+	_fileName = content.substr(initFilename + 1, endFilename - initFilename -1);
 }
 
 // _____________  VALIDTATE REQUEST  _____________ 
