@@ -188,6 +188,8 @@ void LocationConfig::setAutoIndex(bool autoindex)
 
 void 	LocationConfig::setAllowMethod(const std::string& method)
 {
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		throw std::invalid_argument("Error: unknown method in allowed_method: " + method);	
 	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
 	{
 		if (*it == method)
