@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/22 15:36:27 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/08/01 21:26:02 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@
 # include <iostream>
 # include <vector>
 # include <map>
-# include <map>
+# include <list>
 # include <algorithm>
 # include <exception>
 # include <cctype>
@@ -41,9 +41,12 @@
 # include <fcntl.h>
 # include <sys/epoll.h>
 # include <unistd.h>
+# include <stdlib.h>
+# include <signal.h>
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
+# include <netinet/tcp.h>
 # include <netdb.h>
 # include <netinet/in.h>
 # include <cstdlib> // For exit() and EXIT_FAILURE 
@@ -55,6 +58,7 @@
 # include <sstream>
 # include <stdexcept> // For standard exceptions
 
+
 # include "Response.hpp"
 # include "Request.hpp"
 # include "LocationConfig.hpp"
@@ -62,14 +66,9 @@
 # include "Parse.hpp"
 # include "Server.hpp"
 # include "Cgi.hpp"
-
 # include "Socket.hpp"
-
 # include "Cluster.hpp"
-
-
-
-
+# include "Signals.hpp"
 
 std::string ltrim(const std::string& s);
 std::string rtrim(const std::string& s);
@@ -83,5 +82,8 @@ std::string	isLetDig();
 std::string ft_itoa(int nb);
 bool isStringOfDigits(std::string line);
 uint64_t strToHex(std::string line);
+
+void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val);
+std::string	ft_strstr(const std::string &h, const std::string &n);
 
 #endif

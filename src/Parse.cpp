@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/08 15:57:19 by nzhuzhle         ###   ########.fr       */
+/*   Updated: 2024/07/31 11:24:21 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 /* Main function: splits the config file in server blocks and saves it in a vector 
 */
-std::vector<ServerConfig>	Parse::configParse(char *filename)
+std::vector<ServerConfig>	Parse::configParse(const char *filename)
 {
     std::ifstream				file(filename);
 	std::vector<ServerConfig>	sconf;
@@ -96,11 +96,11 @@ void Parse::blockParse(T &serv, std::string &line)
     if (!serv.loc)
         throw std::invalid_argument("Configuration file error: location inside of a location not permitted: " + line.substr(0, line.find('\n')));
     line.erase(0, 8);
-    std::string path = ft_getword(line);
+    std::string path = ft_getword(line, " \v\t\n\r{");
     if (path.empty())
         throw std::invalid_argument("Configuration file error: no location url" + line.substr(0, line.find('\n')));
 //    std::cout << "line before location: " << line << std::endl;
-    serv.setLocationConfig(LocationConfig(path, serv.getRoot(), blockCrop(line)));
+    serv.setLocationConfig(LocationConfig(path, serv.getErrorPages(), blockCrop(line)));
     // std::cout << "------------------------------------------\n";
     // std::cout << serv << "\n";
 }
@@ -132,21 +132,34 @@ std::vector<ServerConfig>	Parse::hostDefault(std::vector<ServerConfig> &sconf)
 	{
 		std::map<std::string, bool> svar = it->getVars();
         if (!svar["host"] && !svar["ip"])
+        {
             it->setHost("localhost");
-        if (svar["host"] && !svar["ip"])
-            it->setIp(findIp(it->getHost()));
+            it->setIp(findIp("localhost", true));
+        }
+        else if (svar["host"] && !svar["ip"])
+            it->setIp(findIp(it->getHost(), true));
+        else if (!svar["host"] && svar["ip"])
+            it->setHostName(findIp(it->getIp(), false));
 	}
 
     return (sconf);
 }
 
-std::string	Parse::findIp(std::string host)
+// if flag = true - we are looking for ip, 
+// if flag = false - we are looking for the hostname
+std::string	Parse::findIp(std::string host, bool flag)
 {
+ //   std::cout << "IN GET IP\n";
     std::ifstream file("/etc/hosts");
+    if (!file.is_open())
+    {
+        file.open(".hosts");
+        std::cout << "Couldn't find /etc/hosts, used local host file.\n";
+    }
     if (!file.is_open())
         throw std::invalid_argument("Error: couldn't open the hosts file to find the host \"" + host + "\"");
     std::string line;
-
+ //   std::cout << "IN GET IP\n";
     while(getline(file, line))
     {
         if (line.empty() || trim(line).empty() || trim(line)[0] == '#')
@@ -154,12 +167,22 @@ std::string	Parse::findIp(std::string host)
         std::vector<std::string>    arr = ft_split(trim(line), WS);
         if (arr.size() < 2)
             continue ;
-        if (arr[1] == host)
-            return (arr[0]);   
+        if (arr[1] == host && flag == true)
+        {
+            file.close();
+            return (arr[0]);
+        }
+        if (arr[0] == host && flag == false)
+        {
+            file.close();
+            return (arr[1]);
+        }
     }
+    file.close();
     throw std::invalid_argument("Configuration file error: host not found in \"" + host + "\" of the \"listen\" directive");
     return (line);
 }
+
 
 int  Parse::checkDupsPort(ServerConfig &serv, std::vector<int> &all)
 {
@@ -201,7 +224,7 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
      //   buf.clear();
         throw std::invalid_argument("Configuration file error: unfinished line " + line.substr(0, line.find('\n')) + ". Use a delimiter: \"" + del + "\"");
     }
-    else 
+    else
     {
         if (buf[pos] == '{')
         {
@@ -217,12 +240,12 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
     return (res);
 }
 
-std::string Parse::ft_getword(std::string &buf)
+std::string Parse::ft_getword(std::string &buf, std::string del)
 {
     // std::cout << "FT GET WORD START" << "\n";
     // std::cout << "BUF: " << buf << "\n\n";
     std::string str = trim(buf);
-    size_t pos = str.find_first_of(" \v\t\n\r");
+    size_t pos = str.find_first_of(del);
     if (pos != std::string::npos)
         str = str.substr(0, pos);
     // std::cout << "FT GET WORD END" << "\n";
@@ -353,11 +376,22 @@ std::ostream	&operator<<(std::ostream &out, const std::map<std::string, std::str
 	return (out);
 }
 
-std::ostream	&operator<<(std::ostream &out, const std::map<int, std::string> &valinit)
+/*std::ostream	&operator<<(std::ostream &out, const std::map<int, std::pair<std::string, std::string> > &valinit)
 {
-    std::map<int, std::string> val = valinit;
-    for (std::map<int, std::string>::iterator it = val.begin(); it != val.end(); it++)
-		out << "   [\"" << it->first << "\"] = " + it->second << "\n";
+    std::map<int, std::pair<std::string, std::string> > val = valinit;
+    for (std::map<int, std::pair<std::string, std::string> >::iterator it = val.begin(); it != val.end(); it++) {
+		out << "    [\"" << it->first << "\"] = \"" + it->second.first + "\", " + it->second.second << "\n";
+//        std::cout << "BZZZZZZZZZZZZ\n";
+    }
+	return (out);
+}*/
+
+std::ostream	&operator<<(std::ostream &out, const std::map<int, std::pair<std::string, std::string> > &valinit)
+{
+	std::map<int, std::pair<std::string, std::string> > val = valinit;
+
+    for (std::map<int, std::pair<std::string, std::string> >::iterator it = val.begin(); it != val.end(); it++)
+		out << "   [\"" << it->first << "\"] = " + it->second.second << "\n";
 	return (out);
 }
 
@@ -371,7 +405,8 @@ std::ostream	&operator<<(std::ostream &out, const ServerConfig &val)
     out << "Max Body Size:  " << val.getMaxBodySize() << "\n";
     out << "Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "Allowed methods:  " << val.getAllowedMethods() << "\n";
-    out << "Error pages:  \n" << val.getErrorPages() << "\n";
+//    out << "Error pages:  \n" << val.getErrorPages() << "\n";
+  //  out << "Error page empty:  " << printBool(val.getErrorPages().empty()) << "\n";
     out << "    CGI:  " << "\n" << val.getCgiConf() << "\n";
     std::vector<LocationConfig> temp = val.getLocationConfig();
     for (std::vector<LocationConfig>::iterator it = temp.begin(); it != temp.end(); it++) {
@@ -399,7 +434,7 @@ std::ostream	&operator<<(std::ostream &out, const LocationConfig &val)
     out << "    |___    Allow upload:  " << printBool(val.getAllowUpload()) << "\n";
     out << "    |___    Autoindex:  " << printBool(val.getAutoIndex()) << "\n";
     out << "    |___    Allowed methods:  " << val.getAllowedMethods() << "\n";
-    out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
+ //   out << "    |___    Error pages:  \n         " << val.getErrorPages() << "\n";
     out << "    |______     CGI:  " << "\n" << val.getCgiConf() << "\n";
 
 	return (out);

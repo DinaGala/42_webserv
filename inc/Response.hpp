@@ -7,6 +7,9 @@
 # define MAXCONNECT 10
 #endif
 
+# define AUTOINDEX(content) std::string("<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ") + content + std::string("</h1></head><body style=\"font-size:150%;margin:50px;\">")
+# define AUTOINDEX_FILES(href, name) std::string("<p><a href= ") + href + std::string(">") + name + std::string("</a></p>\n")
+
 #include <map>
 #include <string>
 #include <ctime>
@@ -34,6 +37,8 @@ class	Response
 		void		setCgiPath(const std::string &cgi);
 		void		setCode(const int &code);
 		void		setReq(const Request *rqt);
+		const std::string& 		getResponse() const;
+		int				getCode() const;
 		//WRITE RESPONSE
 		std::string	putStatusLine(int code);
 		void		putGeneralHeaders(void);
@@ -44,24 +49,15 @@ class	Response
 
 		std::string	&makeResponse(const Request *req);
 		void		sendError(int code);
-
+		std::string	ft_strnstr(const std::string &h, const std::string &n);
 
 	private:
-		static std::map<int, std::pair<std::string, std::string> >	_status;
-		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		//static std::map<int, std::pair<std::string, std::string> >	_status;
+		//static std::map<int, std::pair<std::string, std::string> >	_initStatus();
+		std::map<int, std::pair<std::string, std::string> >	_status;
 		std::string		_body;
-		std::string		_query;
 		std::string		_reqbody;
 		std::string		_response;
-		//std::string		_cgi_path;
-		std::string		_path; //tmp
-		std::string		_servname; //tmp
-		std::string		_method; //tmp
-		std::string		_host; //tmp
-		int				_socket; //tmp
-		int				_port; //tmp
-		bool			_cgi; //tmp
-		bool			_keep_alive; //tmp
 		std::vector<std::string>	_cgiargs;
 		unsigned int	_code;
 		const Request	*_req;
@@ -71,9 +67,9 @@ class	Response
 		void		_handlePost(void);
 		void		_handleDelete(void);
 		std::string	_parseUrl(const std::string &url);
-		std::vector<std::string> _setCgi(std::string &path);
+		std::vector<std::string> _findCgiArgs(const std::string &path);
 		bool		_createFile(void);
-		bool		_isNotAccepted(std::string str);
+		bool		_isAccepted(std::string str);
 		void		_makeAutoIndex(void);
 		int			_isDir(const std::string &path) const ;
 		void		_handleFavIcon();
