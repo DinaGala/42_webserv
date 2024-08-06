@@ -11,4 +11,5 @@ void signHandler(int sig) {
 void initSignals() {
 	signal(SIGINT, signHandler);
 	signal(SIGQUIT, signHandler);
+	signal(SIGPIPE, SIG_IGN);
 }
