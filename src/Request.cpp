@@ -90,9 +90,10 @@ void	Request::initParams()
 */
 
 // _____________  PARSING REQUEST  _____________ 
-void	Request::parseRequest(const std::string& buffer) 
+//void	Request::parseRequest(const std::string& buffer) 
+void	Request::parseRequest(std::vector<unsigned char> buffer) 
 {
-	_buffer = _buffer + buffer;
+	_buffer += std::string(buffer.begin(), buffer.end());
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -229,25 +230,26 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 }
 
 void	Request::parseBodyByContentLength() { 
-	long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
-	_contentLenght = contentLength;
+	//long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
+	//_contentLenght = contentLength;
+	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
+	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
+
+
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
-	//size_t chrToCopy;
-	if (_buffer.size() == contentLength) {
+	size_t i = 0;
+	while (i < _buffer.length() && _body.length() < _maxBodySize && _body.length() < contentLength) {
+		_body.push_back(_buffer.at(i));
+		i++;
+	}
+	_buffer.erase(0, i);
+
+	/*if (_buffer.size() == contentLength) {
 		_body = _buffer;
 		_buffer.clear();
 
-	}
-	
-	
-	
-	/*if (_buffer.size() + _body.size() <= contentLength) 
-		chrToCopy = _buffer.size();
-	else 
-		chrToCopy = contentLength - _body.size();
-	_body = _body + _buffer.substr(0, chrToCopy);
-	_buffer.erase(0, chrToCopy);*/
+	}*/
 	if (_body.length() == contentLength)
 		_status = BODY_PARSED;
 }

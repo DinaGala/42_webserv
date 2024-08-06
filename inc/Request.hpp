@@ -46,7 +46,6 @@ class Request {
 		std::string							_boundary;
 		std::map<std::string, std::string>	_multipartHeaders;
 		std::string							_fileName;
-		int							_contentLenght; //TODO: pending remove
 
 	public:
 		Request(Server& server, int port);
@@ -56,7 +55,7 @@ class Request {
 		~Request();
 
 		void		initParams();
-		void		parseRequest(const std::string& buffer);
+		void		parseRequest(std::vector<unsigned char> buffer);
 		void		sendBadRequestError(std::string errMssg, int code);
 
 		void		parseRequestLine();
@@ -125,7 +124,6 @@ class Request {
 		const std::string&								getBoundary() const;
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;
 		const std::string& 								getFileName() const;
-		int 								getContentLenght() const;
 
 		void 		setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages);
 		void 		setIndex(const std::string& index);

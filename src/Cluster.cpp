@@ -145,12 +145,14 @@ void	Cluster::acceptConnection(Socket *sock)
 
 void	Cluster::readConnection(Socket *sock)
 {
-		char buffer[BUFFER_SIZE + 1];
-		int bytesRead = recv(sock->getSockFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
+		//char buffer[BUFFER_SIZE + 1]; //TODO: repair
+		std::vector<unsigned char> buffer(BUFFER_SIZE);
+
+		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead <= 0)
 			return (eraseSocket(sock, true));
 
-		buffer[bytesRead] = '\0';
+		//buffer[bytesRead] = '\0';
 			
 	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
 		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
@@ -325,8 +327,6 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Upload dir:  " << val.getUploadDir() << "\n";
 	out << "Status:  " << val.getStatus() << "\n";
 	out << "Body size:  " << val.getBody().size() << "\n";
-	out << "Buffer size:  " << val.getBuffer().size() << "\n";
-	out << "cont lenght:  " << val.getContentLenght() << "\n";
 	
 	std::map<std::string, std::string>::const_iterator it = val.getHeaders().find("Content-Length");
 	if (it != val.getHeaders().end())
