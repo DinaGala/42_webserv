@@ -84,7 +84,7 @@ void	Cluster::runCluster()
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 20000); 
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); 
 
 		if (_nfds == -1) {
 			if (errno == EINTR)
