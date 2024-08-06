@@ -91,9 +91,9 @@ void	Request::initParams()
 
 // _____________  PARSING REQUEST  _____________ 
 //void	Request::parseRequest(const std::string& buffer) 
-void	Request::parseRequest(std::vector<unsigned char> buffer) 
+void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
-	_buffer += std::string(buffer.begin(), buffer.end());
+	_buffer += std::string(buffer.begin(), buffer.begin() + bytesRead);
 	try {
 		if (_status == INITIAL_STATUS){
 			parseRequestLine();
@@ -230,28 +230,20 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 }
 
 void	Request::parseBodyByContentLength() { 
-	//long unsigned int contentLength = ft_atoi(_headers.find("Content-Length")->second);
-	//_contentLenght = contentLength;
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-
-
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
-	while (i < _buffer.length() && _body.length() < _maxBodySize && _body.length() < contentLength) {
+	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
 		i++;
 	}
 	_buffer.erase(0, i);
-
-	/*if (_buffer.size() == contentLength) {
-		_body = _buffer;
-		_buffer.clear();
-
-	}*/
-	if (_body.length() == contentLength)
+	if (_body.length() == contentLength) {
 		_status = BODY_PARSED;
+		_buffer.clear();
+	}
 }
 
 // _____________  MULTIPART FORM BODY   _____________ 
@@ -265,18 +257,20 @@ void	Request::manageMultipartForm(){
 	}
 } 
 
-void	Request::getBoundary() {
+void	Request::getBoundary() 
+{
 	std::string content = _headers.find("Content-Type")->second;
 	size_t pos = content.find("boundary=");
 	if (pos == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter 1", 400);
 	_boundary = content.substr(pos+9, content.length() - (pos+9));
 }
 
-void	Request::saveMultipartHeaders() {
+void	Request::saveMultipartHeaders() 
+{
 	size_t pos = _body.find("--" + _boundary);
 	if (pos == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter 2 ", 400);
 	size_t startPos = _boundary.length() + pos + 4; //4 - \r\n + initial --
 	while (_body.find(CRLF, startPos) != std::string::npos){
 		std::string line = _body.substr(startPos, _body.find(CRLF, startPos) - startPos);
@@ -290,21 +284,22 @@ void	Request::saveMultipartHeaders() {
 		sendBadRequestError("Request parsing error: invalid Multipart headers", 301);
 }
 
-void	Request::updateMultipartBody() {
+void	Request::updateMultipartBody() 
+{
 	size_t startBody = _body.find("\r\n\r\n") + 4;
 	if (startBody == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
-	size_t finishBody = _body.find("--" + _boundary + "--", startBody);
-	
-	if (finishBody == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter 3 ", 400);
+	size_t finishBody = _body.find(_boundary, startBody);
+	if (finishBody == std::string::npos)
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter4 ", 400);
 	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
 }
 
 
 //Content-Disposition: form-data; name="file"; filename="example.txt"
-void	Request::saveFileName() {
+void	Request::saveFileName() 
+{
 	std::string content = _multipartHeaders.find("Content-Disposition")->second;
 	size_t auxPos = content.find("filename");
 	if (auxPos == std::string::npos)
@@ -315,7 +310,8 @@ void	Request::saveFileName() {
 }
 
 // _____________  VALIDTATE REQUEST  _____________ 
-void Request::requestValidations(){
+void Request::requestValidations()
+{
 	checkHost(); 	
 	checkConnectionKeepAlive();
 	manageAcceptedContent();
@@ -326,7 +322,8 @@ void Request::requestValidations(){
 	updateUploadDir();
 }
  
-void	Request::checkHost() {
+void	Request::checkHost() 
+{
 	if (_headers.find("Host") == _headers.end())
 		sendBadRequestError("Request parsing error: invalid Host", 400);
 	std::string hostReq = _headers.find("Host")->second;
@@ -345,12 +342,14 @@ void	Request::checkHost() {
 		sendBadRequestError("Request parsing error: invalid Host", 400);
 }
 
-void	Request::checkConnectionKeepAlive() {
+void	Request::checkConnectionKeepAlive() 
+{
 	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close")
 		_connectionKeepAlive = false;
 }
 
-void	Request::manageAcceptedContent() {
+void	Request::manageAcceptedContent() 
+{
 	if (_headers.find("Accept") == _headers.end())
 		return ;
 	std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
@@ -369,7 +368,8 @@ void	Request::manageAcceptedContent() {
 	}
 }
 
-void Request::managePath() {
+void Request::managePath() 
+{
 	checkQuery(); //TODO: pending to add to the body ?? NURIA
 	checkLocation();
 	updateInfoLocation();
@@ -389,7 +389,8 @@ void	Request::checkQuery() {
 	}
 }
 
-void	Request::checkLocation() {
+void	Request::checkLocation() 
+{
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 	size_t	nEqualLocs = 0;
 	size_t 	j = 0;
@@ -408,7 +409,8 @@ void	Request::checkLocation() {
 	}
 }
 
-void	Request::updateInfoLocation() {
+void	Request::updateInfoLocation() 
+{
 	if (_posLocation < 0)
 		return ;
 	std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
@@ -439,7 +441,8 @@ void	Request::updateRoot() {
 	}
 } 
 
-void Request::updatePath() {
+void Request::updatePath() 
+{
 	if (_return != "") {
 		_path = _return;
 		_code = 301;

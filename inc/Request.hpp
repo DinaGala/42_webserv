@@ -55,7 +55,7 @@ class Request {
 		~Request();
 
 		void		initParams();
-		void		parseRequest(std::vector<unsigned char> buffer);
+		void		parseRequest(std::vector<unsigned char> buffer, int bytesRead);
 		void		sendBadRequestError(std::string errMssg, int code);
 
 		void		parseRequestLine();
