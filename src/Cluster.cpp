@@ -196,9 +196,9 @@ void	Cluster::sendConnection(Socket *sock)
 	}
 	else if (sock->getResponseLine().empty())
 	{
-		std::cout << "\033[1;31mShutdown socket\033[0m" << std::endl;
+	//	std::cout << "\033[1;31mShutdown socket\033[0m" << std::endl;
 	//	eraseSocket(sock, false);
-		shutdown(sock->getSockFd(), SHUT_WR);
+	//	shutdown(sock->getSockFd(), SHUT_WR);
 
 
 		cleanSocket(sock);
