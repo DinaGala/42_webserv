@@ -301,7 +301,7 @@ void	Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		//TODO: ADD BY JULIA
+		//TODO: ADDED BY JULIA
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
 		this->_body = "<html><body>Form submitted!</body></html>";
