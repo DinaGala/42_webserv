@@ -85,7 +85,7 @@ void	Cluster::runCluster()
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); 
 
 		if (_nfds == -1) {
 			if (errno == EINTR)
@@ -146,16 +146,11 @@ void	Cluster::acceptConnection(Socket *sock)
 
 void	Cluster::readConnection(Socket *sock)
 {
-		char buffer[BUFFER_SIZE + 1];
-		int bytesRead = recv(sock->getSockFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
+		std::vector<unsigned char> buffer(BUFFER_SIZE);
+		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead <= 0)
 			return (eraseSocket(sock, true));
-
-		buffer[bytesRead] = '\0';
-			
-	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
-		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
-		sock->getRequest()->parseRequest(buffer);
+		sock->getRequest()->parseRequest(buffer, bytesRead);
 		std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
@@ -310,30 +305,23 @@ std::ostream	&operator<<(std::ostream &out, const std::list<Socket> &val)
 
 std::ostream	&operator<<(std::ostream &out, const Request &val)
 {
-//	out << "Port:  " << val.getServer() << "\n";
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
-    out << "Buffer:  " << val.getBuffer() << "\n";
-	out << "Body:  " << val.getBody() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
 	out << "Request line:  " << val.getRequesLine() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
-	out << "Path:  " << val.getPath() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
-	out << "Filename:  " << val.getFileName() << "\n";
-	out << "Upload Dir:  " << val.getUploadDir() << "\n";
+	out << "Status:  " << val.getStatus() << "\n";
 	out << "\n\n";
- //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
-   
 	return (out);
 }
 
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
     //	out << "Port:  " << val.getServer() << "\n";
-    out << "Response:  " << val.getResponse() << "\n";
+   out << "Response:  " << val.getResponse() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     // out << "Socket fd:  " << val.getSockFd() << "\n";
     // out << "Last activity:  " << val.getLastActivity() << "\n";

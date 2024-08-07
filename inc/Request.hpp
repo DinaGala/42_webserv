@@ -55,7 +55,7 @@ class Request {
 		~Request();
 
 		void		initParams();
-		void		parseRequest(const std::string& buffer);
+		void		parseRequest(std::vector<unsigned char> buffer, int bytesRead);
 		void		sendBadRequestError(std::string errMssg, int code);
 
 		void		parseRequestLine();
@@ -91,6 +91,7 @@ class Request {
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
 		void		updateIndex();
+		void		updateUploadDir();
 		
 		const std::string&								getBuffer() const;
 		Server&											getServer() const;
