@@ -301,7 +301,7 @@ void	Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		//TODO: ADDED BY JULIA
+		//ADDED BY JULIA
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
 		this->_body = "<html><body>Form submitted!</body></html>";
@@ -404,7 +404,7 @@ void	Response::_makeAutoIndex(void)
 		if (!is_dir && access(filename.c_str(), X_OK) == 0)
 			continue ;
 		//AUTOINDEX_FILES(filename, dp->d_name);
-		this->_body += "<p><a href= " + filename + ">";
+		this->_body += "<p><a href= " + this->_req->getRoot() + filename + ">"; //ADDED BY JULIA
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
 	}
