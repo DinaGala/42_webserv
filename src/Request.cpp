@@ -93,6 +93,7 @@ void	Request::initParams()
 //void	Request::parseRequest(const std::string& buffer) 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
+	
 	_buffer += std::string(buffer.begin(), buffer.begin() + bytesRead);
 	try {
 		if (_status == INITIAL_STATUS){
@@ -460,6 +461,7 @@ void Request::updatePath()
 	}
 }
 
+//Cookie: yummy_cookie=choco; tasty_cookie=strawberry
 void	Request::setCgi()
 {
 	if (access(_path.c_str(), X_OK) == 0) //if executable
@@ -471,6 +473,12 @@ void	Request::setCgi()
 			if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
 				this->_cgi = true;
 		}
+	}
+	if (_headers.find("Cookie") != _headers.end()) { //TODO: is COOKIE???
+		std::string headerCookies = _headers.find("Cookie")->second;
+		std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
+		for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
+			trim(*it);
 	}
 }
 
