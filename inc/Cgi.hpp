@@ -35,6 +35,7 @@ class	Cgi
 		std::string							_url;
 		std::string							_reqbody;
 		int									_status;
+		std::vector<std::string>			_cookiesEnv; //ADDED BY JULIA
 
 		void	_setPathInfo(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
 		void	_setQueryString(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);

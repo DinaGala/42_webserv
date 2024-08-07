@@ -405,6 +405,7 @@ void	Response::_makeAutoIndex(void)
 			continue ;
 		//AUTOINDEX_FILES(filename, dp->d_name);
 		this->_body += "<p><a href= " + this->_req->getRoot() + filename + ">"; //ADDED BY JULIA
+		//this->_body += "<p><a href= " + this->_req->getRequestLine().at(1) + filename + ">"; //ADDED BY JULIA
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
 	}

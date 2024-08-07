@@ -15,7 +15,7 @@ Request& Request::operator=(const Request& src)
 	_status = src.getStatus();
 	_server = src.getServer();
 	_port = src.getPort();
-	_requestLine = src.getRequesLine();
+	_requestLine = src.getRequestLine();
 	_headers = src.getHeaders();
 	_body = src.getBody();
 	_query = src.getQuery();
@@ -42,6 +42,7 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
+	_cookiesEnv = src.getCookiesEnv();
 	return (*this);
 }
 
@@ -81,6 +82,7 @@ void	Request::initParams()
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
+	_cookiesEnv.clear();
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -464,7 +466,6 @@ void Request::updatePath()
 //Cookie: yummy_cookie=choco; tasty_cookie=strawberry
 void	Request::setCgi()
 {
-	
 	if (access(_path.c_str(), X_OK) == 0) { //if executable
 		this->_cgi = true;
 		std::cout << "PATH REQUEST " << _path << std::endl;
@@ -477,12 +478,17 @@ void	Request::setCgi()
 				this->_cgi = true;
 		}
 	}
-	if (_headers.find("Cookie") != _headers.end()) { //TODO: is COOKIE???
-		std::string headerCookies = _headers.find("Cookie")->second;
-		std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
-		for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
-			trim(*it);
-	}
+	setCookies();
+}
+
+void Request::setCookies() 
+{
+	if (_headers.find("Cookie") == _headers.end())
+		return; 
+	std::string headerCookies = _headers.find("Cookie")->second;
+	std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
+	for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
+		trim(*it);
 }
 
 void Request::checkAllowMethod(){

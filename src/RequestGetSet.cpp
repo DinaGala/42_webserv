@@ -21,7 +21,7 @@ int	Request::getStatus() const {
 	return (_status);
 }
 
-const std::vector<std::string>& Request::getRequesLine() const
+const std::vector<std::string>& Request::getRequestLine() const
 {
 	return (_requestLine);
 }
@@ -154,6 +154,11 @@ const std::map<std::string, std::string>& Request::getMultipartHeaders() const
 const std::string&	Request::getFileName() const 
 {
 	return (_fileName);
+}
+
+const std::vector<std::string>&	  Request::getCookiesEnv() const 
+{
+	return (_cookiesEnv);
 }
 
 // _____________  SETTERS _____________ 
