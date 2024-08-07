@@ -464,8 +464,11 @@ void Request::updatePath()
 //Cookie: yummy_cookie=choco; tasty_cookie=strawberry
 void	Request::setCgi()
 {
-	if (access(_path.c_str(), X_OK) == 0) //if executable
+	
+	if (access(_path.c_str(), X_OK) == 0) { //if executable
 		this->_cgi = true;
+		std::cout << "PATH REQUEST " << _path << std::endl;
+	}	
 	else {
 		std::string::size_type	found = _path.find_last_of(".");
 		if (found != std::string::npos) {

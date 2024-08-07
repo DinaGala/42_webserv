@@ -137,7 +137,6 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	char buffer[1024];
 	ssize_t count;
 	std::time_t	epoch = std::time(NULL);
-
 	if (pipe(req) || pipe(cgi))
 		return (500);
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
