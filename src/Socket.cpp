@@ -106,14 +106,14 @@ void	Socket::initMaster()
         throw std::runtime_error("Error: getaddrinfo failed the conversion for " + _ipAddress + ":" + ft_itoa(_port));
 	}
     freeaddrinfo(servinfo);
-	std::cout << "\033[32;1mMaster socket is binded to: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mMaster socket is binded to: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
     
 	if (listen(_fd, MAX_CON) == -1) // we set our maximum?
 	{
         close(_fd);
         throw std::runtime_error("Error: listen failed for " + _ipAddress + ":" + ft_itoa(_port));
     }
-	std::cout << "\033[32;1mMaster socket is listening from: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mMaster socket is listening from: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
 
 	// NOT SURE ABOUT IT
 	// int opt = 1;
@@ -150,7 +150,7 @@ void	Socket::initClient(int masterfd)
 	_fd = accept(masterfd, (struct sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
 	if (_fd < 0)
 		throw std::runtime_error("Error: socket failed when aaccepting connection for: " + _ipAddress + ":" + ft_itoa(_port));
-	std::cout << "\033[32;1mClient is accepted from: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
+	std::cout << "\033[33;1mClient is accepted from: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
 
 	int one = 1;
     if (setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) == -1) {

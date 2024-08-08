@@ -24,7 +24,7 @@ Cluster::~Cluster()
 		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
 		// close(fd[0]);
 		// close(fd[1]); 
-	std::cout << "\033[33;1mBYE BYE BABY!\033[0m\n";
+	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -92,7 +92,7 @@ void	Cluster::runCluster()
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		std::cout << "\033[32;1mEPOLL WAIT\033[0m\n";
+		std::cout << "\033[32;1mWAITING\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
 			//std::cout << "All sockets:\n" << _sockets;
@@ -116,7 +116,7 @@ void	Cluster::runCluster()
 		//checkTimeout();
 		usleep(10000);
 	}
-	std::cout << "----- END OF LOOP -----" << std::endl;
+//	std::cout << "----- END OF LOOP -----" << std::endl;
 }
 
 
@@ -157,7 +157,7 @@ void	Cluster::readConnection(Socket *sock)
 		else
 			return ;
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		std::cout << "\033[33;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
+		std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
 //		sock->setLastActivity(time(NULL));
 }
 
@@ -182,7 +182,7 @@ void	Cluster::sendConnection(Socket *sock)
 	sock->getResponseLine().erase(0, bytes);
 //	sock->setLastActivity(time(NULL));
 	if (sock->getRequest()->getConnectionKeepAlive() == true)
-		std::cout << "\033[1;32mKEEP ALIVE\033[0m" << std::endl;
+		std::cout << "\033[1;33mKEEP ALIVE\033[0m" << std::endl;
 	else
 		std::cout << "\033[1;31mCLOSE\033[0m" << std::endl;
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
