@@ -310,7 +310,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
-	out << "Request line:  " << val.getRequesLine() << "\n";
+	out << "Request line:  " << val.getRequestLine() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
 	out << "Status:  " << val.getStatus() << "\n";
