@@ -21,7 +21,7 @@ int	Request::getStatus() const {
 	return (_status);
 }
 
-const std::vector<std::string>& Request::getRequesyLine() const
+const std::vector<std::string>& Request::getRequestLine() const
 {
 	return (_requestLine);
 }
