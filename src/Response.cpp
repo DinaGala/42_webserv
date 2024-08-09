@@ -404,7 +404,8 @@ void	Response::_makeAutoIndex(void)
 		if (!is_dir && access(filename.c_str(), X_OK) == 0)
 			continue ;
 		//AUTOINDEX_FILES(filename, dp->d_name);
-		this->_body += "<p><a href= " + this->_req->getRoot() + filename + ">"; //ADDED BY JULIA
+		//this->_body += "<p><a href= " + this->_req->getRoot() + filename + ">"; //ADDED BY JULIA
+		this->_body += "<p><a href= " + this->_req->getRequestLine().at(1) + filename + ">"; //ADDED BY JULIA
 		this->_body += dp->d_name;
 		this->_body += "</a></p>\n";
 	}
