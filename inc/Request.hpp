@@ -97,7 +97,7 @@ class Request {
 		Server&											getServer() const;
 		int												getPort() const;
 		int												getStatus() const;
-		const std::vector<std::string>&					getRequesLine() const;
+		const std::vector<std::string>&					getRequestLine() const;
 		const std::map<std::string, std::string>&		getHeaders() const;
 		const std::string&								getBody() const;
 		const std::string&								getQuery() const;
