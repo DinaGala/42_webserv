@@ -150,6 +150,7 @@ void	Cluster::readConnection(Socket *sock)
 		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead <= 0)
 			return (eraseSocket(sock, true));
+		sock->getRequest()->parseRequest(buffer, bytesRead);
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
 		else
