@@ -3,7 +3,6 @@
 <head>
 	<link rel="icon" type="image/png" href="/assets/favicon_general.png">
 	<title>Enter Username</title>
-	<script src="./html/cookies.js" defer></script>
 	<style>
 		body {
 			font-family: Arial, sans-serif;
@@ -25,13 +24,13 @@
 			cursor: pointer;
 			text-decoration: none;
 			color: #fff;
-			background-color: #ccc;
+			background-color: #bbb;
 			border: none;
 			border-radius: 4px;
 			display: inline-block;
 			}
 		.button:hover {
-			background-color: #bbb;
+			background-color: #ccc;
 		}
 		h1 {
 			margin-bottom: 20px;
@@ -41,6 +40,25 @@
 	<body>
 		<h1>Enter Your Username</h1>
 		<input type="text" id="username" placeholder="Enter username" />
-		<button class="button" onclick="setCookies(username)">Submit</button>
+		<button class="button" onclick="setUsername()">Submit</button>
+	
+		<script th:inline="javascript">
+			function setUsername() {
+				const username = document.getElementById('username').value.trim();
+				
+				// Validate if username is not empty
+				if (username === "") {
+					alert("Please enter a username.");
+					return;
+				}
+
+				// Set a cookie with the username that expires in 7 days
+				document.cookie = `username=${encodeURIComponent(username)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+
+				// Redirect back to the main page
+				window.location.href = '';
+			}
+
+		</script>
 	</body>
 </html>
