@@ -3,6 +3,7 @@ GREEN = \033[1;32m
 YELLOW = \033[1;33m
 BLUE = \033[1;34m
 BLACK = \033[0;39m
+PURPLE = \033[1;35m
 
 NAME = webserv
 CPP = g++ -g -O0

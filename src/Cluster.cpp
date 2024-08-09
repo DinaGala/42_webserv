@@ -24,17 +24,18 @@ Cluster::~Cluster()
 		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
 		// close(fd[0]);
 		// close(fd[1]); 
-	std::cout << "DISTRUCTOR CALLED\n";
+	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
-	std::string filename = "conf/basic_test.conf";
+	std::string filename = "conf/default.conf";
 
 	if (ac == 2)
 		filename = av[1];
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
+//	exit (0);
 	createServers();
 	createSockets();
 	createEpoll();
@@ -84,14 +85,14 @@ void	Cluster::runCluster()
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); // check 2000
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 2000); 
 
 		if (_nfds == -1) {
 			if (errno == EINTR)
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		std::cout << "EPOLL WAIT\n";
+		std::cout << "\033[32;1mWAITING\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
 			//std::cout << "All sockets:\n" << _sockets;
@@ -115,7 +116,7 @@ void	Cluster::runCluster()
 		//checkTimeout();
 		usleep(10000);
 	}
-	std::cout << "----- END OF LOOP -----" << std::endl;
+//	std::cout << "----- END OF LOOP -----" << std::endl;
 }
 
 
@@ -145,23 +146,16 @@ void	Cluster::acceptConnection(Socket *sock)
 
 void	Cluster::readConnection(Socket *sock)
 {
-		char buffer[BUFFER_SIZE + 1];
-		int bytesRead = recv(sock->getSockFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
+		std::vector<unsigned char> buffer(BUFFER_SIZE);
+		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead <= 0)
 			return (eraseSocket(sock, true));
-
-		buffer[bytesRead] = '\0';
-			
-	//	std::cout << "Cluster req: " << *(sock->getRequest()) << std::endl;
-		//std::cout << "\033[1;35mCl::readCo:BUFFER: " << buffer << "\033[0m" << std::endl;
-		sock->getRequest()->parseRequest(buffer);
-		//std::cout << "\033[34;1mREQUEST " << sock->getRequest()[0] << "\033[0m\n";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 			modifyEvent(sock, 1);
 		else
 			return ;
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		//std::cout << "IN READ CONN, after response RESPONSE LINE: \n" << *(sock->getResponse());
+		std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
 //		sock->setLastActivity(time(NULL));
 }
 
@@ -189,8 +183,9 @@ void	Cluster::sendConnection(Socket *sock)
 		return (eraseSocket(sock, false));
 	else if (sock->getResponseLine().empty())
 	{
+	//	std::cout << "\033[1;33mCleaning socket\033[0m" << std::endl;
 	//	eraseSocket(sock, false);
-		shutdown(sock->getSockFd(), SHUT_WR);
+	//	shutdown(sock->getSockFd(), SHUT_WR);
 
 
 		cleanSocket(sock);
@@ -226,9 +221,9 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
     close(sock->getSockFd());
 	
 	if (err)
-		std::cerr << "Couldn't read from a socket: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+		std::cerr << "\033[31;1mCouldn't read from a socket: " + sock->getIpAdress() + ":" << sock->getPort() << "\033[0m" << std::endl;
 	else
-		std::cout << "Client socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
+		std::cout << "\033[31;1mClient socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << "\033[0m" << std::endl;
 	
 		// Find the iterator to the element
 	std::list<Socket>::iterator it = _sockets.begin();
@@ -236,8 +231,8 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 	{
 		if (it->getSockFd() == sock->getSockFd()) 
 		{
-			std::cout << "Eliminamos el socket: " << &(*it) << "\n" << *it;
-			std::cout << "Client socket eliminated from: " + it->getIpAdress() + ":" << it->getPort() << std::endl;
+		//	std::cout << "Eliminamos el socket: " << &(*it) << "\n" << *it;
+			std::cout << "\033[31;1mClient socket eliminated from: " + it->getIpAdress() + ":" << it->getPort() << "\033[0m" << std::endl;
 			_sockets.erase(it);
 			return ;
 		}
@@ -301,30 +296,23 @@ std::ostream	&operator<<(std::ostream &out, const std::list<Socket> &val)
 
 std::ostream	&operator<<(std::ostream &out, const Request &val)
 {
-//	out << "Port:  " << val.getServer() << "\n";
     out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
-    out << "Buffer:  " << val.getBuffer() << "\n";
-	out << "Body:  " << val.getBody() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
-	out << "Request line:  " << val.getRequesLine() << "\n";
+	out << "Request line:  " << val.getRequestLine() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
-	out << "Path:  " << val.getPath() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
-	out << "Filename:  " << val.getFileName() << "\n";
-	out << "Upload Dir:  " << val.getUploadDir() << "\n";
+	out << "Status:  " << val.getStatus() << "\n";
 	out << "\n\n";
- //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
-   
 	return (out);
 }
 
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
     //	out << "Port:  " << val.getServer() << "\n";
-    out << "Response:  " << val.getResponse() << "\n";
+   out << "Response:  " << val.getResponse() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     // out << "Socket fd:  " << val.getSockFd() << "\n";
     // out << "Last activity:  " << val.getLastActivity() << "\n";

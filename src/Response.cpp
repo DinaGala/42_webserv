@@ -264,6 +264,13 @@ void	Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
+		//ADDED BY JULIA
+		this->_response = this->putStatusLine(200);
+		this->putGeneralHeaders();
+		this->_body = "<html><body>Form submitted!</body></html>";
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+		this->_response += this->_body;
+		//FINISH ADDED
 	}
 	else
 	{
@@ -273,6 +280,7 @@ void	Response::_handlePost()
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
+	std::cout << "\033[NOT FILENAME" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

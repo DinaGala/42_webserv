@@ -44,7 +44,7 @@ ServerConfig::ServerConfig(): loc(true)
 {
 	_initKeys();
 	_autoIndex = false;
-	_root = "./html";
+	_root = ".";
 	_maxBodySize = 10000000;
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
