@@ -451,7 +451,7 @@ void Request::updatePath()
 		_code = 301;
 	}
 	else {
-		if (_posLocation >= 0 && _rootLoc == true) {
+		if (_posLocation >= 0 && _rootLoc == true) { //there is location and it has root 
 			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 			std::string uri = vecLocations[_posLocation].getUri();
 			_path.erase(0, uri.size());
