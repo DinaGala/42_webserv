@@ -156,6 +156,7 @@ void	Cluster::readConnection(Socket *sock)
 		else
 			return ;
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
+		std::cout << "\033[1;36mREQUEST: \n" << *(sock->getRequest()) << "\033[0m";
 		std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
 //		sock->setLastActivity(time(NULL));
 }
