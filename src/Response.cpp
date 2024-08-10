@@ -125,6 +125,27 @@ std::string	&Response::makeResponse(const Request *req)
 	return (this->_response);
 }
 
+std::string Response::urlDecode(const std::string &encoded)
+{
+	std::string	decoded;
+	size_t		len = encoded.size();
+
+	for (size_t i = 0; i < len; i++)
+	{
+		if (encoded[i] == '%')
+		{
+			decoded += static_cast<char>(strToHex(encoded.substr(i + 1, 2)));
+			i += 2;
+		}
+		else if (encoded[i] == '+')
+			decoded += ' ';
+		else
+			decoded += encoded[i];
+	}
+	return (decoded);
+}
+
+
 ////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
 
 //Returns a response with a favicon
@@ -156,7 +177,10 @@ void	Response::_handleGet()
 	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
-	is_dir = this->_isDir(this->_req->getPath());
+	std::string	path = this->_req->getPath();
+	path = this->urlDecode(path);
+	//is_dir = this->_isDir(this->_req->getPath()); //TODO
+	is_dir = this->_isDir(path);
 	if (is_dir == -1)
 		return (void)this->sendError(500);
 	else if (is_dir)//if directory
@@ -194,7 +218,8 @@ void	Response::_handleGet()
 	}
 	else //if not cgi
 	{
-		int error = this->fileToBody(this->_req->getPath());
+		int error = this->fileToBody(path);
+		//int error = this->fileToBody(this->_req->getPath());//TODO
 		if (error)
 			return (void)this->sendError(error);
 	}
@@ -358,10 +383,12 @@ void	Response::_makeAutoIndex(void)
 		path.insert(0, "./");
 	else if (path.at(path.size() - 1) != '/')
 		path += "/";
+	if (path[0] != '.')
+		path.insert(0, ".");
 	while ((dp = readdir(dir)) != NULL)
 	{
 		filename = path + dp->d_name;
-		if (dp->d_name[0] == '.' || this->_sensitive.count("." + filename))
+		if (dp->d_name[0] == '.' || this->_sensitive.count(filename))
 			continue ;
 		if ((is_dir = this->_isDir(filename)) == -1)
 		{
@@ -369,9 +396,14 @@ void	Response::_makeAutoIndex(void)
 			this->sendError(500);
 			return ;
 		}
+		std::cout << "\033[1;31mAUTO filename: " << filename
+			<< " is_dir " << is_dir << " access "
+			<< access(filename.c_str(), X_OK) << "\033[0m" << std::endl;
 		if (is_dir != 1 && access(filename.c_str(), X_OK) == 0)
+		{
 			continue ;
-		this->_body += AUTOINDEX_FILES(filename, dp->d_name);
+		}
+		this->_body += AUTOINDEX_FILES(filename.substr(1), dp->d_name);
 	}
 	closedir(dir);
 	this->_body += "</body></html>";
