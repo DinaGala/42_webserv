@@ -11,7 +11,7 @@
 	std::string("<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ") \
 			+ content + std::string("</h1></head><body style=\"font-size:150%;margin:50px;\">")
 # define AUTOINDEX_FILES(href, name) \
-	std::string("<p><a href= ") + href + std::string(">") + name + std::string("</a></p>\n")
+	std::string("<p><a href= \'") + href + std::string("\'>") + name + std::string("</a></p>\n")
 # define SEV_ERR "HTTP/1.1 505 Severe Internal Server Error\r\n" \
 				"Content-Type: text/plain\r\nContent-Length: 47\r\n\r\n" \
 				"Severe Internal Error.\nPlease, try again later\n"
@@ -71,6 +71,7 @@ class	Response
 		bool		_createFile(void);
 		bool		_isAccepted(std::string str);
 		int			_isDir(const std::string &path) const ;
+		std::string	urlDecode(const std::string &path);
 		/************ SPECIAL REQUESTS **********/
 		void		_makeAutoIndex(void);
 		void		_handleFavIcon();
