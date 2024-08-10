@@ -16,7 +16,9 @@
             align-items: center;
             height: 100vh;
         }
-
+        .container {
+            text-align: center;
+        }
         .container h1 {
             font-size: 2.5em;
             margin-left: 3cap;
@@ -25,8 +27,8 @@
         }
         .container p {
             font-size: 2.5em;
-            margin-bottom: 3em;
-            margin-top: -2em;
+            margin-bottom: 0.5em;
+            margin-top: -1em;
             text-align: center;
         }
         .container a {
@@ -44,12 +46,17 @@
             text-decoration: underline; /* Underline on hover */
             text-align: right;
         }
+        .rescaled-image {
+            width: 400px;
+            height: auto;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <p>Monday</p>
-        <h1>If you hate Mondays it's not a Monday that you hate</h1>
+        <img src="monday.jpg" class="rescaled-image" alt="cannot load the image...">
+        <h1>If you hate Mondays, it's not Mondays that you hate</h1>
         <a href="2_tuesday_wisdom.html">go to Tuesday wisdom</a>
     </div>
 </body>
