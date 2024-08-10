@@ -400,9 +400,7 @@ void	Response::_makeAutoIndex(void)
 			<< " is_dir " << is_dir << " access "
 			<< access(filename.c_str(), X_OK) << "\033[0m" << std::endl;
 		if (is_dir != 1 && access(filename.c_str(), X_OK) == 0)
-		{
 			continue ;
-		}
 		this->_body += AUTOINDEX_FILES(filename.substr(1), dp->d_name);
 	}
 	closedir(dir);
