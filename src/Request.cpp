@@ -447,6 +447,7 @@ void Request::updatePath()
 	if (_return != "") {
 		_path = _return;
 		_code = 301;
+		_connectionKeepAlive = false; // ADDED BY NURIA
 	}
 	else {
 		if (_posLocation >= 0 && _rootLoc == true) {
