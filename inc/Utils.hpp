@@ -20,7 +20,7 @@
 # define N_SERV_DIR 9
 # define MAX_CON 10
 # define MAX_EVENTS 20
-# define BUFFER_SIZE 2000000000
+# define BUFFER_SIZE 200000 
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
 # define TIMEOUT 600000000 // in seconds
