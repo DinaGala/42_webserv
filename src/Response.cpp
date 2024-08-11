@@ -149,22 +149,21 @@ std::string Response::urlDecode(const std::string &encoded)
 ////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
 
 //Returns a response with a favicon
-//TODO: check if image/png is accepted
 void	Response::_handleFavIcon()
 {
 	std::ifstream	icon("./assets/favicon_general.png");
 	std::ostringstream	favicon;
 
-	if (!icon.is_open())
+	this->_response = this->putStatusLine(200);
+	this->putGeneralHeaders();
+	if (!icon.is_open() || this->_isAccepted("image/png") == false)
 		this->_body = "";
 	else
 	{
 		favicon << icon.rdbuf();
 		this->_body = favicon.str();
+		this->_response += "Content-Type: image/png\r\n";
 	}
-	this->_response = this->putStatusLine(200);
-	this->putGeneralHeaders();
-	this->_response += "Content-Type: image/png\r\n";
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 	this->_response += this->_body;
 }

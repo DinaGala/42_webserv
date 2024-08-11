@@ -17,6 +17,7 @@ F_SRC = src/
 F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
+CONF = autoindex
 
 $(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
 	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
@@ -37,7 +38,7 @@ test:
 	@rm -f ./a.out test.d
 
 run: ${NAME}
-	./${NAME} | cat -e
+	./${NAME} ./conf/${CONF}.conf
 
 clean:
 	$(RM) $(OBJ) $(DEP)
