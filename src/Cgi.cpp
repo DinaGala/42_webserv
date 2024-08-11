@@ -11,6 +11,7 @@ Cgi::Cgi(const Request &rq, std::vector<std::string> &args): _status(0)
 	this->_env["SCRIPT_NAME"] = rq.getPath();
 	this->_env["QUERY_STRING"] = rq.getQuery();
 	this->_args = args;
+	this->_cookiesEnv = rq.getCookiesEnv(); //ADDED BY JULIA
 }
 
 Cgi::~Cgi() {}
@@ -43,6 +44,18 @@ char	**Cgi::_getEnv(void)
 		it++;
 		i++;
 	}
+	/*ADDED BY JULIA*/
+	for (std::vector<std::string>::iterator ite = this->_cookiesEnv.begin(); ite != this->_cookiesEnv.end(); ite++) {
+		mat[i] = strdup((*ite).c_str());
+		if (!mat[i])
+		{
+			for (int j = 0; j < i; ++j)
+                delete[] mat[j];
+            delete[] mat;
+				throw std::bad_alloc();
+		}
+		i++;
+	}	//FINISH
 	mat[i] = NULL;
 	return (mat);
 }
@@ -136,7 +149,6 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	char buffer[1024];
 	ssize_t count;
 	std::time_t	epoch = std::time(NULL);
-
 	if (pipe(req) || pipe(cgi))
 		return (500);
 	fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);

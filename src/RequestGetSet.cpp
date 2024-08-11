@@ -156,6 +156,11 @@ const std::string&	Request::getFileName() const
 	return (_fileName);
 }
 
+const std::vector<std::string>&	  Request::getCookiesEnv() const 
+{
+	return (_cookiesEnv);
+}
+
 // _____________  SETTERS _____________ 
 
 void Request::setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages) 

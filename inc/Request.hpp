@@ -46,6 +46,7 @@ class Request {
 		std::string							_boundary;
 		std::map<std::string, std::string>	_multipartHeaders;
 		std::string							_fileName;
+		std::vector<std::string> 			_cookiesEnv;
 
 	public:
 		Request(Server& server, int port);
@@ -88,6 +89,7 @@ class Request {
 		void		updateRoot();
 		void 		updatePath();
 		void		setCgi();
+		void		setCookies();
 		void 		checkAllowMethod();
 		void		checkProtocolHttp();
 		void		updateIndex();
@@ -124,6 +126,7 @@ class Request {
 		const std::string&								getBoundary() const;
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;
 		const std::string& 								getFileName() const;
+		const std::vector<std::string>&					getCookiesEnv() const;
 
 		void 		setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages);
 		void 		setIndex(const std::string& index);

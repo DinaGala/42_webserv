@@ -42,6 +42,7 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
+	_cookiesEnv = src.getCookiesEnv();
 	return (*this);
 }
 
@@ -81,6 +82,7 @@ void	Request::initParams()
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
+	_cookiesEnv.clear();
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -450,7 +452,7 @@ void Request::updatePath()
 		_connectionKeepAlive = false; // ADDED BY NURIA
 	}
 	else {
-		if (_posLocation >= 0 && _rootLoc == true) {
+		if (_posLocation >= 0 && _rootLoc == true) { //there is location and it has root 
 			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 			std::string uri = vecLocations[_posLocation].getUri();
 			_path.erase(0, uri.size());
@@ -465,8 +467,10 @@ void Request::updatePath()
 //Cookie: yummy_cookie=choco; tasty_cookie=strawberry
 void	Request::setCgi()
 {
-	if (access(_path.c_str(), X_OK) == 0) //if executable
+	if (access(_path.c_str(), X_OK) == 0) { //if executable
 		this->_cgi = true;
+		std::cout << "PATH REQUEST " << _path << std::endl;
+	}	
 	else {
 		std::string::size_type	found = _path.find_last_of(".");
 		if (found != std::string::npos) {
@@ -475,12 +479,17 @@ void	Request::setCgi()
 				this->_cgi = true;
 		}
 	}
-	if (_headers.find("Cookie") != _headers.end()) { //TODO: is COOKIE???
-		std::string headerCookies = _headers.find("Cookie")->second;
-		std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
-		for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
-			trim(*it);
-	}
+	setCookies();
+}
+
+void Request::setCookies() 
+{
+	if (_headers.find("Cookie") == _headers.end())
+		return; 
+	std::string headerCookies = _headers.find("Cookie")->second;
+	std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
+	for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
+		trim(*it);
 }
 
 void Request::checkAllowMethod(){

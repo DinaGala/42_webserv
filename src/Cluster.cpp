@@ -314,7 +314,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
     //	out << "Port:  " << val.getServer() << "\n";
-   out << "Response:  " << val.getResponse() << "\n";
+  // out << "Response:  " << val.getResponse() << "\n"; TODO: NO COMMENT
     out << "Code:  " << val.getCode() << "\n";
     // out << "Socket fd:  " << val.getSockFd() << "\n";
     // out << "Last activity:  " << val.getLastActivity() << "\n";
