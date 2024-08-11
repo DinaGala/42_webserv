@@ -18,8 +18,12 @@ const std::set<std::string> Response::_sensitive = _initSensitive();
 
 void	Response::cleanResponse()
 {
+	_errorPages.clear();
+	_cgiargs.clear();
 	_body.clear();
 	_response.clear();
+	_code = 200;
+	_req = NULL;
 }
 
 Response::Response(): _code(200), _req(NULL) {}
@@ -31,7 +35,7 @@ Response::Response(const Response &r): _req(r._req)
 	this->_code = r._code;
 	this->_cgiargs = r._cgiargs;
 	if (r._req)
-		this->_status = r._req->getErrorPages();
+		this->_errorPages = r._req->getErrorPages();
 }
 
 Response::~Response() {}
@@ -44,7 +48,7 @@ Response	&Response::operator=(const Response &r)
 	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
 	if (r._req)
-		this->_status = r._req->getErrorPages();
+		this->_errorPages = r._req->getErrorPages();
 	return (*this);
 }
 
@@ -101,7 +105,7 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 	{
 		this->_req = req;
-		this->_status = req->getErrorPages();
+		this->_errorPages = req->getErrorPages();
 	}
 	if (this->_req->getCode() == 301)//redirect
 	{
@@ -208,11 +212,12 @@ void	Response::_handleGet()
 		//if (access(this->_req->getPath().c_str(), X_OK))
 		//	return (void)this->sendError(403);
 		this->_cgiargs = this->_findCgiArgs(this->_req->getPath());
+		std::cout << "\033[1;31mRUN CGI, RUUUUUUUN!\033[0m" << std::endl;
 		Cgi	cgi(*(this->_req), this->_cgiargs);
-		int	cgi_status = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
-		std::cout << "\033[1;31mCGI STATUS " << cgi_status << std::endl;
-		if (cgi_status) // if cgi returns status != 0 -> error
-			return (void)this->sendError(cgi_status);
+		int	cgi_errorPages = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
+		std::cout << "\033[1;31mCGI STATUS " << cgi_errorPages << "\033[0m" << std::endl;
+		if (cgi_errorPages) // if cgi returns status != 0 -> error
+			return (void)this->sendError(cgi_errorPages);
 		this->_parseCgiResponse();
 	}
 	else //if not cgi
@@ -291,7 +296,7 @@ void	Response::_handlePost()
 		//ADDED BY JULIA
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_body = "<html><body>Form submitted!</body></html>";
+		this->_body = WORK_DONE("File created!");
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 		//FINISH ADDED
@@ -300,11 +305,10 @@ void	Response::_handlePost()
 	{
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_body = "<html><body>Form submitted!</body></html>";
+		this->_body = WORK_DONE("Form submmitted!");
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
-	std::cout << "\033[NOT FILENAME" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -415,7 +419,7 @@ void	Response::_makeAutoIndex(void)
 //puts status line in the response
 std::string	Response::putStatusLine(int code)
 {
-	return ("HTTP/1.1 " + ft_itoa(code) + " " + this->_status[code].first + "\r\n");
+	return ("HTTP/1.1 " + ft_itoa(code) + " " + this->_errorPages[code].first + "\r\n");
 }
 
 //puts general header in the response: date, server, keep-alive and connection
@@ -503,7 +507,7 @@ if this one is also not accepted, the error will be returned without content.
 void	Response::sendError(int code)
 {
 	int error = 0;
-	if (code != 505 && this->_status.find(code) == this->_status.end())
+	if (code != 505 && this->_errorPages.find(code) == this->_errorPages.end())
 		code = 500;
 	this->_code = code;
 	if (this->_isAccepted("text/html") == false)
@@ -518,13 +522,13 @@ void	Response::sendError(int code)
 		this->_response = this->putStatusLine(code);
 		this->putGeneralHeaders();
 		this->_response += "Content-Type: text/plain\r\n";
-		this->_response += "Content-Length: " + ft_itoa(this->_status.at(code).first.size()) + "\r\n\n";
-		this->_response += ft_itoa(code) + this->_status.at(code).first;
+		this->_response += "Content-Length: " + ft_itoa(this->_errorPages.at(code).first.size()) + "\r\n\n";
+		this->_response += ft_itoa(code) + this->_errorPages.at(code).first;
 		return ;
 	}
 	if (code != 505)
-		error = fileToBody(this->_status.at(code).second);
-	if (code == 505 || (error && fileToBody(this->_status.at(error).second)))//true if we have a double error
+		error = fileToBody(this->_errorPages.at(code).second);
+	if (code == 505 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
 	{
 		return (void)(this->_response = SEV_ERR, this->_code = 505);
 		this->_code = 505;
