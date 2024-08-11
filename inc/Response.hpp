@@ -7,15 +7,6 @@
 # define MAXCONNECT 10
 #endif
 
-# define AUTOINDEX(content) \
-	std::string("<html><head><title>AUTOINDEX</title><h1 style=\"text-align:center;font-size:200%;\">Index of ") \
-			+ content + std::string("</h1></head><body style=\"font-size:150%;margin:50px;\">")
-# define AUTOINDEX_FILES(href, name) \
-	std::string("<p><a href= \'") + href + std::string("\'>") + name + std::string("</a></p>\n")
-# define SEV_ERR "HTTP/1.1 505 Severe Internal Server Error\r\n" \
-				"Content-Type: text/plain\r\nContent-Length: 47\r\n\r\n" \
-				"Severe Internal Error.\nPlease, try again later\n"
-
 #include <map>
 #include <set>
 #include <string>
@@ -26,6 +17,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "Utils.hpp"
+#include "RespUtils.hpp"
 
 
 class Request;
@@ -39,13 +31,13 @@ class	Response
 		~Response();
 
 		std::string	&makeResponse(const Request *req);
-		void		cleanResponse(); // TODO for multiplexing
+		void		cleanResponse();
 		/************** GETTERS *******************/
 		const std::string& 		getResponse() const;
 		int						getCode() const;
 
 	private:
-		std::map<int, std::pair<std::string, std::string> >	_status;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		static const std::set<std::string>	_sensitive;
 		static const std::set<std::string>	_initSensitive();
 		std::vector<std::string>	_cgiargs;
