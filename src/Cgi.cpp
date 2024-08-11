@@ -24,13 +24,14 @@ char	**Cgi::_getEnv(void)
 	char	**mat;
 	int		i = 0;
 	std::string	tmp;
-	std::map<std::string, std::string>::iterator it = this->_env.begin();
 	std::map<std::string, std::string>::iterator end = this->_env.end();
+	std::vector<std::string>::iterator	cookies_end = this->_cookiesEnv.end();
 
-	mat = new char *[this->_env.size() + 1];
+	mat = new char *[this->_env.size() + this->_cookiesEnv.size() + 1];
 	if (!mat)
 		throw std::bad_alloc();
-	while (it != end)
+	for (std::map<std::string, std::string>::iterator it = this->_env.begin();
+			it != end; it++)
 	{
 		tmp = it->first + "=" + it->second;
 		mat[i] = strdup(tmp.c_str());
@@ -41,12 +42,12 @@ char	**Cgi::_getEnv(void)
             delete[] mat;
 				throw std::bad_alloc();
 		}
-		it++;
 		i++;
 	}
 	/*ADDED BY JULIA*/
-	for (std::vector<std::string>::iterator ite = this->_cookiesEnv.begin(); ite != this->_cookiesEnv.end(); ite++) {
-		mat[i] = strdup((*ite).c_str());
+	for (std::vector<std::string>::iterator it = this->_cookiesEnv.begin();
+			it != cookies_end; it++) {
+		mat[i] = strdup((*it).c_str());
 		if (!mat[i])
 		{
 			for (int j = 0; j < i; ++j)
