@@ -375,7 +375,7 @@ void	Response::_makeAutoIndex(void) {
     std::vector<std::string> fileList;
     std::vector<std::string> fileName;
     std::ostringstream html;
-	const std::string	path = this->_req->getPath();
+	std::string	path = this->_req->getPath();
 
 	if (this->_isAccepted("text/html") == false)
 		return (void)this->sendError(403);
@@ -406,13 +406,21 @@ void	Response::_makeAutoIndex(void) {
 				fileName.erase(fileName.begin());
     	        continue ;
 			}
-			fileList.insert(fileList.begin(), filePath.erase(0, 1));
+			if (filePath[0] == '.')
+				fileList.insert(fileList.begin(), filePath.erase(0, 1));
+			else
+				fileList.insert(fileList.begin(), filePath);
         }
     }
 	closedir(dir);
 	html << "<html><body><h1>Index of " << path << "</h1><ul>\n";
-	for (size_t i = fileList.size(); i > 0; i--)
-		html << "<p><a href=\"" << fileList[i - 1] << "\">" << fileName[i - 1] << "</a></p>\n";
+	path = this->_req->getRequestLine().at(1);
+	for (int i = fileName.size() - 1; i >= 0; i--)
+	{
+		if (path[path.size() - 1] != '/')
+			path += "/";
+		html << "<p><a href=\"" << path << fileName[i] << "\">" << fileName[i] << "</a></p>\n";
+	}
 	html << "</ul></body></html>";
 	this->_body = html.str();
 	this->_response = this->putStatusLine(200);
