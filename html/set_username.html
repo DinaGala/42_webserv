@@ -1,48 +1,58 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<link rel="icon" type="image/png" href="/assets/favicon_general.png">
-	<title>Enter Username</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			margin: 20px;
-		}
-		input[type="text"] {
-			padding: 10px;
-			font-size: 16px;
-			width: 200px;
-			margin-bottom: 10px;
-		}
-		button {
-			margin-right: 10px;
-			padding: 10px 15px;
-			font-size: 16px;
-			cursor: pointer;
-			text-decoration: none;
-			color: #fff;
-			background-color: #bbb;
-			border: none;
-			border-radius: 4px;
-			display: inline-block;
+	<head>
+		<link rel="icon" type="image/png" href="/assets/favicon_general.png">
+		<title>Enter Username</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f8f9fa;
+				color: #343a40;
+				margin: 0;
+            	padding: 0;
+           		display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-direction: column;
+				height: 100vh;
 			}
-		.button:hover {
-			background-color: #ccc;
-		}
-		h1 {
-			margin-bottom: 20px;
-		}
-	</style>
+			.container {
+				text-align: center;
+			}
+			.container h3 {
+				font-size: 3em;
+				color: #a52a80;
+				margin-bottom: 0.5em;
+			}
+			input[type="text"] {
+				padding: 10px;
+				font-size: 16px;
+				width: 200px;
+				margin-bottom: 10px;
+			}
+			.button {
+				display: inline-block;
+				padding: 0.5em 1em;
+				border: none;
+				font-size: 16px;
+				cursor: pointer;
+				text-decoration: none;
+				color: #fff;
+				background-color: #a52a80;
+				border-radius: 0.25em;
+			}
+			.button:hover {
+				background-color: #a52a80;
+			}
+		</style>
 	</head>
 	<body>
-		<h1>Enter your username</h1>
-		<input type="text" id="username" placeholder="Enter username" />
-		<button class="button" onclick="setUsername()">Submit</button>
-	
+		<div class="container"></div>
+			<h1>Enter your username</h1>
+			<input type="text" id="username" placeholder="Enter username" />
+			<button class="button" onclick="setUsername()">Submit</button>
+		</div>
+
 		<script th:inline="javascript">
 			function setUsername() {
 				const username = document.getElementById('username').value.trim();
@@ -53,7 +63,7 @@
 				const expiryDate = new Date();
 				expiryDate.setDate(expiryDate.getDate() + 7);
 				document.cookie = `username=${encodeURIComponent(username)}; expires=${expiryDate.toUTCString()}; path=/`;
-				window.location.href = '/cookies';
+				window.location.href = '/user_managment';
 			}
 		</script>
 	</body>

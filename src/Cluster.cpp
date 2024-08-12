@@ -35,7 +35,6 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
-//	exit (0);
 	createServers();
 	createSockets();
 	createEpoll();

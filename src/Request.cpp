@@ -90,9 +90,7 @@ void	Request::initParams()
 	BLANK LINE: A line with no content, indicating the end of the headers.
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
-
 // _____________  PARSING REQUEST  _____________ 
-//void	Request::parseRequest(const std::string& buffer) 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
 	
@@ -144,7 +142,7 @@ void Request::createRequestLineVector(std::string requestLineStr)
 void	Request::parseHeaders() {
 	while (_buffer.find(CRLF) != std::string::npos){
 		std::string line = _buffer.substr(0, _buffer.find(CRLF));
-		if (line.size() == 0) { //end of headers >> line = CRLF 
+		if (line.size() == 0) {
 			_status = HEADERS_PARSED;
 			_buffer.erase(0, 2);
 			break;
@@ -185,7 +183,6 @@ void	Request::parseBody(){
 }
 
 //Chunked Transfer Encoding
-//https://datatracker.ietf.org/doc/rfc9112/ - 7.1.3.  Decoding Chunked
 void	Request::parseBodyByChunked(){
 	int	sizeChunk = 0;
 	do {
