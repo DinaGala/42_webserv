@@ -368,51 +368,42 @@ int	Response::_isDir(const std::string &path) const
 	return (0);
 }
 
-void	Response::_makeAutoIndex(void)
-{
-	struct dirent	*dp;
-	DIR				*dir;
-	int				is_dir;
-	std::string		filename;
-	std::string		path = this->_req->getPath();
+void	Response::_makeAutoIndex(void) {
+    DIR *dir;
+    struct dirent *dp;
+    struct stat fileStat;
+    std::vector<std::string> fileList;
+    std::ostringstream html;
 
 	if (this->_isAccepted("text/html") == false)
 		return (void)this->sendError(403);
-	if (!(dir = opendir(path.c_str())))
+	if (!(dir = opendir(this->_req->getPath().c_str())))
 		return (void)this->sendError(500);
-	this->_body = AUTOINDEX(path);
-	path = ft_strstr(path, this->_req->getRoot());
-	if (path.empty())
-		path.insert(0, "./");
-	else if (path.at(path.size() - 1) != '/')
-		path += "/";
-	if (path[0] != '.')
-		path.insert(0, ".");
-	while ((dp = readdir(dir)) != NULL)
+	std::string	root = this->_req->getRoot();
+	if (root[root.size() - 1] != '/')
+		root += "/";
+    while ((dp = readdir(dir)) != NULL)
 	{
-		filename = path + dp->d_name;
-		if (dp->d_name[0] == '.' || this->_sensitive.count(filename))
-			continue ;
-		if ((is_dir = this->_isDir(filename)) == -1)
+        std::string fileName = dp->d_name;
+        std::string filePath = this->_req->getPath() + "/" + fileName;
+        if ((fileName != ".." && fileName[0] == '.')
+			|| (fileName == ".." && ft_strstr(this->_req->getPath(), root) == ""))
+            continue ;
+        if (stat(filePath.c_str(), &fileStat) == 0)
 		{
-			closedir(dir);
-			this->sendError(500);
-			return ;
-		}
-		std::cout << "\033[1;31mAUTO filename: " << filename
-			<< " is_dir " << is_dir << " access "
-			<< access(filename.c_str(), X_OK) << "\033[0m" << std::endl;
-		if (is_dir != 1 && access(filename.c_str(), X_OK) == 0)
-			continue ;
-		this->_body += AUTOINDEX_FILES(filename.substr(1), dp->d_name);
-		/*//AUTOINDEX_FILES(filename, dp->d_name);
-		//this->_body += "<p><a href= " + this->_req->getRoot() + filename + ">"; //ADDED BY JULIA
-		this->_body += "<p><a href= " + this->_req->getRequestLine().at(1) + filename + ">"; //ADDED BY JULIA
-		this->_body += dp->d_name;
-		this->_body += "</a></p>\n";*/
-	}
+			if (S_ISDIR(fileStat.st_mode))
+				fileName += "/";
+			else if (access(filePath.c_str(), X_OK) == 0)
+				continue ;
+			fileList.push_back(fileName);
+        }
+    }
 	closedir(dir);
-	this->_body += "</body></html>";
+	html << "<html><body><h1>Index of " << this->_req->getPath() << "</h1><ul>";
+	for (std::vector<std::string>::iterator it = fileList.begin(); it != fileList.end(); ++it)
+		html << "<p><a href=\"" << *it << "\">" << *it << "</a></p>\n";
+	html << "</ul></body></html>";
+	this->_body = html.str();
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
