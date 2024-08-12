@@ -35,7 +35,6 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
-//	exit (0);
 	createServers();
 	createSockets();
 	createEpoll();
@@ -314,7 +313,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
     //	out << "Port:  " << val.getServer() << "\n";
-  // out << "Response:  " << val.getResponse() << "\n"; TODO: NO COMMENT
+	  //out << "Response:  " << val.getResponse() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     // out << "Socket fd:  " << val.getSockFd() << "\n";
     // out << "Last activity:  " << val.getLastActivity() << "\n";
