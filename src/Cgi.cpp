@@ -24,13 +24,14 @@ char	**Cgi::_getEnv(void)
 	char	**mat;
 	int		i = 0;
 	std::string	tmp;
-	std::map<std::string, std::string>::iterator it = this->_env.begin();
 	std::map<std::string, std::string>::iterator end = this->_env.end();
+	std::vector<std::string>::iterator	cookies_end = this->_cookiesEnv.end();
 
-	mat = new char *[this->_env.size() + 1];
+	mat = new char *[this->_env.size() + this->_cookiesEnv.size() + 1];
 	if (!mat)
 		throw std::bad_alloc();
-	while (it != end)
+	for (std::map<std::string, std::string>::iterator it = this->_env.begin();
+			it != end; it++)
 	{
 		tmp = it->first + "=" + it->second;
 		mat[i] = strdup(tmp.c_str());
@@ -41,21 +42,21 @@ char	**Cgi::_getEnv(void)
             delete[] mat;
 				throw std::bad_alloc();
 		}
-		it++;
 		i++;
 	}
 	/*ADDED BY JULIA*/
-	for (std::vector<std::string>::iterator ite = this->_cookiesEnv.begin(); ite != this->_cookiesEnv.end(); ite++) {
-		mat[i] = strdup((*ite).c_str());
+	for (std::vector<std::string>::iterator it = this->_cookiesEnv.begin(); it != cookies_end; it++)
+  {
+		mat[i] = strdup((*it).c_str());
 		if (!mat[i])
 		{
 			for (int j = 0; j < i; ++j)
-				delete[] mat[j];
-			delete[] mat;
-			throw std::bad_alloc();
+                delete[] mat[j];
+        delete[] mat;
+				throw std::bad_alloc();
 		}
 		i++;
-	} //FINISH
+	}	//FINISH
 	mat[i] = NULL;
 	return (mat);
 }
@@ -127,7 +128,6 @@ void	Cgi::_childProcess(int *req, int *cgi)
 {
 	char	**args;
 	char	**env;
-	std::cerr << "\033[1;31mchildProcess args.size() " << this->_args.size()<< "\033[0m" << std::endl;
 	if (this->_args.size() == 0)
 		exit(40);
 	args = this->_vecToMat(this->_args);
@@ -152,6 +152,11 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 	std::time_t	epoch = std::time(NULL);
 	if (pipe(req) || pipe(cgi))
 		return (500);
+	fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(req[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	write(req[1], "\0", 1);
 	pid = fork();
@@ -166,11 +171,19 @@ int	Cgi::executeCgi(std::string &cgi_response, int timeout)
 		std::time_t now = std::time(NULL);
 		if (now - epoch > timeout)
 		{
-			kill(pid, 0);
+			if (kill(pid, SIGKILL))
+			{
+				std::cout << "I've killed the child!" << std::endl;
+				waitpid(pid, &status, 0);// wait until the child is actually dead
+				return (500);
+			}
 			return (504);
 		}
 		if (waitpid(pid, &status, WNOHANG) == -1)
+		{
+			std::cout << "FUCK, waitpid returns -1" << std::endl;
 			return (500);
+		}
 		if (WIFEXITED(status))
 			break ;
 	}
