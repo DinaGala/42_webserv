@@ -373,35 +373,46 @@ void	Response::_makeAutoIndex(void) {
     struct dirent *dp;
     struct stat fileStat;
     std::vector<std::string> fileList;
+    std::vector<std::string> fileName;
     std::ostringstream html;
+	const std::string	path = this->_req->getPath();
 
 	if (this->_isAccepted("text/html") == false)
 		return (void)this->sendError(403);
-	if (!(dir = opendir(this->_req->getPath().c_str())))
+	if (!(dir = opendir(path.c_str())))
 		return (void)this->sendError(500);
 	std::string	root = this->_req->getRoot();
 	if (root[root.size() - 1] != '/')
 		root += "/";
     while ((dp = readdir(dir)) != NULL)
 	{
-        std::string fileName = dp->d_name;
-        std::string filePath = this->_req->getPath() + "/" + fileName;
-        if ((fileName != ".." && fileName[0] == '.')
-			|| (fileName == ".." && ft_strstr(this->_req->getPath(), root) == ""))
+        fileName.insert(fileName.begin(), dp->d_name);
+        std::string filePath = path;
+		if (filePath[filePath.size() - 1] != '/')
+			filePath += "/";
+		filePath += fileName[0];
+        if ((fileName[0] != ".." && fileName[0][0] == '.')
+			|| (fileName[0] == ".." && ft_strstr(path, root) == ""))
+		{
+			fileName.erase(fileName.begin());
             continue ;
+		}
         if (stat(filePath.c_str(), &fileStat) == 0)
 		{
 			if (S_ISDIR(fileStat.st_mode))
-				fileName += "/";
+				fileName[0] += "/";
 			else if (access(filePath.c_str(), X_OK) == 0)
-				continue ;
-			fileList.push_back(fileName);
+			{
+				fileName.erase(fileName.begin());
+    	        continue ;
+			}
+			fileList.insert(fileList.begin(), filePath.erase(0, 1));
         }
     }
 	closedir(dir);
-	html << "<html><body><h1>Index of " << this->_req->getPath() << "</h1><ul>";
-	for (std::vector<std::string>::iterator it = fileList.begin(); it != fileList.end(); ++it)
-		html << "<p><a href=\"" << *it << "\">" << *it << "</a></p>\n";
+	html << "<html><body><h1>Index of " << path << "</h1><ul>\n";
+	for (size_t i = fileList.size(); i > 0; i--)
+		html << "<p><a href=\"" << fileList[i - 1] << "\">" << fileName[i - 1] << "</a></p>\n";
 	html << "</ul></body></html>";
 	this->_body = html.str();
 	this->_response = this->putStatusLine(200);
