@@ -97,6 +97,10 @@ void	Cluster::runCluster()
 			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
 			//std::cout << "current socket is:  " << cur << "\n" << *cur;
+			if (_events[n].events & EPOLLHUP) // ADDED BY NURIA
+			{
+				std::cout << "Cluster: EPOLLHUP" << std::endl;
+			}
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
