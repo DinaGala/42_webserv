@@ -50,12 +50,12 @@ char	**Cgi::_getEnv(void)
 		if (!mat[i])
 		{
 			for (int j = 0; j < i; ++j)
-                delete[] mat[j];
-            delete[] mat;
-				throw std::bad_alloc();
+				delete[] mat[j];
+			delete[] mat;
+			throw std::bad_alloc();
 		}
 		i++;
-	}	//FINISH
+	} //FINISH
 	mat[i] = NULL;
 	return (mat);
 }

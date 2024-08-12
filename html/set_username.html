@@ -10,6 +10,7 @@
 			flex-direction: column;
 			align-items: center;
 			justify-content: center;
+			margin: 20px;
 		}
 		input[type="text"] {
 			padding: 10px;
@@ -38,27 +39,22 @@
 	</style>
 	</head>
 	<body>
-		<h1>Enter Your Username</h1>
+		<h1>Enter your username</h1>
 		<input type="text" id="username" placeholder="Enter username" />
 		<button class="button" onclick="setUsername()">Submit</button>
 	
 		<script th:inline="javascript">
 			function setUsername() {
 				const username = document.getElementById('username').value.trim();
-				
-				// Validate if username is not empty
 				if (username === "") {
 					alert("Please enter a username.");
 					return;
 				}
-
-				// Set a cookie with the username that expires in 7 days
-				document.cookie = `username=${encodeURIComponent(username)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
-
-				// Redirect back to the main page
-				window.location.href = '';
+				const expiryDate = new Date();
+				expiryDate.setDate(expiryDate.getDate() + 7);
+				document.cookie = `username=${encodeURIComponent(username)}; expires=${expiryDate.toUTCString()}; path=/`;
+				window.location.href = '/cookies';
 			}
-
 		</script>
 	</body>
 </html>
