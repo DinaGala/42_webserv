@@ -93,7 +93,6 @@ void	Request::initParams()
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
-	
 	_buffer += std::string(buffer.begin(), buffer.begin() + bytesRead);
 	try {
 		if (_status == INITIAL_STATUS){
@@ -235,9 +234,6 @@ void	Request::parseBodyByContentLength() {
 	if (contentLength > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
-	std::cout << "MAX BODY SIZE " << _maxBodySize << std::endl;
-	std::cout << "CONT LEN " << contentLength << std::endl;
-
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
 		i++;

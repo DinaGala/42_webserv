@@ -23,7 +23,7 @@ LocationConfig::LocationConfig(std::string url, std::map<int, std::pair<std::str
     _allowUpload = false;
 	_root = "";
 	_errorPages = err;
-    _index = "index.html";
+    _index = "";
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
