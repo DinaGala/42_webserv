@@ -449,6 +449,7 @@ void Request::updatePath()
 	if (_return != "") {
 		_path = _return;
 		_code = 301;
+		_connectionKeepAlive = false;
 	}
 	else {
 		if (_posLocation >= 0 && _rootLoc == true) { //there is location and it has root 
