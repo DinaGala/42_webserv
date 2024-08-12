@@ -232,9 +232,12 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 void	Request::parseBodyByContentLength() { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-	//if (contentLength > _maxBodySize) TODO: CHECKK!!!!
-		//sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	if (contentLength > _maxBodySize)
+		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
+	std::cout << "MAX BODY SIZE " << _maxBodySize << std::endl;
+	std::cout << "CONT LEN " << contentLength << std::endl;
+
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
 		i++;
@@ -371,12 +374,14 @@ void	Request::manageAcceptedContent()
 void Request::managePath() 
 {
 	checkQuery(); //TODO: pending to add to the body ?? NURIA
+	urlDecode();
 	checkLocation();
 	updateInfoLocation();
 	updatePath();
 }
 
-void	Request::checkQuery() {
+void	Request::checkQuery() 
+{
 	std::string url = _requestLine[1];
 	std::string::size_type	posQuery;
 	posQuery = url.find("?");
@@ -387,6 +392,26 @@ void	Request::checkQuery() {
 	else {
 		_path = url;
 	}
+}
+
+void	Request::urlDecode()
+{
+	std::string	decoded;
+	size_t		len = _path.size();
+
+	for (size_t i = 0; i < len; i++)
+	{
+		if (_path[i] == '%')
+		{
+			decoded += static_cast<char>(strToHex(_path.substr(i + 1, 2)));
+			i += 2;
+		}
+		else if (_path[i] == '+')
+			decoded += ' ';
+		else
+			decoded += _path[i];
+	}
+	_path = decoded;
 }
 
 void	Request::checkLocation() 

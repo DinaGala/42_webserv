@@ -63,7 +63,6 @@ class	Response
 		bool		_createFile(void);
 		bool		_isAccepted(std::string str);
 		int			_isDir(const std::string &path) const ;
-		std::string	urlDecode(const std::string &path);
 		/************ SPECIAL REQUESTS **********/
 		void		_makeAutoIndex(void);
 		void		_handleFavIcon();

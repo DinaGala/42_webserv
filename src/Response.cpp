@@ -129,27 +129,6 @@ std::string	&Response::makeResponse(const Request *req)
 	return (this->_response);
 }
 
-std::string Response::urlDecode(const std::string &encoded)
-{
-	std::string	decoded;
-	size_t		len = encoded.size();
-
-	for (size_t i = 0; i < len; i++)
-	{
-		if (encoded[i] == '%')
-		{
-			decoded += static_cast<char>(strToHex(encoded.substr(i + 1, 2)));
-			i += 2;
-		}
-		else if (encoded[i] == '+')
-			decoded += ' ';
-		else
-			decoded += encoded[i];
-	}
-	return (decoded);
-}
-
-
 ////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
 
 //Returns a response with a favicon
@@ -181,7 +160,6 @@ void	Response::_handleGet()
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
 	std::string	path = this->_req->getPath();
-	path = this->urlDecode(path);
 	//is_dir = this->_isDir(this->_req->getPath()); //TODO
 	is_dir = this->_isDir(path);
 	if (is_dir == -1)
