@@ -43,15 +43,6 @@ std::vector<ServerConfig>	Parse::configParse(const char *filename)
 	return (sconf);
 }
 
-std::vector<ServerConfig>	Parse::configParse()
-{
-	std::vector<ServerConfig>	sconf;
-    ServerConfig    serv;
-
-    sconf.push_back(serv);
-    return (sconf);
-}
-
 template <typename T>
 void Parse::complexParse(T &serv, std::string &block)
 {
@@ -224,6 +215,8 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
      //   buf.clear();
         throw std::invalid_argument("Configuration file error: unfinished line " + line.substr(0, line.find('\n')) + ". Use a delimiter: \"" + del + "\"");
     }
+    else if (pos == 0)
+        throw std::invalid_argument("Configuration file error: unexpected \";\"");
     else
     {
         if (buf[pos] == '{')

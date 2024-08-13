@@ -1,9 +1,7 @@
 
 #include "Cluster.hpp"
 
-Cluster::Cluster() 
-{
-}
+Cluster::Cluster() {}
 
 Cluster::~Cluster() 
 {
@@ -24,7 +22,6 @@ Cluster::~Cluster()
 		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
 		// close(fd[0]);
 		// close(fd[1]); 
-	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -35,7 +32,6 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
-//	exit (0);
 	createServers();
 	createSockets();
 	createEpoll();
@@ -95,28 +91,22 @@ void	Cluster::runCluster()
 		std::cout << "\033[32;1mWAITING\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
-			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			//std::cout << "current socket is:  " << cur << "\n" << *cur;
 			if (_events[n].events & EPOLLIN)
 			{
 				if (cur->getMaster())
-					//EPOLLIN
 					acceptConnection(cur);
 				else
-					//EPOLLIN, if all read - change to EPOLLOUT 
 					readConnection(cur);
 			}
 			else if (_events[n].events & EPOLLOUT)
-			// send in chunks and change to epollin when finished. New request? OR close? 
 				sendConnection(cur);
-			else //ADD timeout
+			else
 				throw std::runtime_error("Error: epoll event error ");
 		}
-		//checkTimeout();
 		usleep(10000);
 	}
-//	std::cout << "----- END OF LOOP -----" << std::endl;
+	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 
@@ -136,7 +126,7 @@ void	Cluster::acceptConnection(Socket *sock)
 	std::list<Socket>::iterator it = _sockets.end();
     --it;
 
-	_ev.events = EPOLLIN;
+	_ev.events = EPOLLIN | EPOLLOUT;
 	_ev.data.fd = socket.getSockFd();
 	_ev.data.ptr = &(*it);
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, socket.getSockFd(), &_ev) == -1) 

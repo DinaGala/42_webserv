@@ -57,10 +57,7 @@ ServerConfig::ServerConfig(): loc(true)
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
-	/*_errorPages[403] = "./errors/403.html";
-	_errorPages[404] = "./errors/404.html";
-	_errorPages[500] = "./errors/500.html";*/
-	//ERROR PAGES
+
 }
 
 ServerConfig::ServerConfig(std::string file): loc(true)
@@ -78,9 +75,6 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
 	_cgiConf[".py"] = "/usr/bin/python3";
-	/*_errorPages[403] = "./errors/403.html";
-	_errorPages[404] = "./errors/404.html";
-	_errorPages[500] = "./errors/500.html";*/
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 

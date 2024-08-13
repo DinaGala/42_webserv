@@ -26,7 +26,7 @@ class ServerConfig
 		std::map<int, std::pair<std::string, std::string> >	operator=(const std::map<int, std::pair<std::string, std::string> > &val);
 		ServerConfig(const ServerConfig& src);
 		ServerConfig(std::string file);
-		ServerConfig();
+		
 		~ServerConfig();
 
 		typedef void (*func)(ServerConfig &, std::vector<std::string> &);
@@ -83,6 +83,7 @@ class ServerConfig
 		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
 
+		ServerConfig();
 };
 
 
