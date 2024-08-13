@@ -16,6 +16,9 @@ class Cluster {
 		int							_nfds; // number of actual events
 		struct epoll_event			_events[MAX_EVENTS]; // an array used to collect the events that epoll detects.
 		struct epoll_event			_ev; //is used to describe the events we are interested in for a particular file descriptor.
+		std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >	_pids; //all active pids paired with: (1)(starting time, fd to read), (2) its Socket
+		void	_checkChilds(void);//checks if there are child processes that are over
+		std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator findPidFromSocket(Socket *sock);
 
 	public:
 		Cluster();

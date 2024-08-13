@@ -24,6 +24,7 @@ void	Response::cleanResponse()
 	_response.clear();
 	_code = 200;
 	_req = NULL;
+	_cgifd = 0;
 }
 
 Response::Response(): _code(200), _req(NULL) {}
@@ -33,7 +34,7 @@ Response::Response(const Response &r): _req(r._req)
 	this->_response = r._response;
 	this->_body = r._body;
 	this->_code = r._code;
-	this->_cgiargs = r._cgiargs;
+	this->_cgifd = r._cgifd;
 	if (r._req)
 		this->_errorPages = r._req->getErrorPages();
 }
@@ -45,8 +46,8 @@ Response	&Response::operator=(const Response &r)
 	this->_body = r._body;
 	this->_req = _req;
 	this->_response = r._response;
-	this->_cgiargs = r._cgiargs;
 	this->_code = r._code;
+	this->_cgifd = r._cgifd;
 	if (r._req)
 		this->_errorPages = r._req->getErrorPages();
 	return (*this);
@@ -59,7 +60,7 @@ or
 (0) interpreter (p.e. /bin/bash)
 (1) cgi (p.e. script.sh)
 */
-std::vector<std::string>	Response::_findCgiArgs(const std::string &path)
+/*std::vector<std::string>	Response::_findCgiArgs(const std::string &path)
 {
 	std::vector<std::string>	args;
 	if (access(path.c_str(), X_OK) == 0) //if executable
@@ -76,7 +77,7 @@ std::vector<std::string>	Response::_findCgiArgs(const std::string &path)
 		args.push_back(config[ext]);
 	args.push_back(path);
 	return (args);
-}
+}*/
 ///////////////////////////////////////////////////////////////////////////
 
 //parses Cgi's response: separates headers from body
@@ -100,6 +101,7 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
+	std::cout << "\033[33;1mmaking response!\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(505), this->_response);
 	else
@@ -107,6 +109,8 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_req = req;
 		this->_errorPages = req->getErrorPages();
 	}
+	if (this->_code != 200 && this->_code != 0)
+		return (this->sendError(this->_code), this->_response);
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -128,27 +132,6 @@ std::string	&Response::makeResponse(const Request *req)
 	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
-
-std::string Response::urlDecode(const std::string &encoded)
-{
-	std::string	decoded;
-	size_t		len = encoded.size();
-
-	for (size_t i = 0; i < len; i++)
-	{
-		if (encoded[i] == '%')
-		{
-			decoded += static_cast<char>(strToHex(encoded.substr(i + 1, 2)));
-			i += 2;
-		}
-		else if (encoded[i] == '+')
-			decoded += ' ';
-		else
-			decoded += encoded[i];
-	}
-	return (decoded);
-}
-
 
 ////////////////////// HANDLE REQUESTS BY METHOD ////////////////////////////
 
@@ -181,8 +164,7 @@ void	Response::_handleGet()
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
 	std::string	path = this->_req->getPath();
-	path = this->urlDecode(path);
-	//is_dir = this->_isDir(this->_req->getPath()); //TODO
+	is_dir = this->_isDir(this->_req->getPath());
 	is_dir = this->_isDir(path);
 	if (is_dir == -1)
 		return (void)this->sendError(500);
@@ -209,15 +191,9 @@ void	Response::_handleGet()
 	}
 	if (this->_req->getCgi() == true) // if there's cgi
 	{
-		//if (access(this->_req->getPath().c_str(), X_OK))
-		//	return (void)this->sendError(403);
-		this->_cgiargs = this->_findCgiArgs(this->_req->getPath());
-		std::cout << "\033[1;31mRUN CGI, RUUUUUUUN!\033[0m" << std::endl;
-		Cgi	cgi(*(this->_req), this->_cgiargs);
-		int	cgi_errorPages = cgi.executeCgi(this->_response, TIMEOUT); // execute cgi
-		std::cout << "\033[1;31mCGI STATUS " << cgi_errorPages << "\033[0m" << std::endl;
-		if (cgi_errorPages) // if cgi returns status != 0 -> error
-			return (void)this->sendError(cgi_errorPages);
+		std::cout << "Response: pre-read 194\n";
+		this->_readCgi();
+		std::cout << "Response: post-read 196\n";
 		this->_parseCgiResponse();
 	}
 	else //if not cgi
@@ -234,6 +210,27 @@ void	Response::_handleGet()
 		this->_response += this->_body;// add body to response
 	}
 	this->_response.insert(0, this->putStatusLine(200));// put status line
+}
+
+void	Response::_readCgi(void)
+{
+	int 	count;
+	char	buffer[1024];
+
+	if (this->_cgifd < 0)
+	{
+		return (void)this->sendError(500);
+	}
+	while ((count = read(this->_cgifd, buffer, sizeof(buffer) - 1)) != 0)
+	{
+		std::cout << "Response: reading...\n";
+		if (count == -1)
+			return (void)this->sendError(500);
+		buffer[count] = '\0';
+		this->_response += buffer;
+	}
+	if (close(this->_cgifd))
+		return (void)this->sendError(500);
 }
 
 void	Response::_handleDelete()
@@ -567,4 +564,13 @@ int	Response::getCode(void) const
 const std::string	&Response::getResponse(void) const
 {
 	return (this->_response);
+}
+
+void	Response::setCgiFd(int fd)
+{
+	this->_cgifd = fd;
+}
+void	Response::setCode(int code)
+{
+	this->_code = code;
 }

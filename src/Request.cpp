@@ -461,20 +461,23 @@ void Request::updatePath()
 	}
 }
 
-void	Request::setCgi()
+void    Request::setCgi()
 {
-	if (access(_path.c_str(), X_OK) == 0) { //if executable
-		this->_cgi = true;
-	}	
-	else {
-		std::string::size_type	found = _path.find_last_of(".");
-		if (found != std::string::npos) {
-			std::string ext = _path.substr(found);
-			if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
-				this->_cgi = true;
-		}
-	}
-	setCookies();
+    struct stat path_stat;
+    if (stat(_path.c_str(), &path_stat) == 0) {
+        if (S_ISREG(path_stat.st_mode) && access(_path.c_str(), X_OK) == 0) {
+            this->_cgi = true;
+        }
+        else {
+        std::string::size_type  found = _path.find_last_of(".");
+            if (found != std::string::npos) {
+                std::string ext = _path.substr(found);
+                if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
+                    this->_cgi = true;
+            }
+        }
+    }
+    setCookies();
 }
 
 void Request::setCookies() 

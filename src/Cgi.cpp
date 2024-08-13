@@ -1,6 +1,6 @@
 #include "Cgi.hpp"
 
-Cgi::Cgi(const Request &rq, std::vector<std::string> &args): _status(0)
+Cgi::Cgi(const Request &rq)
 {
 	this->_env["SERVER_SOFTWARE"] = "webserver";
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -10,7 +10,7 @@ Cgi::Cgi(const Request &rq, std::vector<std::string> &args): _status(0)
 	this->_env["PATH_INFO"]="/";
 	this->_env["SCRIPT_NAME"] = rq.getPath();
 	this->_env["QUERY_STRING"] = rq.getQuery();
-	this->_args = args;
+	this->_args = this->_findArgs(rq.getPath(), rq.getCgiConf());
 	this->_cookiesEnv = rq.getCookiesEnv(); //ADDED BY JULIA
 }
 
@@ -91,40 +91,26 @@ char	**Cgi::_vecToMat(const std::vector<std::string> &vec)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-///////////////////////////// PARSING SETTERS///////////////////////////////////
-
-void	Cgi::_setQueryString(std::vector<std::string>::iterator it,
-							std::vector<std::string>::iterator end)
+std::vector<std::string>	Cgi::_findArgs(const std::string &path, const std::map<std::string, std::string> &config) const
 {
-	this->_env["QUERY_STRING"] = &((*it).c_str())[1];
-	it++;
-	while (it != end)
-	{
-		this->_env["QUERY_STRING"] = *it;
-		it++;
-	}
-}
+	std::vector<std::string>	args;
+	std::string					ext;
+	std::string::size_type		found;
 
-void	Cgi::_setPathInfo(std::vector<std::string>::iterator it,
-						std::vector<std::string>::iterator end)
-{
-	if ((*it)[0] == '?')
-	{
-		this->_setQueryString(it, end);
-		return ;
-	}
-	while (it != end)
-	{
-		this->_env["PATH_INFO"] += *it + "/";
-		it++;
-	}
-	this->_env["PATH_INFO"].erase(this->_env["PATH_INFO"].size() - 1);
+	if (access(path.c_str(), X_OK) == 0) //if executable
+		return (args.push_back("./" + path), args);
+	found = path.find_last_of(".");
+	if (found != std::string::npos)// if there's extension
+		ext = path.substr(found);
+	if (config.find(ext) != config.end()) //if it's not allowed
+		args.push_back(config.at(ext));
+	args.push_back(path);
+	return (args);
 }
 
 /////////////////////////////// EXECUTION //////////////////////////////////////
 
-void	Cgi::_childProcess(int *req, int *cgi)
+void	Cgi::_childProcess(int *req)
 {
 	char	**args;
 	char	**env;
@@ -132,72 +118,118 @@ void	Cgi::_childProcess(int *req, int *cgi)
 		exit(40);
 	args = this->_vecToMat(this->_args);
 	env = this->_getEnv();
-	if (close(req[1]) || close(cgi[0]))
+	if (close(req[1]) || close(this->_cgi[0]))
 		exit(50);
-	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(cgi[1], STDOUT_FILENO) == -1)
+	if (dup2(req[0], STDIN_FILENO) == -1 || dup2(this->_cgi[1], STDOUT_FILENO) == -1)
 		exit(50);
-	if (close(req[0]) || close(cgi[1]))
+	if (close(req[0]) || close(this->_cgi[1]))
 		exit(50);
+	//for (size_t i = 0; i < this->_args.size(); i++)
+	//	std::cerr << "ARGS: " << args[i] << std::endl;
 	execve(args[0], args, env);
 	exit(50);
 }
 
-int	Cgi::executeCgi(std::string &cgi_response, int timeout)
+int	Cgi::executeCgi(void)
 {
-	pid_t	pid;
-	int		status;
-	int		req[2], cgi[2];
-	char buffer[1024];
-	ssize_t count;
-	std::time_t	epoch = std::time(NULL);
-	if (pipe(req) || pipe(cgi))
+	//int		status;
+	int		req[2];
+	//std::time_t	epoch = std::time(NULL);
+
+	if (pipe(req) || pipe(this->_cgi))
 		return (500);
-	fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	/*fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	fcntl(req[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	fcntl(cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-	fcntl(cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);*/
 
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	write(req[1], "\0", 1);
-	pid = fork();
-	if (pid == -1)
+	this->_pid = fork();
+	if (this->_pid == -1)
 		return (500);
-	if (pid == 0)
-		this->_childProcess(req, cgi);
-	if (close(req[0]) || close(cgi[1]) || close(req[1]))
+	if (this->_pid == 0)
+		this->_childProcess(req);
+	if (close(req[0]) || close(this->_cgi[1]) || close(req[1]))
 		return (500);
+	/*std::cerr << "pre-while" << std::endl;
 	while (1)
 	{
 		std::time_t now = std::time(NULL);
 		if (now - epoch > timeout)
 		{
-			if (kill(pid, SIGKILL))
+			if (kill(this->_pid, SIGKILL))
 			{
 				std::cout << "I've killed the child!" << std::endl;
-				waitpid(pid, &status, 0);// wait until the child is actually dead
+				waitpid(this->_pid, &status, 0);// wait until the child is actually dead
 				return (500);
 			}
 			return (504);
 		}
-		if (waitpid(pid, &status, WNOHANG) == -1)
+		if (waitpid(this->_pid, &status, WNOHANG) == -1)
 		{
 			std::cout << "FUCK, waitpid returns -1" << std::endl;
 			return (500);
 		}
 		if (WIFEXITED(status))
+		{
+			std::cerr << "it has wexited\n";
 			break ;
+		}
 	}
-	while ((count = read(cgi[0], buffer, sizeof(buffer) - 1)) != 0)
+	this->readCgi(cgi_response);*/
+	/*std::cerr << "pre-read" << std::endl;
+	while ((count = read(this->_cgi[0], buffer, sizeof(buffer) - 1)) != 0)
 	{
 		if (count == -1)
+		{
+			perror("read");
 			return (500);
+		}
 		buffer[count] = '\0';
 		cgi_response += buffer;
 	}
-	if (close(cgi[0]))
-		return (500);
-	return (WEXITSTATUS(status) * 10);
+	std::cerr << "pre-last close" << std::endl;
+	if (close(this->_cgi[0]))
+		return (500);*/
+	//return (WEXITSTATUS(status) * 10);
+	return (0);
 }
 //child will exit with the proper error code.
 //values higher than 255 will be modified by exit.
 //To avoid this child will exit with status / 10.
+
+/////////////////// READ /////////////////////
+
+void	Cgi::readCgi(std::string &resp)
+{
+	int 	count;
+	char	buffer[1024];
+
+	while ((count = read(this->_cgi[0], buffer, sizeof(buffer) - 1)) != 0)
+	{
+		if (count == -1)
+			return (void)(this->_status = 500);
+		buffer[count] = '\0';
+		resp += buffer;
+	}
+	if (close(this->_cgi[0]))
+		return (void)(this->_status = 500);
+}
+
+//////////////////// GETTER ////////////////////////
+
+pid_t	Cgi::getPid(void) const
+{
+	return (this->_pid);
+}
+
+int		Cgi::getCgiFd(void) const
+{
+	return (this->_cgi[0]);
+}
+
+int		Cgi::getStatus(void) const
+{
+	return (this->_status);
+}

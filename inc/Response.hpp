@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "Utils.hpp"
+#include "Cgi.hpp"
 #include "RespUtils.hpp"
 
 
@@ -35,6 +36,9 @@ class	Response
 		/************** GETTERS *******************/
 		const std::string& 		getResponse() const;
 		int						getCode() const;
+		/************** SETTERS *******************/
+		void	setCgiFd(int fd);
+		void	setCode(int code);
 
 	private:
 		std::map<int, std::pair<std::string, std::string> >	_errorPages;
@@ -44,7 +48,8 @@ class	Response
 		std::string		_body;
 		std::string		_response;
 		unsigned int	_code;
-		const Request	*_req;
+		const Request*	_req;
+		int				_cgifd;
 
 		/************ WRITE RESPONSE **************/
 		std::string	putStatusLine(int code);
@@ -57,13 +62,12 @@ class	Response
 		void		_handlePost(void);
 		void		_handleDelete(void);
 		/***************** CGI *******************/
-		std::vector<std::string> _findCgiArgs(const std::string &path);
+		void		_readCgi(void);
 		void		_parseCgiResponse(void);
 		/*********** METHODS' UTILS **************/
 		bool		_createFile(void);
 		bool		_isAccepted(std::string str);
 		int			_isDir(const std::string &path) const ;
-		std::string	urlDecode(const std::string &path);
 		/************ SPECIAL REQUESTS **********/
 		void		_makeAutoIndex(void);
 		void		_handleFavIcon();
