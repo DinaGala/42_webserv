@@ -114,6 +114,7 @@ void	Cgi::_childProcess(int *req)
 {
 	char	**args;
 	char	**env;
+
 	if (this->_args.size() == 0)
 		exit(40);
 	args = this->_vecToMat(this->_args);
@@ -126,7 +127,10 @@ void	Cgi::_childProcess(int *req)
 		exit(50);
 	//for (size_t i = 0; i < this->_args.size(); i++)
 	//	std::cerr << "ARGS: " << args[i] << std::endl;
+	//std::cout << " ";
+	//std::cout << "child process\n";
 	execve(args[0], args, env);
+	std::cout << "child process post exit\n";
 	exit(50);
 }
 
@@ -138,10 +142,10 @@ int	Cgi::executeCgi(void)
 
 	if (pipe(req) || pipe(this->_cgi))
 		return (500);
-	/*fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(req[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	fcntl(req[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-	fcntl(cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-	fcntl(cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);*/
+	fcntl(this->_cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	fcntl(this->_cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
 	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
 	write(req[1], "\0", 1);

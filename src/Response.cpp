@@ -217,17 +217,29 @@ void	Response::_readCgi(void)
 	int 	count;
 	char	buffer[1024];
 
+	std::cout << "ReadCgi fd: " << this->_cgifd << std::endl;
+	if (fcntl(this->_cgifd, F_GETFD) == -1)
+	{
+		std::cout << "fd is not valid" << std::endl;
+		return ;
+	}
 	if (this->_cgifd < 0)
 	{
+		std::cout << "ReadCgi: " << this->_cgifd << std::endl;
 		return (void)this->sendError(500);
 	}
-	while ((count = read(this->_cgifd, buffer, sizeof(buffer) - 1)) != 0)
+	count = read(this->_cgifd, buffer, sizeof(buffer) - 1);
+	std::cout << "ReadCgi count: " << count << std::endl;
+	std::cout << "ReadCgi buffer: " << buffer << std::endl;
+	while ((count /*= read(this->_cgifd, buffer, sizeof(buffer) - 1)*/) > 0)
 	{
 		std::cout << "Response: reading...\n";
 		if (count == -1)
 			return (void)this->sendError(500);
 		buffer[count] = '\0';
 		this->_response += buffer;
+		count = 0;
+		//count = read(this->_cgifd, buffer, sizeof(buffer) - 1);
 	}
 	if (close(this->_cgifd))
 		return (void)this->sendError(500);

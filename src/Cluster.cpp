@@ -92,21 +92,17 @@ void	Cluster::_checkChilds(void)
 		if (wait == -1)
 		{
 			std::cout << "\033[1;31mwaitpid failed\n\033[0m";
-			//change to epollout + response status 500;
 			sock->getResponse()->setCode(500);
 			modifyEvent(sock, 1);
 			this->_pids.erase(it);
 		}
-		else if (WIFEXITED(status))
+		else if (WIFEXITED(status) && !WEXITSTATUS(status))
 		{
 			std::cout << "\033[1;31mit has WEXITED: status: " << WEXITSTATUS(status) * 10 << "\n\033[0m";
 			sock->getResponse()->setCode(WEXITSTATUS(status) * 10);
 			sock->getResponse()->setCgiFd(it->second.first.second);
 			modifyEvent(sock, 1);
 			this->_pids.erase(it);
-			//change to epollout + response status WEXITSTATUS * 10;
-			//read cgi
-			//set response or something to cgi.getResponse;
 		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
@@ -161,7 +157,7 @@ void	Cluster::runCluster()
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		//std::cout << "\033[32;1mWAITING\033[0m\n";
+		std::cout << "\033[32;1mWAITING\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
 			//std::cout << "All sockets:\n" << _sockets;
