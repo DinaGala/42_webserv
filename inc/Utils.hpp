@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/12 20:06:32 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/13 12:01:00 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,6 @@
 # include "ServerConfig.hpp"
 # include "Parse.hpp"
 # include "Server.hpp"
-# include "Cgi.hpp"
 # include "Socket.hpp"
 # include "Cluster.hpp"
 # include "Signals.hpp"
