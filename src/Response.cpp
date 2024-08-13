@@ -25,6 +25,7 @@ void	Response::cleanResponse()
 	_code = 200;
 	_req = NULL;
 	_cgifd = 0;
+	_done = false;
 }
 
 Response::Response(): _code(200), _req(NULL) {}
@@ -35,6 +36,7 @@ Response::Response(const Response &r): _req(r._req)
 	this->_body = r._body;
 	this->_code = r._code;
 	this->_cgifd = r._cgifd;
+	this->_done = r._done;
 	if (r._req)
 		this->_errorPages = r._req->getErrorPages();
 }
@@ -48,6 +50,7 @@ Response	&Response::operator=(const Response &r)
 	this->_response = r._response;
 	this->_code = r._code;
 	this->_cgifd = r._cgifd;
+	this->_done = r._done;
 	if (r._req)
 		this->_errorPages = r._req->getErrorPages();
 	return (*this);
@@ -109,8 +112,6 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_req = req;
 		this->_errorPages = req->getErrorPages();
 	}
-	if (this->_code != 200 && this->_code != 0)
-		return (this->sendError(this->_code), this->_response);
 	if (this->_req->getCode() == 301)//redirect
 	{
 		this->_response = this->putStatusLine(301);
@@ -130,6 +131,7 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(405);
 	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
+	this->_done = true;
 	return (this->_response);
 }
 
@@ -576,6 +578,11 @@ int	Response::getCode(void) const
 const std::string	&Response::getResponse(void) const
 {
 	return (this->_response);
+}
+
+bool	Response::getDone(void) const
+{
+	return (this->_done);
 }
 
 void	Response::setCgiFd(int fd)

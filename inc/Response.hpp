@@ -36,6 +36,7 @@ class	Response
 		/************** GETTERS *******************/
 		const std::string& 		getResponse() const;
 		int						getCode() const;
+		bool					getDone() const;
 		/************** SETTERS *******************/
 		void	setCgiFd(int fd);
 		void	setCode(int code);
@@ -50,6 +51,7 @@ class	Response
 		unsigned int	_code;
 		const Request*	_req;
 		int				_cgifd;
+		bool			_done;
 
 		/************ WRITE RESPONSE **************/
 		std::string	putStatusLine(int code);
