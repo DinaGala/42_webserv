@@ -150,7 +150,7 @@ void	Cluster::runCluster()
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 700); 
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 200); 
 
 		if (_nfds == -1) {
 			if (errno == EINTR)
@@ -292,7 +292,8 @@ void	Cluster::sendConnection(Socket *sock)
 	size_t	bytes;
 
 	std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
-	sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
+	if (sock->getResponse()->getDone() == false)
+		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 	std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
 	if (sock->getResponseLine().size() < BUFFER_SIZE)
 		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), MSG_DONTWAIT); // a flag??
