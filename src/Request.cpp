@@ -105,11 +105,12 @@ void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead)
 			parseBody();
 		}
 		if (_status == FINISH_PARSED){
-			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 			requestValidations();
+			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		}
 	} catch (const std::exception & e){
-		std::cerr << e.what() << std::endl;
+		std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl;
+		std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		_status = FINISH_PARSED;
 	}
 }
@@ -544,6 +545,6 @@ void Request::updateUploadDir(){
 
 // _____________  SEND BAD REQUEST ERROR  _____________ 
 void	Request::sendBadRequestError(std::string errMssg, int code) {
-	throw std::runtime_error(errMssg);
 	_code = code;
+	throw std::runtime_error(errMssg);
 }
