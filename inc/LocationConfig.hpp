@@ -46,7 +46,6 @@ class LocationConfig
 		void setReturn(const std::string& alias);
 		void setErrorPage(int code, const std::string& page);
 		void setAllowMethod(const std::string& method);
-//		void addCgiConfig(const std::map<std::string, std::string>& cgiConfig);
 		void setCgiConf(const std::string &ext, const std::string &path);
 		void setIndex(const std::string& index);
 		void setAutoIndex(bool autoIndex);

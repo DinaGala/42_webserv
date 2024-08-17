@@ -62,7 +62,6 @@ ServerConfig::ServerConfig(): loc(true)
 
 ServerConfig::ServerConfig(std::string file): loc(true)
 {
-//	std::cout << "NEWSERV:" << "\n" << file << " ----------------------------------------------" << std::endl;
 	_initKeys();
 	_autoIndex = false;
 	_root = ".";
@@ -81,14 +80,12 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 {
 	_host = src._host;
-//	_hostName = src._hostName;
 	_port = src._port;
 	_serverName = src._serverName;
 	_root = src._root;
 	_ip = src._ip;
 	_allowedMethods = src._allowedMethods;
 	_locations = src._locations;
-//	copyMap(_errorPages, src._errorPages);
 	_errorPages = src._errorPages;
 	_maxBodySize = src._maxBodySize;
 	_cgiConf = src._cgiConf;
@@ -96,7 +93,6 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& src)
 	_vars = src._vars;
 	_errorPages = src._errorPages;
 	_keys = src._keys;
-//	empty = src.empty;
 	return (*this);
 }
 
@@ -120,7 +116,7 @@ ServerConfig::~ServerConfig()
 	_serverName.clear();
 	_locations.clear();
 	_allowedMethods.clear();
-	//_errorPages.clear();
+	_errorPages.clear();
 	_cgiConf.clear();
 	_keys.clear();
 	_vars.clear();
@@ -251,17 +247,12 @@ void ServerConfig::setPort(int port)
 	_port.push_back(port);
 	if (!_vars["port"])
 		_vars["port"] = true;
-//	std::cout << _vars["port"] << "\n";
 }
 
 void ServerConfig::unsetPort(int port)
 {
 	std::vector<int>::iterator newEnd = std::remove(_port.begin(), _port.end(), port);
 	_port.erase(newEnd, _port.end());
-	// if (_port.empty())
-	// 	return (1);
-	// return (0);
-//	std::cout << _vars["port"] << "\n";
 }
 
 void ServerConfig::setServerName(const std::string& serverName)
@@ -280,7 +271,6 @@ void ServerConfig::setRoot(const std::string& root)
 
 void ServerConfig::setLocationConfig(const LocationConfig& location)
 {
-//	std::cout << "ENTERED SET LOCATION ----------- " << std::endl;
 	for (std::vector<LocationConfig>::iterator it = _locations.begin(); it != _locations.end(); it++)
 	{
 		if (it->getUri() == location.getUri())
@@ -300,7 +290,6 @@ void ServerConfig::setErrorPage(int code, const std::string& page)
 		_errorPages[code] = std::make_pair(it->second.first, page);
 	if (!_vars["error_page"])
 		_vars["error_page"] = true;
-//	_errorPages.insert(std::make_pair(code, page));
 }
 
 void ServerConfig::setClientMaxBodySize(size_t client_max_body_size)
@@ -328,7 +317,6 @@ void ServerConfig::setAutoIndex(bool autoindex)
 
 void 	ServerConfig::setAllowMethod(const std::string& method)
 {
-//	std::cout << "SET ALLOW METHODS, METHOD: " << method << std::endl;
 	if (method != "GET" && method != "POST" && method != "DELETE")
 		throw std::invalid_argument("Error: unknown method in allowed_method: " + method);	
 	for (std::vector<std::string>::iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); it++)
@@ -337,28 +325,9 @@ void 	ServerConfig::setAllowMethod(const std::string& method)
 			throw std::invalid_argument("Error: method duplication in allowed_method");
 	}
 	_allowedMethods.push_back(method);
-//	std::cout << "END SET ALLOW METHODS, VARIABLE: " << _allowedMethods << std::endl;
 }
 
 void 		ServerConfig::setVars(const std::string& key)
 {
 	_vars[key] = true;
 }
-
-// void ServerConfig::setHostName(const std::string& hostName)
-// {
-// 	_hostName = hostName;
-// }
-
-// void ServerConfig::setErrorPages(const std::map<int, std::string>& error_pages)
-// {
-
-// }
-
-// void ServerConfig::setCgiConf(const std::vector<CgiConfig>& cgiConf)
-// {
-
-// }
-
-// void ServerConfig::_initConfig();
-
