@@ -24,7 +24,6 @@ Cluster::~Cluster()
 		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
 		// close(fd[0]);
 		// close(fd[1]); 
-	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -99,14 +98,12 @@ void	Cluster::_checkChilds(void)
 		wait = waitpid(it->first, &status, WNOHANG);
 		if (wait == -1)
 		{
-			std::cout << "\033[1;31mwaitpid failed\n\033[0m";
 			sock->getResponse()->setCode(500);
 			modifyEvent(sock, 1);
 			this->_pids.erase(it);
 		}
 		else if (WIFEXITED(status) && !WEXITSTATUS(status))
 		{
-			std::cout << "\033[1;31mit has WEXITED: status: " << WEXITSTATUS(status) * 10 << "\n\033[0m";
 			sock->getResponse()->setCode(WEXITSTATUS(status) * 10);
 			sock->getResponse()->setCgiFd(it->second.first.second);
 			modifyEvent(sock, 1);
@@ -171,9 +168,7 @@ void	Cluster::runCluster()
 		std::cout << "\033[32;1mnfds: " << _nfds << "\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
-			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			//std::cout << "current socket is:  " << cur << "\n" << *cur;
 
 			/****** ADDED BY NURIA ********/
 			if (_events[n].events & EPOLLHUP)
@@ -202,31 +197,27 @@ void	Cluster::runCluster()
 				if (cur->getMaster())
 				{
 					write(2, "create\n", 7);
-					//EPOLLIN
 					acceptConnection(cur);
 				}
 				else
 				{
 					write(2, "else\n", 5);
-					//EPOLLIN, if all read - change to EPOLLOUT 
 					readConnection(cur);
 				}
 			}
 			else if (_events[n].events & EPOLLOUT)
 			{
 				write(2, "epollout\n", 9);
-			// send in chunks and change to epollin when finished. New request? OR close? 
 				sendConnection(cur);
 			}
-			else //ADD timeout
+			else
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		if (this->_pids.size() != 0)
 			this->_checkChilds();
-		//checkTimeout();
 //		usleep(1000);
 	}
-//	std::cout << "----- END OF LOOP -----" << std::endl;
+	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 
@@ -263,7 +254,7 @@ void	Cluster::readConnection(Socket *sock)
 		std::cout << "bytes read: " << bytesRead << std::endl;
 		if (bytesRead <= 0 && sock->getRequest()->getStatus() != FINISH_PARSED)
 		{
-			std::cout <<  "msg from read\n";
+			std::cout <<  "Cluster (:257) read failed\n";
 			return (eraseSocket(sock, true));
 		}
 		sock->getRequest()->parseRequest(buffer, bytesRead);
@@ -400,18 +391,6 @@ void	Cluster::cleanSocket(Socket *sock)
 //	sock->getResponse()->cleanResponse();
 }
 
-// void	Cluster::checkTimeout()
-// {
-// 	time_t now = time(NULL);
-// 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
-// 	{
-// 		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
-// 			it = eraseSocket(it);
-// 		else
-// 			++it;
-// 	}
-// }
-
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
 //	out << "Port:  " << val.getServer() << "\n";
@@ -450,13 +429,8 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
-    //	out << "Port:  " << val.getServer() << "\n";
-	  //out << "Response:  " << val.getResponse() << "\n";
-    out << "Code:  " << val.getCode() << "\n";
-    // out << "Socket fd:  " << val.getSockFd() << "\n";
-    // out << "Last activity:  " << val.getLastActivity() << "\n";
-    // out << "Master:  " << val.getMaster() << "\n\n";
- //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
+	std::string	resp = val.getResponse();
 
+    out << "Status Line: " << resp.substr(0, resp.find("\r\n")) << std::endl;
 	return (out);
 }
