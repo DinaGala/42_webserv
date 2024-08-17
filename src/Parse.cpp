@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/19 21:44:49 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/31 11:24:21 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/17 15:42:55 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,15 +41,6 @@ std::vector<ServerConfig>	Parse::configParse(const char *filename)
     sconf = portDefault(sconf); // port check and autofill
     sconf = hostDefault(sconf); // host and ip check and fill   
 	return (sconf);
-}
-
-std::vector<ServerConfig>	Parse::configParse()
-{
-	std::vector<ServerConfig>	sconf;
-    ServerConfig    serv;
-
-    sconf.push_back(serv);
-    return (sconf);
 }
 
 template <typename T>
@@ -224,6 +215,8 @@ int Parse::ft_getline(std::string &buf, std::string &line, std::string del)
      //   buf.clear();
         throw std::invalid_argument("Configuration file error: unfinished line " + line.substr(0, line.find('\n')) + ". Use a delimiter: \"" + del + "\"");
     }
+    else if (pos == 0)
+        throw std::invalid_argument("Configuration file error: unexpected \";\"");
     else
     {
         if (buf[pos] == '{')

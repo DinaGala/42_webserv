@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/31 11:17:40 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/17 15:38:13 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ class ServerConfig
 		std::map<int, std::pair<std::string, std::string> >	operator=(const std::map<int, std::pair<std::string, std::string> > &val);
 		ServerConfig(const ServerConfig& src);
 		ServerConfig(std::string file);
-		ServerConfig();
 		~ServerConfig();
 
 		typedef void (*func)(ServerConfig &, std::vector<std::string> &);
@@ -82,6 +81,7 @@ class ServerConfig
 		std::map<std::string, func>			_keys;
 		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
+		ServerConfig();
 
 };
 

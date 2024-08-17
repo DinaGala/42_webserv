@@ -73,7 +73,7 @@ void	Response::_parseCgiResponse(void)
 		return ;
 	}
 	this->_body = this->_response.substr(found + 2, this->_response.size());
-	this->_response = this->_response.substr(0, found) + "\n";
+	this->_response = this->_response.substr(0, found) + "\r\n";
 }
 
 //writes and returns the server's response

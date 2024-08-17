@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/17 12:39:30 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/17 15:38:29 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # define DEFAULT_BODY_SIZE 10000000 //10MB
 # define N_SERV_DIR 9
 # define MAX_CON 10
-# define MAX_EVENTS 10
+# define MAX_EVENTS 20
 # define BUFFER_SIZE 200000 
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
