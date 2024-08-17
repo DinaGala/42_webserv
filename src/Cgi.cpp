@@ -18,7 +18,9 @@ Cgi::~Cgi() {}
 
 /////////////////////// TRANSFORMATIONS FROM C++ TO C //////////////////////////
 
-//from map<std::string, std::string> to char **
+/* It returns the environment as a char**.
+It also adds the cookies in case they are set
+*/
 char	**Cgi::_getEnv(void)
 {
 	char	**mat;
@@ -44,9 +46,8 @@ char	**Cgi::_getEnv(void)
 		}
 		i++;
 	}
-	/*ADDED BY JULIA*/
 	for (std::vector<std::string>::iterator it = this->_cookiesEnv.begin(); it != cookies_end; it++)
-  {
+	{
 		mat[i] = strdup((*it).c_str());
 		if (!mat[i])
 		{
@@ -56,7 +57,7 @@ char	**Cgi::_getEnv(void)
 				throw std::bad_alloc();
 		}
 		i++;
-	}	//FINISH
+	}
 	mat[i] = NULL;
 	return (mat);
 }
@@ -125,20 +126,13 @@ void	Cgi::_childProcess(int *req)
 		exit(50);
 	if (close(req[0]) || close(this->_cgi[1]))
 		exit(50);
-	//for (size_t i = 0; i < this->_args.size(); i++)
-	//	std::cerr << "ARGS: " << args[i] << std::endl;
-	//std::cout << " ";
-	//std::cout << "child process\n";
 	execve(args[0], args, env);
-	std::cout << "child process post exit\n";
 	exit(50);
 }
 
 int	Cgi::executeCgi(void)
 {
-	//int		status;
 	int		req[2];
-	//std::time_t	epoch = std::time(NULL);
 
 	if (pipe(req) || pipe(this->_cgi))
 		return (500);
@@ -156,70 +150,11 @@ int	Cgi::executeCgi(void)
 		this->_childProcess(req);
 	if (close(req[0]) || close(this->_cgi[1]) || close(req[1]))
 		return (500);
-	/*std::cerr << "pre-while" << std::endl;
-	while (1)
-	{
-		std::time_t now = std::time(NULL);
-		if (now - epoch > timeout)
-		{
-			if (kill(this->_pid, SIGKILL))
-			{
-				std::cout << "I've killed the child!" << std::endl;
-				waitpid(this->_pid, &status, 0);// wait until the child is actually dead
-				return (500);
-			}
-			return (504);
-		}
-		if (waitpid(this->_pid, &status, WNOHANG) == -1)
-		{
-			std::cout << "FUCK, waitpid returns -1" << std::endl;
-			return (500);
-		}
-		if (WIFEXITED(status))
-		{
-			std::cerr << "it has wexited\n";
-			break ;
-		}
-	}
-	this->readCgi(cgi_response);*/
-	/*std::cerr << "pre-read" << std::endl;
-	while ((count = read(this->_cgi[0], buffer, sizeof(buffer) - 1)) != 0)
-	{
-		if (count == -1)
-		{
-			perror("read");
-			return (500);
-		}
-		buffer[count] = '\0';
-		cgi_response += buffer;
-	}
-	std::cerr << "pre-last close" << std::endl;
-	if (close(this->_cgi[0]))
-		return (500);*/
-	//return (WEXITSTATUS(status) * 10);
 	return (0);
 }
 //child will exit with the proper error code.
 //values higher than 255 will be modified by exit.
 //To avoid this child will exit with status / 10.
-
-/////////////////// READ /////////////////////
-
-void	Cgi::readCgi(std::string &resp)
-{
-	int 	count;
-	char	buffer[1024];
-
-	while ((count = read(this->_cgi[0], buffer, sizeof(buffer) - 1)) != 0)
-	{
-		if (count == -1)
-			return (void)(this->_status = 500);
-		buffer[count] = '\0';
-		resp += buffer;
-	}
-	if (close(this->_cgi[0]))
-		return (void)(this->_status = 500);
-}
 
 //////////////////// GETTER ////////////////////////
 

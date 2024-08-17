@@ -97,10 +97,7 @@ std::string	&Response::makeResponse(const Request *req)
 	else if (this->_req->getCode() > 301)
 		return (this->sendError(this->_req->getCode()), this->_response);
 	else if (this->_code > 301)
-	{
-		std::cout << "response's code: " << _code << std::endl;
 		return (this->sendError(this->_code), this->_response);
-	}
 	std::string	method = this->_req->getMethod();
 	if (method == "GET")
 		this->_handleGet();
@@ -110,8 +107,8 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_handleDelete();
 	else
 		this->sendError(405);
-	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	this->_done = true;
+	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -173,15 +170,12 @@ void	Response::_handleGet()
 	}
 	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
 	{
-		std::cout << "Response: pre-read 194\n";
 		this->_readCgi();
-		std::cout << "Response: post-read 196\n";
 		this->_parseCgiResponse();
 	}
 	else //if not cgi
 	{
-		int error = this->fileToBody(path);
-		//int error = this->fileToBody(this->_req->getPath());//TODO
+		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 			return (void)this->sendError(error);
 	}
@@ -199,29 +193,16 @@ void	Response::_readCgi(void)
 	int 	count;
 	char	buffer[1024];
 
-	std::cout << "ReadCgi fd: " << this->_cgifd << std::endl;
 	if (fcntl(this->_cgifd, F_GETFD) == -1)
-	{
-		std::cout << "fd is not valid" << std::endl;
 		return ;
-	}
 	if (this->_cgifd < 0)
-	{
-		std::cout << "ReadCgi: " << this->_cgifd << std::endl;
 		return (void)this->sendError(500);
-	}
-	count = read(this->_cgifd, buffer, sizeof(buffer) - 1);
-	std::cout << "ReadCgi count: " << count << std::endl;
-	std::cout << "ReadCgi buffer: " << buffer << std::endl;
-	while ((count /*= read(this->_cgifd, buffer, sizeof(buffer) - 1)*/) > 0)
+	while ((count = read(this->_cgifd, buffer, sizeof(buffer) - 1)) > 0)
 	{
-		std::cout << "Response: reading...\n";
 		if (count == -1)
 			return (void)this->sendError(500);
 		buffer[count] = '\0';
 		this->_response += buffer;
-		count = 0;
-		//count = read(this->_cgifd, buffer, sizeof(buffer) - 1);
 	}
 	if (close(this->_cgifd))
 		return (void)this->sendError(500);
