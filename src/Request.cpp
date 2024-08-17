@@ -42,6 +42,7 @@ Request& Request::operator=(const Request& src)
 	_boundary = src.getBoundary();
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
+	_cookiesEnv = src.getCookiesEnv();
 	return (*this);
 }
 
@@ -81,6 +82,7 @@ void	Request::initParams()
 	_acceptedContent.clear();
 	_boundary = "";
 	_fileName = "";
+	_cookiesEnv.clear();
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -88,9 +90,7 @@ void	Request::initParams()
 	BLANK LINE: A line with no content, indicating the end of the headers.
 	BODY: Optional, depending on the type of request (e.g., present in POST requests).
 */
-
 // _____________  PARSING REQUEST  _____________ 
-//void	Request::parseRequest(const std::string& buffer) 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
 	
@@ -142,7 +142,7 @@ void Request::createRequestLineVector(std::string requestLineStr)
 void	Request::parseHeaders() {
 	while (_buffer.find(CRLF) != std::string::npos){
 		std::string line = _buffer.substr(0, _buffer.find(CRLF));
-		if (line.size() == 0) { //end of headers >> line = CRLF 
+		if (line.size() == 0) {
 			_status = HEADERS_PARSED;
 			_buffer.erase(0, 2);
 			break;
@@ -183,7 +183,6 @@ void	Request::parseBody(){
 }
 
 //Chunked Transfer Encoding
-//https://datatracker.ietf.org/doc/rfc9112/ - 7.1.3.  Decoding Chunked
 void	Request::parseBodyByChunked(){
 	int	sizeChunk = 0;
 	do {
@@ -233,8 +232,8 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 void	Request::parseBodyByContentLength() { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-	if (contentLength > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	//if (contentLength > _maxBodySize) TODO: CHECKK!!!!
+		//sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
@@ -447,9 +446,10 @@ void Request::updatePath()
 	if (_return != "") {
 		_path = _return;
 		_code = 301;
+		_connectionKeepAlive = false;
 	}
 	else {
-		if (_posLocation >= 0 && _rootLoc == true) {
+		if (_posLocation >= 0 && _rootLoc == true) { //there is location and it has root 
 			std::vector<LocationConfig> vecLocations = _server.getLocationConfig();
 			std::string uri = vecLocations[_posLocation].getUri();
 			_path.erase(0, uri.size());
@@ -461,25 +461,33 @@ void Request::updatePath()
 	}
 }
 
-//Cookie: yummy_cookie=choco; tasty_cookie=strawberry
-void	Request::setCgi()
+void    Request::setCgi()
 {
-	if (access(_path.c_str(), X_OK) == 0) //if executable
-		this->_cgi = true;
-	else {
-		std::string::size_type	found = _path.find_last_of(".");
-		if (found != std::string::npos) {
-			std::string ext = _path.substr(found);
-			if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
-				this->_cgi = true;
-		}
-	}
-	if (_headers.find("Cookie") != _headers.end()) { //TODO: is COOKIE???
-		std::string headerCookies = _headers.find("Cookie")->second;
-		std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
-		for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
-			trim(*it);
-	}
+    struct stat path_stat;
+    if (stat(_path.c_str(), &path_stat) == 0) {
+        if (S_ISREG(path_stat.st_mode) && access(_path.c_str(), X_OK) == 0) {
+            this->_cgi = true;
+        }
+        else {
+        std::string::size_type  found = _path.find_last_of(".");
+            if (found != std::string::npos) {
+                std::string ext = _path.substr(found);
+                if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
+                    this->_cgi = true;
+            }
+        }
+    }
+    setCookies();
+}
+
+void Request::setCookies() 
+{
+	if (_headers.find("Cookie") == _headers.end())
+		return; 
+	std::string headerCookies = _headers.find("Cookie")->second;
+	std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
+	for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
+		trim(*it);
 }
 
 void Request::checkAllowMethod(){

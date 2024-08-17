@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="icon" type="image/png" href="/assets/favicon_general.png">
+		<title>User management</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f8f9fa;
+				color: #343a40;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;	
+			}
+			.container {
+				text-align: center;
+			}	
+			.container h1 {
+				font-size: 3em;
+				color: #a52a80;
+				margin-bottom: 0.5em;
+			}
+			.button {
+				display: inline-block;
+				padding: 0.5em 1em;
+				border: none;
+				font-size: 16px;
+				cursor: pointer;
+				text-decoration: none;
+				color: #fff;
+				background-color: #a52a80;
+				border-radius: 0.25em;
+			}
+			.button:hover {
+				background-color: #a52a80;
+			}
+			code {
+				display: block;
+				margin-top: 20px;
+				padding: 10px;
+				background-color: #f9f9f9;
+			}
+	</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Manage your widsom identity</h1>
+			<div class="buttons">
+				<a href="user_managment/set_username.html" class="button">Set your username</a>
+				<button class="button" onclick="showCookies()">Reveal your username</button>
+				<button class="button" onclick="clearOutputCookies()">Reset your identity</button>
+			</div>
+			<code id="cookies"></code>
+		</div>
+
+		<script th:inline="javascript">
+			function showCookies() {
+				const cookies = document.cookie.split(';'); // Split the cookie string into individual cookies
+				const firstCookie = cookies[0].trim();
+				const cookieValue = firstCookie.split('=')[1]; // Extract the value after the '=' sign
+				document.getElementById('cookies').innerHTML = `Current username: ${decodeURIComponent(cookieValue)}`;
+			}
+
+			function clearOutputCookies() {
+				const cookies = document.cookie.split(';'); // Split the cookie string into individual cookies
+				cookies.forEach(cookie => {
+					const cookieName = cookie.split('=')[0].trim(); // Get the name of each cookie
+					document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`; // Set cookie expiry to a past date
+				});
+				document.getElementById('cookies').innerHTML = "Your identity has been cleared.";
+			}
+		</script>
+	</body>
+</html>
+
+
