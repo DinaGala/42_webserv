@@ -24,11 +24,11 @@ void	Response::cleanResponse()
 	_response.clear();
 	_code = 200;
 	_req = NULL;
-	_cgifd = 0;
+	_cgifd = -1;
 	_done = false;
 }
 
-Response::Response(): _code(200), _req(NULL) {}
+Response::Response(): _code(200), _req(NULL), _cgifd(-1), _done(false) {}
 
 Response::Response(const Response &r): _req(r._req)
 {
@@ -56,31 +56,6 @@ Response	&Response::operator=(const Response &r)
 	return (*this);
 }
 
-/*
-Reads URL and returns a vector with:
-./binay (if it's executable)
-or
-(0) interpreter (p.e. /bin/bash)
-(1) cgi (p.e. script.sh)
-*/
-/*std::vector<std::string>	Response::_findCgiArgs(const std::string &path)
-{
-	std::vector<std::string>	args;
-	if (access(path.c_str(), X_OK) == 0) //if executable
-	{
-		args.push_back("./" + path);
-		return (args);
-	}
-	std::string::size_type	found = path.find_last_of(".");
-	std::map<std::string, std::string>	config = this->_req->getCgiConf();
-	std::string	ext;
-	if (found != std::string::npos)// if there's extension
-		ext = path.substr(found);
-	if (config.find(ext) != config.end()) //if it's not allowed
-		args.push_back(config[ext]);
-	args.push_back(path);
-	return (args);
-}*/
 ///////////////////////////////////////////////////////////////////////////
 
 //parses Cgi's response: separates headers from body
@@ -121,6 +96,11 @@ std::string	&Response::makeResponse(const Request *req)
 	}
 	else if (this->_req->getCode() > 301)
 		return (this->sendError(this->_req->getCode()), this->_response);
+	else if (this->_code > 301)
+	{
+		std::cout << "response's code: " << _code << std::endl;
+		return (this->sendError(this->_code), this->_response);
+	}
 	std::string	method = this->_req->getMethod();
 	if (method == "GET")
 		this->_handleGet();
@@ -191,7 +171,7 @@ void	Response::_handleGet()
 			this->sendError(403);
 		return ;
 	}
-	if (this->_req->getCgi() == true) // if there's cgi
+	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
 	{
 		std::cout << "Response: pre-read 194\n";
 		this->_readCgi();
