@@ -77,7 +77,15 @@ void	Cluster::createEpoll()
 	}
 }
 
-			/****** ADDED BY NURIA ********/
+/* This function checks, for all the pids stored:
+(1) if the process has finished by itself
+	L if so, it sets the response's code + the cgi fd (from which we get the cgi's response)
+(2) if the process running time is greater than the TIMEOUT
+	L if so, it kills the process
+If any of this happens, the event for that socket will be modified to EPOLLOUT
+If an error happens, the response's code will be set accordingly and the event
+will be modified to EPOLLOUT.
+*/
 void	Cluster::_checkChilds(void)
 {
 	int 	status;
@@ -106,27 +114,25 @@ void	Cluster::_checkChilds(void)
 		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
-			std::cout << "\033[1;31mTIMEOUT\n\033[0m";
+			std::cout << "\033[1;31mTIMEOUT pid: " << it->first << "\n\033[0m";
 			if (kill(it->first, SIGKILL))// kill fail
-			{
-				//waitpid(it->first, &status, 0); //wait until the child is actually dead
 				sock->getResponse()->setCode(500);
-				modifyEvent(sock, 1);
-				this->_pids.erase(it);
-			}
 			else
 			{
 				waitpid(it->first, &status, 0); //wait until the child is actually dead
 				sock->getResponse()->setCode(504);
-				modifyEvent(sock, 1);
-				this->_pids.erase(it);
 			}
+			modifyEvent(sock, 1);
+			this->_pids.erase(it);
 		}
 		it++;
 	}
 }
-			/*****************************/
 
+/* This function looks for a specific Socket* in this->_pids
+and returns the element (iterator) containing it.
+If Socket* is not found, it resturns this->_pids.end().
+*/
 std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator
 Cluster::findPidFromSocket(Socket *sock)
 {
@@ -141,6 +147,9 @@ Cluster::findPidFromSocket(Socket *sock)
 	return (it);
 }
 
+/* ADDITION: If the client hangs up (EPOLLHUP) and there's a
+pid linked to that Socket* , we kill it.
+*/
 void	Cluster::runCluster()
 {
 	std::string errmsg;
