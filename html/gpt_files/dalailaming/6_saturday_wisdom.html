@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturday wisdom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2ad47;
+            color: #4b2b18;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: right;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            text-align: right;
+        }
+        .container p {
+            font-size: 2.5em;
+            margin-bottom: 2em;
+            margin-top: 2em;
+            text-align: right;
+            width: 100%;
+        }
+        .image-container {
+            flex: 1;
+            text-align: left;
+        }
+        .text-container {
+            flex: 1;
+            text-align: right;
+            padding-left: 20px;
+        }
+        .text-container h1 {
+            font-size: 1.5em;
+            margin-left: 4cap;
+        }
+        .text-container a {
+            color: #f1ede8; /* Link text color */
+            text-decoration: none; /* Remove underline */
+            font-size: 1em; /* Font size for the link */
+            font-weight: normal; /* Normal font weight for the link */
+            transition: color 0.3s ease, text-decoration 0.3s ease; /* Smooth transition */
+            margin-top: 3em;
+            display: inline-block;
+        }
+        .text-container a:hover {
+            color: #412410; /* Color on hover */
+            text-decoration: underline; /* Underline on hover */
+        }
+        .rescaled-image {
+            width: 400px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-container">
+            <img src="saturday.jpg" class="rescaled-image" alt="cannot load the image...">
+        </div>
+        <div class="text-container">
+            <p>Saturday</p>
+            <h1>Yesterday is history,</h1>
+            <h1>tomorrow is a mystery,</h1>
+            <h1>and today is a gift ...</h1>
+            <h1>That's why we call it PRESENT</h1>
+            <a href="7_sunday_wisdom.html">go to Sunday wisdom</a>
+        </div>
+    </div>
+</body>
+</html>
+
