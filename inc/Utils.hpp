@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/13 17:31:07 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/17 12:39:30 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 # define BUFFER_SIZE 200000 
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
-# define TIMEOUT 10 // in seconds
+# define TIMEOUT 9 // in seconds
 
 # include <string>
 # include <cstring>
