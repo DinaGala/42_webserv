@@ -44,20 +44,19 @@
 # include <stdlib.h>
 # include <signal.h>
 
-# include <sys/socket.h> // For socket functions
-# include <netinet/in.h> // For sockaddr_in
+# include <sys/socket.h> 
+# include <netinet/in.h> 
 # include <netinet/tcp.h>
 # include <netdb.h>
 # include <netinet/in.h>
-# include <cstdlib> // For exit() and EXIT_FAILURE 
+# include <cstdlib> 
 # include <unistd.h>
 # include <cerrno>
 # include <sys/types.h>
 # include <arpa/inet.h>
 # include <netinet/in.h>
 # include <sstream>
-# include <stdexcept> // For standard exceptions
-
+# include <stdexcept> 
 
 # include "Response.hpp"
 # include "Request.hpp"
@@ -74,16 +73,17 @@ std::string ltrim(const std::string& s);
 std::string rtrim(const std::string& s);
 std::string trim(const std::string& s);
 
-
 std::vector<std::string>  ft_split(std::string str, std::string del); 
-int ft_atopi(const std::string str);
-int ft_atoi(const std::string str);
-std::string	isLetDig();
-std::string ft_itoa(int nb);
-bool isStringOfDigits(std::string line);
-uint64_t strToHex(std::string line);
 
-void	copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val);
+int         ft_atopi(const std::string str);
+int         ft_atoi(const std::string str);
+std::string ft_itoa(int nb);
+
+std::string	isLetDig();
+bool        isStringOfDigits(std::string line);
+uint64_t    strToHex(std::string line);
+
+void	    copyMap(std::map<int, std::pair<std::string, std::string> > &res, const std::map<int, std::pair<std::string, std::string> > &val);
 std::string	ft_strstr(const std::string &h, const std::string &n);
 
 #endif

@@ -32,8 +32,8 @@ std::vector<ServerConfig>	Parse::configParse(const char *filename)
 		sconf.push_back( ServerConfig(blockCrop(buf)));
         buf = ltrim(buf);
 	}
-    sconf = portDefault(sconf); // port check and autofill
-    sconf = hostDefault(sconf); // host and ip check and fill   
+    sconf = portDefault(sconf); 
+    sconf = hostDefault(sconf); 
 	return (sconf);
 }
 
@@ -45,7 +45,7 @@ void Parse::complexParse(T &serv, std::string &block)
     {
         case 1: lineParse(serv, ft_split(line, WS)); break ;
         case 2: blockParse(serv, line); break ;
-        default: return ; //std::cout << "The server block is parsed" << std::endl; 
+        default: return ;
     }
    complexParse(serv, block);
 }
@@ -62,7 +62,7 @@ void Parse::lineParse(T &obj, std::vector<std::string> args)
     {
         if (it->first == args[0])
         {
-            it->second(obj, args); // change everywhere strings to vectors
+            it->second(obj, args);
             return ;
         }
     }

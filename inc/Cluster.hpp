@@ -12,10 +12,10 @@ class Cluster {
 		std::vector<ServerConfig>	_sconf; 
 		std::vector<Server> 		_servers;
 		std::list<Socket>			_sockets;
-		int							_epFd; //epoll instance id
-		int							_nfds; // number of actual events
-		struct epoll_event			_events[MAX_EVENTS]; // an array used to collect the events that epoll detects.
-		struct epoll_event			_ev; //is used to describe the events we are interested in for a particular file descriptor.
+		int							_epFd; 
+		int							_nfds; 
+		struct epoll_event			_events[MAX_EVENTS]; 
+		struct epoll_event			_ev; 
 		
 		std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >			_pids; //all active pids paired with: (1)(starting time, fd to read), (2) its Socket
 		std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator findPidFromSocket(Socket *sock);

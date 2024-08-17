@@ -15,9 +15,6 @@
 
 # include "Utils.hpp"
 
-# define N_LOC_DIR 9
-
-
 class LocationConfig
 {
 	public:
@@ -60,17 +57,17 @@ class LocationConfig
 
 	private:
 		std::string 						_uri; 
-		std::string 						_root; // Define a directory or a file from where the file should be searched (for example, if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet).
+		std::string 						_root; 
 		std::string 						_return;
 		std::string 						_index;
 		bool 								_autoIndex;
 		bool 								_allowUpload;
 		std::string 						_uploadDir;
-		std::vector<std::string> 			_allowedMethods; // Define a list of accepted HTTP methods for the route.
+		std::vector<std::string> 			_allowedMethods;
 		std::map<int, std::pair<std::string, std::string> >	_errorPages;
-		std::map<std::string, std::string> 	_cgiConf; // Execute CGI based on certain file extension (for example .php).
+		std::map<std::string, std::string> 	_cgiConf; 
 		std::map<std::string, func>			_keys;
-		std::map<std::string, bool>			_vars; // each variable if is set or not
+		std::map<std::string, bool>			_vars; 
 		void								_initKeys();
 
 		LocationConfig();
