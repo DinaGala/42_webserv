@@ -232,8 +232,8 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 void	Request::parseBodyByContentLength() { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-	//if (contentLength > _maxBodySize) TODO: CHECKK!!!!
-		//sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	if (contentLength > _maxBodySize)
+		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
