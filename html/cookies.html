@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="icon" type="image/png" href="/assets/favicon_general.png">
+		<title>Cookies</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				align-items: center;
+			}
+			.button {
+				margin-right: 10px;
+				padding: 10px 15px;
+				font-size: 16px;
+				cursor: pointer;
+				text-decoration: none;
+				color: #fff;
+				background-color: #bbb;
+				border: none;
+				border-radius: 4px;
+				display: inline-block;
+			}
+			.button:hover {
+				background-color: #ccc;
+			}
+			code {
+				display: block;
+				margin-top: 20px;
+				padding: 10px;
+				background-color: #f9f9f9;
+			}
+    </style>
+	</head>
+	<body>
+		<h1>Cookie Management</h1>
+		<a href="cookies/set_username.html" class="button">Set cookies</a>
+		<button class="button" onclick="showCookies()">Show cookies</button>
+		<button class="button" onclick="clearOutputCookies()">Clear</button>
+		
+		<code id="cookies"></code>
+
+		<script th:inline="javascript">
+			function showCookies() {
+				const cookies = document.cookie.split(';'); // Split the cookie string into individual cookies
+
+				if (cookies.length === 1 && cookies[0] === "") {
+					document.getElementById('cookies').innerHTML = "No cookies set.";
+					//return;
+				}
+				// Prepare an unordered list of cookies
+				let cookieList = '<ul>';
+				cookies.forEach(cookie => {
+				cookieList += `<li>${cookie.trim()}</li>`; // Trim whitespace and add to list
+				});
+				cookieList += '</ul>';
+
+				// Display the list of cookies in the 'cookies' code element
+				document.getElementById('cookies').innerHTML = `Current Cookies: ${cookieList}`;
+				
+				// Redirect back to the main page
+				window.location.href = 'cookies';
+			}
+
+			function clearOutputCookies() {
+				const cookies = document.cookie.split(';'); // Split the cookie string into individual cookies
+
+				cookies.forEach(cookie => {
+					const cookieName = cookie.split('=')[0].trim(); // Get the name of each cookie
+					document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`; // Set cookie expiry to a past date
+				});
+
+				//Display a message indicating all cookies have been cleared
+				document.getElementById('cookies').innerHTML = "All cookies cleared.";
+				
+				// Redirect back to the main page
+				window.location.href = 'cookies';
+
+			}
+		</script>
+	</body>
+</html>
+
+

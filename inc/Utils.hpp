@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/01 21:26:02 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/19 14:21:31 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 # define BUFFER_SIZE 200000 
 # define WS " \v\t\n\r"
 # define NUM "0123456789"
-# define TIMEOUT 600000000 // in seconds
+# define TIMEOUT 5 // in seconds
 
 # include <string>
 # include <cstring>
@@ -64,7 +64,6 @@
 # include "ServerConfig.hpp"
 # include "Parse.hpp"
 # include "Server.hpp"
-# include "Cgi.hpp"
 # include "Socket.hpp"
 # include "Cluster.hpp"
 # include "Signals.hpp"

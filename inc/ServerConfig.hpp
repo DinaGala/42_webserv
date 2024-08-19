@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/31 11:17:40 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/19 15:21:08 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ class ServerConfig
 		std::map<std::string, func>			_keys;
 		std::map<std::string, bool>			_vars; 
 		void								_initKeys();
-
 		ServerConfig();
 };
 

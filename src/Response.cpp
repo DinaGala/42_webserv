@@ -544,6 +544,13 @@ const std::string	&Response::getResponse(void) const
 	return (this->_response);
 }
 
+const std::string	Response::getReqLine(void) const
+{
+	return (this->_req->getRequestLine()[0]
+		+ this->_req->getRequestLine()[1]
+		+ this->_req->getRequestLine()[2]);
+}
+
 bool	Response::getDone(void) const
 {
 	return (this->_done);
