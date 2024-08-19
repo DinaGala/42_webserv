@@ -79,7 +79,6 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
-	std::cout << "\033[33;1mmaking response!\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(505), this->_response);
 	else
@@ -108,7 +107,6 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(405);
 	this->_done = true;
-	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -139,7 +137,6 @@ void	Response::_handleGet()
 	int	is_dir;
 	int code = 0;
 
-	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
 	std::string	path = this->_req->getPath();
@@ -226,7 +223,6 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
-// TODO: hi ha una barra de mes
 bool	Response::_createFile(void)
 {
 	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
@@ -246,7 +242,6 @@ bool	Response::_createFile(void)
 		}
 	}
 	filename += this->_req->getFileName();
-	std::cout << "\033[1;31mFile to create: " << filename << "\033[0m" << std::endl;
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
 			return (1);
@@ -549,8 +544,8 @@ const std::string	&Response::getResponse(void) const
 const std::string	Response::getReqLine(void) const
 {
 	return (this->_req->getRequestLine()[0]
-		+ this->_req->getRequestLine()[1]
-		+ this->_req->getRequestLine()[2]);
+		+ " " + this->_req->getRequestLine()[1]
+		+ " " + this->_req->getRequestLine()[2]);
 }
 
 bool	Response::getDone(void) const
