@@ -235,7 +235,6 @@ bool	Response::_createFile(void)
 		filename += *it + "/";
 		if (access(filename.c_str(), F_OK) != 0)//if it doesn't exist
 		{
-			std::cout << create + filename << std::endl;
 			create += filename;
 			if (std::system(create.c_str()))
 				return (1);
@@ -244,7 +243,7 @@ bool	Response::_createFile(void)
 	filename += this->_req->getFileName();
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
-			return (1);
+		return (1);
 	newfile << this->_req->getBody();
 	return (0);
 }
@@ -490,8 +489,6 @@ if this one is also not accepted, the error will be returned without content.
 void	Response::sendError(int code)
 {
 	int error = 0;
-	std::cout << "CODE " << code << std::endl;
-	std::cout << "error FIND " << this->_errorPages.size() << std::endl;
 	
 	if (code != 505 && this->_errorPages.find(code) == this->_errorPages.end())
 		code = 500;

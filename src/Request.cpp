@@ -502,7 +502,7 @@ void	Request::setCgi()
 	_script = _path.substr(0, found);
 	if (_script == "." || _path == "")
 		found = _path.find("/", found + 1);
-	while (1)// localhost:8080/cgi-bin/folder/delete.py/file_to_delete
+	while (1)
 	{
 		_script = _path.substr(0, found);
 		if (stat(_script.c_str(), &path_stat))

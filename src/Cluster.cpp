@@ -328,18 +328,6 @@ void	Cluster::cleanSocket(Socket *sock)
 	sock->cleanRequestResponse();
 }
 
-// void	Cluster::checkTimeout()
-// {
-// 	time_t now = time(NULL);
-// 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
-// 	{
-// 		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
-// 			it = eraseSocket(it);
-// 		else
-// 			++it;
-// 	}
-// }
-
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
     out << "Port:  " << val.getPort() << "\n";
@@ -377,6 +365,7 @@ std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
 	std::string	resp = val.getResponse();
 
-    out << "Status Line: " << resp.substr(0, resp.find("\r\n")) << std::endl;
+	out << "Request Line: " << val.getReqLine() << std::endl;
+    out << "Status Line: " << resp.substr(0, resp.find("\r\n\r\n")) << std::endl;
 	return (out);
 }
