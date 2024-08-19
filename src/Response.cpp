@@ -249,21 +249,22 @@ bool	Response::_createFile(void)
 	return (0);
 }
 
+
 void    Response::_handlePost()
 {
-    if (this->_req->getFileName() != "")//if filename
-    {
-        if (this->_req->getAllowUpload() == false)//no upload permissions
-            return (void)this->sendError(403);
-        if (this->_createFile())//create file
-            return (void)this->sendError(500);
-        this->_response = this->putStatusLine(201);
-        this->putGeneralHeaders();
-        this->putPostHeaders(this->_req->getFileName());
-        this->_body = WORK_DONE("File created!");
-        this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
-        this->_response += this->_body;
-    }
+	if (this->_req->getFileName() != "")//if filename
+	{
+		if (this->_req->getAllowUpload() == false)//no upload permissions
+			return (void)this->sendError(403);
+		if (this->_createFile())//create file
+			return (void)this->sendError(500);
+		this->_response = this->putStatusLine(201);
+		this->putGeneralHeaders();
+		this->putPostHeaders(this->_req->getFileName());
+		this->_body = WORK_DONE("File created!");
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+		this->_response += this->_body;
+	}
 	else
 	{
 		this->_response = this->putStatusLine(200);
@@ -332,12 +333,12 @@ int	Response::_isDir(const std::string &path) const
 }
 
 void	Response::_makeAutoIndex(void) {
-    DIR *dir;
-    struct dirent *dp;
-    struct stat fileStat;
-    std::vector<std::string> fileList;
-    std::vector<std::string> fileName;
-    std::ostringstream html;
+	DIR *dir;
+	struct dirent *dp;
+	struct stat fileStat;
+	std::vector<std::string> fileList;
+	std::vector<std::string> fileName;
+	std::ostringstream html;
 	std::string	path = this->_req->getPath();
 
 	if (this->_isAccepted("text/html") == false)
@@ -347,34 +348,34 @@ void	Response::_makeAutoIndex(void) {
 	std::string	root = this->_req->getRoot();
 	if (root[root.size() - 1] != '/')
 		root += "/";
-    while ((dp = readdir(dir)) != NULL)
+	while ((dp = readdir(dir)) != NULL)
 	{
-        fileName.insert(fileName.begin(), dp->d_name);
-        std::string filePath = path;
+		fileName.insert(fileName.begin(), dp->d_name);
+		std::string filePath = path;
 		if (filePath[filePath.size() - 1] != '/')
 			filePath += "/";
 		filePath += fileName[0];
-        if ((fileName[0] != ".." && fileName[0][0] == '.')
+		if ((fileName[0] != ".." && fileName[0][0] == '.')
 			|| (fileName[0] == ".." && ft_strstr(path, root) == ""))
 		{
 			fileName.erase(fileName.begin());
-            continue ;
+			continue ;
 		}
-        if (stat(filePath.c_str(), &fileStat) == 0)
+		if (stat(filePath.c_str(), &fileStat) == 0)
 		{
 			if (S_ISDIR(fileStat.st_mode))
 				fileName[0] += "/";
 			else if (access(filePath.c_str(), X_OK) == 0)
 			{
 				fileName.erase(fileName.begin());
-    	        continue ;
+				continue ;
 			}
 			if (filePath[0] == '.')
 				fileList.insert(fileList.begin(), filePath.erase(0, 1));
 			else
 				fileList.insert(fileList.begin(), filePath);
-        }
-    }
+		}
+	}
 	closedir(dir);
 	html << "<html><body><h1>Index of " << path << "</h1><ul>\n";
 	path = this->_req->getRequestLine().at(1);
@@ -419,13 +420,13 @@ void	Response::putGeneralHeaders(void)
 //checks mime type + adds specific POST headers in the response
 bool    Response::putPostHeaders(const std::string &file)
 {
-    size_t found = file.find_last_of(".");
-    std::string ext;
-    if (found == std::string::npos)
-        ext = "";
-    else
-        ext = file.substr(found);
-    std::ifstream   mime("mime.types");
+	size_t found = file.find_last_of(".");
+	std::string ext;
+	if (found == std::string::npos)
+		ext = "";
+	else
+		ext = file.substr(found);
+	std::ifstream	mime("mime.types");
 	std::string		line("");
 	if (!mime.is_open())
 		return (sendError(500), 1);
