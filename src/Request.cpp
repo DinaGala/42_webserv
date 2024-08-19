@@ -106,11 +106,12 @@ void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead)
 			parseBody();
 		}
 		if (_status == FINISH_PARSED){
-			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 			requestValidations();
+			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		}
 	} catch (const std::exception & e){
-		std::cerr << e.what() << std::endl;
+		std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl;
+		std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		_status = FINISH_PARSED;
 	}
 }
@@ -370,7 +371,8 @@ void	Request::manageAcceptedContent()
 
 void Request::managePath() 
 {
-	checkQuery(); //TODO: pending to add to the body ?? NURIA
+	checkQuery();
+	urlDecode();
 	checkLocation();
 	updateInfoLocation();
 	updatePath();
@@ -387,6 +389,26 @@ void	Request::checkQuery() {
 	else {
 		_path = url;
 	}
+}
+
+void	Request::urlDecode()
+{
+	std::string	decoded;
+	size_t		len = _path.size();
+
+	for (size_t i = 0; i < len; i++)
+	{
+		if (_path[i] == '%')
+		{
+			decoded += static_cast<char>(strToHex(_path.substr(i + 1, 2)));
+			i += 2;
+		}
+		else if (_path[i] == '+')
+			decoded += ' ';
+		else
+			decoded += _path[i];
+	}
+	_path = decoded;
 }
 
 void	Request::checkLocation() 
@@ -469,7 +491,7 @@ void    Request::setCgi()
             this->_cgi = true;
         }
         else {
-        std::string::size_type  found = _path.find_last_of(".");
+        	std::string::size_type  found = _path.find_last_of(".");
             if (found != std::string::npos) {
                 std::string ext = _path.substr(found);
                 if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
@@ -491,9 +513,8 @@ void Request::setCookies()
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _server.getAllowedMethods();
-	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
-	if (it == allowedMethodsVect.end())
+	std::vector<std::string>::iterator it = std::find(_allowedMethods.begin(), _allowedMethods.end(), _method); 
+	if (it == _allowedMethods.end())
 		sendBadRequestError("Request parsing error: method not allowed", 405);
 }
 
@@ -523,6 +544,6 @@ void Request::updateUploadDir(){
 
 // _____________  SEND BAD REQUEST ERROR  _____________ 
 void	Request::sendBadRequestError(std::string errMssg, int code) {
-	throw std::runtime_error(errMssg);
 	_code = code;
+	throw std::runtime_error(errMssg);
 }

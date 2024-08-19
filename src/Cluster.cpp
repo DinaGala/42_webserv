@@ -1,13 +1,10 @@
 
 #include "Cluster.hpp"
 
-Cluster::Cluster() 
-{
-}
+Cluster::Cluster() {}
 
 Cluster::~Cluster() 
 {
-	
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
@@ -19,11 +16,6 @@ Cluster::~Cluster()
 	_sconf.clear();
 	_servers.clear();
 	_sockets.clear();
-		// int fd[2];
-		// pipe(fd);
-		// std::cout << "fds are: " << fd[0] << "   1: " << fd[1] << std::endl;
-		// close(fd[0]);
-		// close(fd[1]); 
 }
 
 void	Cluster::setUpCluster(int ac, char **av){
@@ -164,6 +156,7 @@ void	Cluster::runCluster()
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
 		//std::cout << "\033[32;1mWAITING\n\033[0m";
+
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
@@ -254,9 +247,6 @@ void	Cluster::readConnection(Socket *sock)
 		}
 		else
 			return ;
-		//sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-		//std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
-//		sock->setLastActivity(time(NULL));
 }
 
 /*SEND 
@@ -286,11 +276,6 @@ void	Cluster::sendConnection(Socket *sock)
 		return (eraseSocket(sock, false));
 	else if (sock->getResponseLine().empty())
 	{
-	//	std::cout << "\033[1;33mCleaning socket\033[0m" << std::endl;
-	//	eraseSocket(sock, false);
-	//	shutdown(sock->getSockFd(), SHUT_WR);
-
-
 		cleanSocket(sock);
 		modifyEvent(sock, 0);
 	}
@@ -315,7 +300,6 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 {
 	std::string errmsg;
 	
-//	std::cout << "Eliminamos el socket: " << sock << "\n" << *sock;
 	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
 		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
     close(sock->getSockFd());
@@ -324,41 +308,24 @@ void	Cluster::eraseSocket(Socket *sock, bool err)
 		std::cerr << "\033[31;1mCouldn't read from a socket: " + sock->getIpAdress() + ":" << sock->getPort() << "\033[0m" << std::endl;
 	else
 		std::cout << "\033[31;1mClient socket disconnected: "  + sock->getIpAdress() + ":" << sock->getPort() << "\033[0m" << std::endl;
-	
-		// Find the iterator to the element
+
 	std::list<Socket>::iterator it = _sockets.begin();
 	for (; it != _sockets.end(); it++) 
 	{
 		if (it->getSockFd() == sock->getSockFd()) 
 		{
-		//	std::cout << "Eliminamos el socket: " << &(*it) << "\n" << *it;
 			std::cout << "\033[31;1mClient socket eliminated from: " + it->getIpAdress() + ":" << it->getPort() << "\033[0m" << std::endl;
 			_sockets.erase(it);
 			return ;
 		}
 	}
-    // If the element is found, erase it
 	std::cerr << "Couldn't eliminate a socket, socket not found: " + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
-}
-
-std::list<Socket>::iterator	Cluster::eraseSocket(std::list<Socket>::iterator sock)
-{
-	std::string errmsg;
-	
-//	std::cout 
-	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, sock->getSockFd(), NULL) == -1)
-		throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
-    close(sock->getSockFd());
-	std::cout << "Client socket disconnected for timeout: "  + sock->getIpAdress() + ":" << sock->getPort() << std::endl;
-    return (_sockets.erase(sock));
 }
 
 void	Cluster::cleanSocket(Socket *sock)
 {
 	sock->getResponseLine().clear();
 	sock->cleanRequestResponse();
-//	sock->getRequest()->initParams(); //modified by Julia
-//	sock->getResponse()->cleanResponse();
 }
 
 // void	Cluster::checkTimeout()
@@ -375,13 +342,10 @@ void	Cluster::cleanSocket(Socket *sock)
 
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
-//	out << "Port:  " << val.getServer() << "\n";
     out << "Port:  " << val.getPort() << "\n";
     out << "IP:  " << val.getIpAdress() << "\n";
     out << "Socket fd:  " << val.getSockFd() << "\n";
-//    out << "Last activity:  " << val.getLastActivity() << "\n";
     out << "Master:  " << val.getMaster() << "\n\n";
- //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
 	return (out);
 }
 

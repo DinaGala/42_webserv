@@ -35,7 +35,6 @@ std::string trim(const std::string& s)
     return (ltrim(rtrim(s)));
 }
 
-
 std::vector<std::string>   ft_split(std::string s, std::string del)
 {
     std::vector<std::string>  res;

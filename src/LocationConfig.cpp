@@ -18,12 +18,11 @@ LocationConfig::LocationConfig(): loc(false) {}
 
 LocationConfig::LocationConfig(std::string url, std::map<int, std::pair<std::string, std::string> > err, std::string file): loc(false), _uri(url)
 {
-	// std::cout << "UN LOC CONSTRUCT, URL: " + url + "\n";
 	_autoIndex = false;
     _allowUpload = false;
 	_root = "";
 	_errorPages = err;
-    _index = "index.html";
+    _index = "";
 	_cgiConf[".sh"] = "/bin/bash";
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
