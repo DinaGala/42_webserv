@@ -79,7 +79,6 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
-	std::cout << "\033[33;1mmaking response!\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(505), this->_response);
 	else
@@ -108,7 +107,6 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(405);
 	this->_done = true;
-	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -139,7 +137,6 @@ void	Response::_handleGet()
 	int	is_dir;
 	int code = 0;
 
-	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
 	std::string	path = this->_req->getPath();
