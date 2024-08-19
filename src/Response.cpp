@@ -226,7 +226,6 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
-// TODO: hi ha una barra de mes
 bool	Response::_createFile(void)
 {
 	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
@@ -246,7 +245,6 @@ bool	Response::_createFile(void)
 		}
 	}
 	filename += this->_req->getFileName();
-	std::cout << "\033[1;31mFile to create: " << filename << "\033[0m" << std::endl;
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
 			return (1);
@@ -254,25 +252,21 @@ bool	Response::_createFile(void)
 	return (0);
 }
 
-void	Response::_handlePost()
+void    Response::_handlePost()
 {
-	if (this->_req->getFileName() != "")//if filename
-	{
-		if (this->_req->getAllowUpload() == false)//no upload permissions
-			return (void)this->sendError(403);
-		if (this->_createFile())//create file
-			return (void)this->sendError(500);
-		this->_response = this->putStatusLine(201);
-		this->putGeneralHeaders();
-		this->putPostHeaders(this->_req->getFileName());
-		//ADDED BY JULIA
-		this->_response = this->putStatusLine(200);
-		this->putGeneralHeaders();
-		this->_body = WORK_DONE("File created!");
-		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
-		this->_response += this->_body;
-		//FINISH ADDED
-	}
+    if (this->_req->getFileName() != "")//if filename
+    {
+        if (this->_req->getAllowUpload() == false)//no upload permissions
+            return (void)this->sendError(403);
+        if (this->_createFile())//create file
+            return (void)this->sendError(500);
+        this->_response = this->putStatusLine(201);
+        this->putGeneralHeaders();
+        this->putPostHeaders(this->_req->getFileName());
+        this->_body = WORK_DONE("File created!");
+        this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+        this->_response += this->_body;
+    }
 	else
 	{
 		this->_response = this->putStatusLine(200);
@@ -426,10 +420,15 @@ void	Response::putGeneralHeaders(void)
 }
 
 //checks mime type + adds specific POST headers in the response
-bool	Response::putPostHeaders(const std::string &file)
+bool    Response::putPostHeaders(const std::string &file)
 {
-	std::string	ext = file.substr(file.find_last_of("."));
-	std::ifstream	mime("mime.types");
+    size_t found = file.find_last_of(".");
+    std::string ext;
+    if (found == std::string::npos)
+        ext = "";
+    else
+        ext = file.substr(found);
+    std::ifstream   mime("mime.types");
 	std::string		line("");
 	if (!mime.is_open())
 		return (sendError(500), 1);
@@ -544,8 +543,8 @@ const std::string	&Response::getResponse(void) const
 const std::string	Response::getReqLine(void) const
 {
 	return (this->_req->getRequestLine()[0]
-		+ this->_req->getRequestLine()[1]
-		+ this->_req->getRequestLine()[2]);
+		+ " " + this->_req->getRequestLine()[1]
+		+ " " + this->_req->getRequestLine()[2]);
 }
 
 bool	Response::getDone(void) const
