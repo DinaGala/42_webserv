@@ -113,13 +113,6 @@ void	Cluster::_checkChilds(void)
 			kill(it->first, SIGKILL);
 			this->_pids.erase(it++);
 		}
-		else if (WIFSIGNALED(status) == true)
-		{
-			std::cout << "\033[1;31mWIFSIGNALED: " << WTERMSIG(status) << "\n\033[0m";
-			it++;
-			//kill(it->first, SIGKILL);
-			//this->_pids.erase(it++);
-		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
 			std::cout << "\033[1;31mTIMEOUT pid: " << it->first << "\n\033[0m";
@@ -135,7 +128,7 @@ void	Cluster::_checkChilds(void)
 		}
 		else
 		{
-			write(1, "else\n", 5);
+			//write(1, "else\n", 5);
 			it++;
 		}
 	}
@@ -176,24 +169,14 @@ void	Cluster::runCluster()
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		std::cout << "\033[32;1mWAITING\033[0m" << std::endl;
+		std::cout << "\033[32;1mWAITING\n\033[0m";
 		//std::cout << "\033[32;1mnfds: " << _nfds << "\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			write(1, "for loop\n", 9);
+			//write(1, "for loop\n", 9);
 
 			/****** ADDED BY NURIA ********/
-			/*if (_events[n].events & EPOLLHUP)
-				std::cout << "EPOLLHUP" << std::endl;
-			else if (_events[n].events & EPOLLRDHUP)
-				std::cout << "EPOLLRDHUP" << std::endl;
-			else if (_events[n].events & EPOLLIN)
-				std::cout << "EPOLLIN" << std::endl;
-			else if (_events[n].events & EPOLLOUT)
-				std::cout << "EPOLLOUT" << std::endl;
-			else if (_events[n].events & EPOLLERR)
-				std::cout << "EPOLLERR" << std::endl;*/
 			if (_events[n].events & EPOLLHUP)
 			{
 				/*std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it = this->_pids.begin();
@@ -220,17 +203,16 @@ void	Cluster::runCluster()
 						cur->getResponse()->setCode(504);
 					}
 					this->_pids.erase(it);
-				}*/
-				//modifyEvent(cur, 1);
-				//eraseSocket(cur, false);
+				}
+				//modifyEvent(cur, 1);*/
+				eraseSocket(cur, false);
 				write(1, "epollhup\n", 9);
-				exit(1);
 			}
 			/*****************************/
 			else if (_events[n].events & EPOLLIN)
-			//else if (_events[n].events & EPOLLIN)
+			//if (_events[n].events & EPOLLIN)
 			{
-				write(1, "epollIN\n", 8);
+				///write(1, "epollIN\n", 8);
 				if (cur->getMaster())
 					acceptConnection(cur);
 				else
@@ -243,7 +225,7 @@ void	Cluster::runCluster()
 		}
 		if (this->_pids.size() != 0)
 		{
-			write(1, "checkChilds\n", 12);
+			//write(1, "checkChilds\n", 12);
 			this->_checkChilds();
 		}
 	}
