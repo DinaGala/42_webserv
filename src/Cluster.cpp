@@ -105,7 +105,6 @@ void	Cluster::_checkChilds(void)
 		}
 		else if (WIFEXITED(status) && !WEXITSTATUS(status))
 		{
-			//std::cout << "\033[1;31mWEXITED\n\033[0m";
 			sock->getResponse()->setCode(WEXITSTATUS(status) * 10);
 			sock->getResponse()->setCgiFd(it->second.first.second);
 			modifyEvent(sock, 1);
@@ -114,7 +113,6 @@ void	Cluster::_checkChilds(void)
 		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
-			//std::cout << "\033[1;31mTIMEOUT pid: " << it->first << "\n\033[0m";
 			if (kill(it->first, SIGKILL))// kill fail
 				sock->getResponse()->setCode(500);
 			else
@@ -169,45 +167,8 @@ void	Cluster::runCluster()
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			//write(1, "for loop\n", 9);
-
-			/****** ADDED BY NURIA ********/
-			if (_events[n].events & EPOLLHUP)
+			if (_events[n].events & EPOLLIN)
 			{
-				/*std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it = this->_pids.begin();
-				int	status;
-				write(2, "epollhup\n", 9);
-			
-				while (it != this->_pids.end())
-				{
-					std::cout << "it fd: " << it->second.second->getSockFd() << " cur fd: " << cur->getSockFd() << std::endl;
-					if (it->second.second->getSockFd() == cur->getSockFd())
-						break ;
-					it++;
-				}
-				//it = findPidFromSocket(cur);
-				if (it == this->_pids.end())
-					std::cout << "Not working\n";
-				if (it != this->_pids.end())
-				{
-					if (kill(it->first, SIGKILL))
-						cur->getResponse()->setCode(500);
-					else
-					{
-						waitpid(it->first, &status, 0); //wait until the child is actually dead
-						cur->getResponse()->setCode(504);
-					}
-					this->_pids.erase(it);
-				}
-				//modifyEvent(cur, 1);*/
-				//eraseSocket(cur, false);
-				//write(1, "epollhup\n", 9);
-			}
-			/*****************************/
-			else if (_events[n].events & EPOLLIN)
-			//if (_events[n].events & EPOLLIN)
-			{
-				///write(1, "epollIN\n", 8);
 				if (cur->getMaster())
 					acceptConnection(cur);
 				else
@@ -219,10 +180,7 @@ void	Cluster::runCluster()
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		if (this->_pids.size() != 0)
-		{
-			//write(1, "checkChilds\n", 12);
 			this->_checkChilds();
-		}
 	}
 	//std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
@@ -254,35 +212,23 @@ void	Cluster::acceptConnection(Socket *sock)
 
 void	Cluster::readConnection(Socket *sock)
 {
-		//if (sock->getRequest()->getStatus() == FINISH_PARSED)
-		//	return ;
 		std::vector<unsigned char> buffer(BUFFER_SIZE);
 		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
 		if (bytesRead == 0)
 		{
 			std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it = this->_pids.begin();
-				int	status;			
-				while (it != this->_pids.end())
-				{
-					if (it->second.second->getSockFd() == sock->getSockFd())
-						break ;
-					it++;
-				}
+				it = this->findPidFromSocket(sock);
 				if (it != this->_pids.end())
 				{
 					if (kill(it->first, SIGKILL))
 						sock->getResponse()->setCode(500);
 					else
-					{
-						waitpid(it->first, &status, 0); //wait until the child is actually dead
 						sock->getResponse()->setCode(504);
-					}
 					this->_pids.erase(it);
 				}
 			eraseSocket(sock, true);
 			return ;
 		}
-		std::cout << "bytes read: " << bytesRead << std::endl;
 		if (bytesRead < 0 && sock->getRequest()->getStatus() != FINISH_PARSED)
 			return (eraseSocket(sock, true));
 		sock->getRequest()->parseRequest(buffer, bytesRead);
@@ -323,7 +269,7 @@ void	Cluster::sendConnection(Socket *sock)
 {
 	size_t	bytes;
 
-	std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
+	//std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
 	if (sock->getResponse()->getDone() == false)
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 	std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
@@ -333,7 +279,7 @@ void	Cluster::sendConnection(Socket *sock)
 		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), BUFFER_SIZE, MSG_DONTWAIT); // a flag??	
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
-	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
+	//std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
 
 	sock->getResponseLine().erase(0, bytes);
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
