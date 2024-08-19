@@ -88,6 +88,7 @@ class Request {
 		void		updateInfoLocation();
 		void		updateRoot();
 		void 		updatePath();
+		void		urlDecode();
 		void		setCgi();
 		void		setCookies();
 		void 		checkAllowMethod();
