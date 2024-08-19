@@ -195,7 +195,6 @@ void	Request::parseBodyByChunked(){
 			sendBadRequestError("Request parsing error: invalid Transfre encoding", 400);
 		manageLineChunk(posEndSIze, sizeChunk);
 	} while (1);
-
 	if (sizeChunk == 0) {
 		_status = BODY_PARSED;
 		_headers.find("Transfer-Encoding")->second = "";
@@ -255,7 +254,7 @@ void	Request::manageMultipartForm(){
 		updateMultipartBody();
 		saveFileName();
 	}
-} 
+}
 
 void	Request::getBoundary() 
 {
@@ -292,10 +291,20 @@ void	Request::updateMultipartBody()
 	size_t finishBody = _body.find(_boundary, startBody);
 	if (finishBody == std::string::npos)
 		sendBadRequestError("Request parsing error: invalid Content-Type parameter4 ", 400);
+	saveInfoMethod(finishBody);
 	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
+
 }
 
+void	Request::saveInfoMethod(size_t finishBody)
+{
+	size_t foundInit = _body.find("\"_method\"", finishBody + _boundary.size()) + 9;
+	size_t foundEnd = _body.find("--" + _boundary, finishBody + _boundary.size());
+	if (foundInit == std::string::npos || foundEnd == std::string::npos)
+		return;
+	_method = trim(_body.substr(foundInit, foundEnd - foundInit));
+} 
 
 //Content-Disposition: form-data; name="file"; filename="example.txt"
 void	Request::saveFileName() 

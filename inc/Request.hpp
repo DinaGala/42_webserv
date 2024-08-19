@@ -52,32 +52,34 @@ class Request {
 		Request(Server& server, int port);
 		Request(const Request& src);
 		Request& operator=(const Request& src);
-
 		~Request();
 
+		// _____________  GENERAL _____________ 
 		void		initParams();
 		void		parseRequest(std::vector<unsigned char> buffer, int bytesRead);
 		void		sendBadRequestError(std::string errMssg, int code);
-
 		void		parseRequestLine();
 		void		parseHeaders();
 		void		parseBody();
-		
 		void 		createRequestLineVector(std::string requestLineStr);
 		void		addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
 
+		// _____________  BODY PARSING _____________ 
 		void		parseBodyByContentLength();
 		void		parseBodyByChunked();
 		int			findSizeChunk(size_t posEndSIze);
 		uint64_t	convertStrToHex(std::string line);
 		void		manageLineChunk(size_t posEndSIze, int sizeChunk);
 
+		// _____________  MULTIPART BODY  _____________ 
 		void		manageMultipartForm();
 		void		getBoundary();
 		void		saveMultipartHeaders();
 		void		updateMultipartBody();
+		void		saveInfoMethod(size_t finishBody);
 		void		saveFileName();
 
+		// _____________  VALIDATIONS  _____________ 
 		void 		requestValidations();
 		void		checkHost();
 		void		manageAcceptedContent();
