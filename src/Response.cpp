@@ -79,7 +79,6 @@ void	Response::_parseCgiResponse(void)
 //writes and returns the server's response
 std::string	&Response::makeResponse(const Request *req)
 {
-	std::cout << "\033[33;1mmaking response!\033[0m" << std::endl;
 	if (!req)
 		return (this->sendError(505), this->_response);
 	else
@@ -108,7 +107,6 @@ std::string	&Response::makeResponse(const Request *req)
 	else
 		this->sendError(405);
 	this->_done = true;
-	std::cout << "\033[33;1mRESPONSE: DONE\033[0m" << std::endl;
 	return (this->_response);
 }
 
@@ -139,7 +137,6 @@ void	Response::_handleGet()
 	int	is_dir;
 	int code = 0;
 
-	std::cout << "\033[32;1mhandle GET\033[0m" << std::endl;
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
 	std::string	path = this->_req->getPath();
@@ -175,8 +172,7 @@ void	Response::_handleGet()
 	}
 	else //if not cgi
 	{
-		int error = this->fileToBody(path);
-		//int error = this->fileToBody(this->_req->getPath());//TODO
+		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 			return (void)this->sendError(error);
 	}
@@ -227,7 +223,6 @@ void	Response::_handleDelete()
 //>2. POST form(?) + body
 //< return No Content + html form / No Content + html submission confirmation
 
-// TODO: hi ha una barra de mes
 bool	Response::_createFile(void)
 {
 	std::vector<std::string>	upath = ft_split(this->_req->getUploadDir(), "/");
@@ -247,7 +242,6 @@ bool	Response::_createFile(void)
 		}
 	}
 	filename += this->_req->getFileName();
-	std::cout << "\033[1;31mFile to create: " << filename << "\033[0m" << std::endl;
 	std::ofstream	newfile(filename.c_str());
 	if (!newfile.is_open())// creating/opening file failed
 			return (1);
@@ -255,7 +249,8 @@ bool	Response::_createFile(void)
 	return (0);
 }
 
-void	Response::_handlePost()
+
+void    Response::_handlePost()
 {
 	if (this->_req->getFileName() != "")//if filename
 	{
@@ -266,13 +261,9 @@ void	Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		//ADDED BY JULIA
-		this->_response = this->putStatusLine(200);
-		this->putGeneralHeaders();
 		this->_body = WORK_DONE("File created!");
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
-		//FINISH ADDED
 	}
 	else
 	{
@@ -342,12 +333,12 @@ int	Response::_isDir(const std::string &path) const
 }
 
 void	Response::_makeAutoIndex(void) {
-    DIR *dir;
-    struct dirent *dp;
-    struct stat fileStat;
-    std::vector<std::string> fileList;
-    std::vector<std::string> fileName;
-    std::ostringstream html;
+	DIR *dir;
+	struct dirent *dp;
+	struct stat fileStat;
+	std::vector<std::string> fileList;
+	std::vector<std::string> fileName;
+	std::ostringstream html;
 	std::string	path = this->_req->getPath();
 
 	if (this->_isAccepted("text/html") == false)
@@ -357,34 +348,34 @@ void	Response::_makeAutoIndex(void) {
 	std::string	root = this->_req->getRoot();
 	if (root[root.size() - 1] != '/')
 		root += "/";
-    while ((dp = readdir(dir)) != NULL)
+	while ((dp = readdir(dir)) != NULL)
 	{
-        fileName.insert(fileName.begin(), dp->d_name);
-        std::string filePath = path;
+		fileName.insert(fileName.begin(), dp->d_name);
+		std::string filePath = path;
 		if (filePath[filePath.size() - 1] != '/')
 			filePath += "/";
 		filePath += fileName[0];
-        if ((fileName[0] != ".." && fileName[0][0] == '.')
+		if ((fileName[0] != ".." && fileName[0][0] == '.')
 			|| (fileName[0] == ".." && ft_strstr(path, root) == ""))
 		{
 			fileName.erase(fileName.begin());
-            continue ;
+			continue ;
 		}
-        if (stat(filePath.c_str(), &fileStat) == 0)
+		if (stat(filePath.c_str(), &fileStat) == 0)
 		{
 			if (S_ISDIR(fileStat.st_mode))
 				fileName[0] += "/";
 			else if (access(filePath.c_str(), X_OK) == 0)
 			{
 				fileName.erase(fileName.begin());
-    	        continue ;
+				continue ;
 			}
 			if (filePath[0] == '.')
 				fileList.insert(fileList.begin(), filePath.erase(0, 1));
 			else
 				fileList.insert(fileList.begin(), filePath);
-        }
-    }
+		}
+	}
 	closedir(dir);
 	html << "<html><body><h1>Index of " << path << "</h1><ul>\n";
 	path = this->_req->getRequestLine().at(1);
@@ -427,9 +418,14 @@ void	Response::putGeneralHeaders(void)
 }
 
 //checks mime type + adds specific POST headers in the response
-bool	Response::putPostHeaders(const std::string &file)
+bool    Response::putPostHeaders(const std::string &file)
 {
-	std::string	ext = file.substr(file.find_last_of("."));
+	size_t found = file.find_last_of(".");
+	std::string ext;
+	if (found == std::string::npos)
+		ext = "";
+	else
+		ext = file.substr(found);
 	std::ifstream	mime("mime.types");
 	std::string		line("");
 	if (!mime.is_open())
@@ -543,6 +539,13 @@ int	Response::getCode(void) const
 const std::string	&Response::getResponse(void) const
 {
 	return (this->_response);
+}
+
+const std::string	Response::getReqLine(void) const
+{
+	return (this->_req->getRequestLine()[0]
+		+ " " + this->_req->getRequestLine()[1]
+		+ " " + this->_req->getRequestLine()[2]);
 }
 
 bool	Response::getDone(void) const

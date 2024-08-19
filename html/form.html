@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-sacle=1.0">
+    <title>Form Submission Example</title>
+</head>
+<body>
+	<div class="content">
+	    <h1>Contact Form</h1>
+	    <form action="/submit-form" method="POST">
+	        <label for="name">Name:</label>
+	        <input type="text" id="name" name="name" required><br><br>
+	        
+	        <label for="email">Email:</label>
+	        <input type="email" id="email" name="email" required><br><br>
+	        
+	        <label for="message">Message:</label><br>
+	        <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+	        
+	        <input type="submit" value="Submit">
+	    </form>
+	</div>
+</body>
+</html>

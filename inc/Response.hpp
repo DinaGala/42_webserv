@@ -37,6 +37,7 @@ class	Response
 		const std::string& 		getResponse() const;
 		int						getCode() const;
 		bool					getDone() const;
+		const std::string		getReqLine() const;
 		/************** SETTERS *******************/
 		void	setCgiFd(int fd);
 		void	setCode(int code);

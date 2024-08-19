@@ -58,19 +58,6 @@ char	**Cgi::_getEnv(void)
 		}
 		i++;
 	}
-	/*ADDED BY JULIA*/
-	for (std::vector<std::string>::iterator it = this->_cookiesEnv.begin(); it != cookies_end; it++)
-  {
-		mat[i] = strdup((*it).c_str());
-		if (!mat[i])
-		{
-			for (int j = 0; j < i; ++j)
-                delete[] mat[j];
-        delete[] mat;
-				throw std::bad_alloc();
-		}
-		i++;
-	}	//FINISH
 	mat[i] = NULL;
 	return (mat);
 }

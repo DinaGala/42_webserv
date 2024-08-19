@@ -87,23 +87,24 @@ void	Cluster::_checkChilds(void)
 	while (it != this->_pids.end())
 	{
 		sock = it->second.second;
-		wait = waitpid(it->first, &status, WNOHANG);
+		wait = waitpid(it->first, &status, WNOHANG | WUNTRACED);
 		if (wait == -1)
 		{
 			sock->getResponse()->setCode(500);
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			kill(it->first, SIGKILL);
+			this->_pids.erase(it++);
 		}
 		else if (WIFEXITED(status) && !WEXITSTATUS(status))
 		{
 			sock->getResponse()->setCode(WEXITSTATUS(status) * 10);
 			sock->getResponse()->setCgiFd(it->second.first.second);
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			kill(it->first, SIGKILL);
+			this->_pids.erase(it++);
 		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
-			std::cout << "\033[1;31mTIMEOUT pid: " << it->first << "\n\033[0m";
 			if (kill(it->first, SIGKILL))// kill fail
 				sock->getResponse()->setCode(500);
 			else
@@ -112,9 +113,10 @@ void	Cluster::_checkChilds(void)
 				sock->getResponse()->setCode(504);
 			}
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			this->_pids.erase(it++);
 		}
-		it++;
+		else
+			it++;
 	}
 }
 
@@ -143,73 +145,37 @@ The problem is, it only works (at least for me) when we're printing stuff (EPOLL
 void	Cluster::runCluster()
 {
 	std::string errmsg;
-	std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it;
-	int	status;
 	initSignals();
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 200); 
-
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 400); 
 		if (_nfds == -1) {
 			if (errno == EINTR)
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		std::cout << "\033[32;1mWAITING\033[0m\n";
-//		std::cout << "\033[32;1mnfds: " << _nfds << "\033[0m\n";
+		//std::cout << "\033[32;1mWAITING\n\033[0m";
+
 		for (int n = 0; n < _nfds; ++n)
 		{
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-
-			/****** ADDED BY NURIA ********/
-			if (_events[n].events & EPOLLHUP)
+			if (_events[n].events & EPOLLIN)
 			{
-				write(2, "epollhup\n", 9);
-				it = findPidFromSocket(cur);
-				if (it != this->_pids.end())
-				{
-					write(2, "found\n", 6);
-					if (kill(it->first, SIGKILL))
-						cur->getResponse()->setCode(500);
-					else
-					{
-						waitpid(it->first, &status, 0); //wait until the child is actually dead
-						cur->getResponse()->setCode(504);
-					}
-					modifyEvent(cur, 1);
-					this->_pids.erase(it);
-				}
-			}
-			/*****************************/
-			else if (_events[n].events & EPOLLIN)
-			{
-				write(2, "epollin\n", 8);
-				//std::cerr << "\033[1;31mCluster: EPOLLIN\033[0m" << std::endl;
 				if (cur->getMaster())
-				{
-					write(2, "create\n", 7);
 					acceptConnection(cur);
-				}
 				else
-				{
-					write(2, "else\n", 5);
 					readConnection(cur);
-				}
 			}
 			else if (_events[n].events & EPOLLOUT)
-			{
-				write(2, "epollout\n", 9);
 				sendConnection(cur);
-			}
 			else
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		if (this->_pids.size() != 0)
 			this->_checkChilds();
-//		usleep(1000);
 	}
-	std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
+	//std::cout << "\n\033[33;1mBYE BYE BABY!\033[0m\n";
 }
 
 
@@ -239,16 +205,25 @@ void	Cluster::acceptConnection(Socket *sock)
 
 void	Cluster::readConnection(Socket *sock)
 {
-		if (sock->getRequest()->getStatus() == FINISH_PARSED)
-			return ;
 		std::vector<unsigned char> buffer(BUFFER_SIZE);
 		int bytesRead = recv(sock->getSockFd(), buffer.data(), BUFFER_SIZE, MSG_DONTWAIT);
-		std::cout << "bytes read: " << bytesRead << std::endl;
-		if (bytesRead <= 0 && sock->getRequest()->getStatus() != FINISH_PARSED)
+		if (bytesRead == 0)
 		{
-			std::cout <<  "Cluster (:257) read failed\n";
-			return (eraseSocket(sock, true));
+			std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it = this->_pids.begin();
+				it = this->findPidFromSocket(sock);
+				if (it != this->_pids.end())
+				{
+					if (kill(it->first, SIGKILL))
+						sock->getResponse()->setCode(500);
+					else
+						sock->getResponse()->setCode(504);
+					this->_pids.erase(it);
+				}
+			eraseSocket(sock, true);
+			return ;
 		}
+		if (bytesRead < 0 && sock->getRequest()->getStatus() != FINISH_PARSED)
+			return (eraseSocket(sock, true));
 		sock->getRequest()->parseRequest(buffer, bytesRead);
 		std::cout << "\033[1;36mREQUEST: \n" << *(sock->getRequest()) << "\033[0m";
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
@@ -284,7 +259,7 @@ void	Cluster::sendConnection(Socket *sock)
 {
 	size_t	bytes;
 
-	std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
+	//std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
 	if (sock->getResponse()->getDone() == false)
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
 	std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
@@ -294,7 +269,7 @@ void	Cluster::sendConnection(Socket *sock)
 		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), BUFFER_SIZE, MSG_DONTWAIT); // a flag??	
 	if (bytes <= 0)
 		return (eraseSocket(sock, true));
-	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
+	//std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
 
 	sock->getResponseLine().erase(0, bytes);
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
@@ -352,6 +327,18 @@ void	Cluster::cleanSocket(Socket *sock)
 	sock->getResponseLine().clear();
 	sock->cleanRequestResponse();
 }
+
+// void	Cluster::checkTimeout()
+// {
+// 	time_t now = time(NULL);
+// 	for (std::vector<Socket>::iterator it = _sockets.begin(); it != _sockets.end();) 
+// 	{
+// 		if (now - it->getLastActivity() > TIMEOUT && !it->getMaster())
+// 			it = eraseSocket(it);
+// 		else
+// 			++it;
+// 	}
+// }
 
 std::ostream	&operator<<(std::ostream &out, const Socket &val)
 {
