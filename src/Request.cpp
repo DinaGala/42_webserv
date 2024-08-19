@@ -43,6 +43,8 @@ Request& Request::operator=(const Request& src)
 	_multipartHeaders = src.getMultipartHeaders();
 	_fileName = src.getFileName();
 	_cookiesEnv = src.getCookiesEnv();
+	_script = src._script;
+	_pathInfo = src._pathInfo;
 	return (*this);
 }
 
@@ -83,6 +85,8 @@ void	Request::initParams()
 	_boundary = "";
 	_fileName = "";
 	_cookiesEnv.clear();
+	_script = "";
+	_pathInfo = "/";
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -376,6 +380,8 @@ void Request::managePath()
 	checkLocation();
 	updateInfoLocation();
 	updatePath();
+	setCgi();
+	setCookies();
 }
 
 void	Request::checkQuery() {
@@ -479,27 +485,51 @@ void Request::updatePath()
 		if (_root[_root.size() - 1] == '/' && _path != "" && _path[0] == '/')
 			_root.erase(_root.size() - 1, 1);
 		_path = _root + _path;
-		setCgi();
 	}
 }
 
-void    Request::setCgi()
+void	Request::setCgi()
 {
-    struct stat path_stat;
-    if (stat(_path.c_str(), &path_stat) == 0) {
-        if (S_ISREG(path_stat.st_mode) && access(_path.c_str(), X_OK) == 0) {
-            this->_cgi = true;
-        }
-        else {
-        	std::string::size_type  found = _path.find_last_of(".");
-            if (found != std::string::npos) {
-                std::string ext = _path.substr(found);
-                if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
-                    this->_cgi = true;
-            }
-        }
-    }
-    setCookies();
+	struct stat	path_stat;
+	std::string::size_type	fext;	//found extension
+	std::string::size_type	found = _path.find("/");
+
+	if (found == std::string::npos)
+	{
+		_script = _path;
+		return ;
+	}
+	_script = _path.substr(0, found);
+	if (_script == "." || _path == "")
+		found = _path.find("/", found + 1);
+	while (1)// localhost:8080/cgi-bin/folder/delete.py/file_to_delete
+	{
+		_script = _path.substr(0, found);
+		if (stat(_script.c_str(), &path_stat))
+			sendBadRequestError("", 500);
+		if (S_ISDIR(path_stat.st_mode))
+		{
+			if (found == std::string::npos)
+				return ;
+			else
+			{
+				found = _path.find("/", found + 1);
+				continue ;
+			}
+		}
+		fext = _script.find(".", 1);
+		if (access(_script.c_str(), X_OK) == 0
+			|| (fext != std::string::npos && _cgiConf.find(_script.substr(fext)) != _cgiConf.end()))
+		{
+			if (found != std::string::npos)
+				_pathInfo = _path.substr(found + 1);
+			this->_cgi = true;
+			return ;
+		}
+		if (found == std::string::npos)
+			return ;
+		found = _path.find("/", found + 1);
+	}
 }
 
 void Request::setCookies() 
