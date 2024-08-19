@@ -116,7 +116,7 @@ ServerConfig::~ServerConfig()
 	_serverName.clear();
 	_locations.clear();
 	_allowedMethods.clear();
-	_errorPages.clear();
+	//_errorPages.clear();
 	_cgiConf.clear();
 	_keys.clear();
 	_vars.clear();
