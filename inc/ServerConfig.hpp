@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/17 15:38:13 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/19 15:21:08 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,6 @@ class ServerConfig
 		std::map<std::string, bool>			_vars; // each variable if is set or not
 		void								_initKeys();
 		ServerConfig();
-
 };
 
 
