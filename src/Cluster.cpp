@@ -96,21 +96,29 @@ void	Cluster::_checkChilds(void)
 	while (it != this->_pids.end())
 	{
 		sock = it->second.second;
-		wait = waitpid(it->first, &status, WNOHANG);
+		wait = waitpid(it->first, &status, WNOHANG | WUNTRACED);
 		if (wait == -1)
 		{
-			std::cout << "\033[1;31mwaitpid failed\n\033[0m";
 			sock->getResponse()->setCode(500);
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			kill(it->first, SIGKILL);
+			this->_pids.erase(it++);
 		}
 		else if (WIFEXITED(status) && !WEXITSTATUS(status))
 		{
-			std::cout << "\033[1;31mit has WEXITED: status: " << WEXITSTATUS(status) * 10 << "\n\033[0m";
+			std::cout << "\033[1;31mWEXITED\n\033[0m";
 			sock->getResponse()->setCode(WEXITSTATUS(status) * 10);
 			sock->getResponse()->setCgiFd(it->second.first.second);
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			kill(it->first, SIGKILL);
+			this->_pids.erase(it++);
+		}
+		else if (WIFSIGNALED(status) == true)
+		{
+			std::cout << "\033[1;31mWIFSIGNALED: " << WTERMSIG(status) << "\n\033[0m";
+			it++;
+			//kill(it->first, SIGKILL);
+			//this->_pids.erase(it++);
 		}
 		else if (std::time(NULL) - it->second.first.first > TIMEOUT) //if timeout is reached kill the child
 		{
@@ -123,9 +131,13 @@ void	Cluster::_checkChilds(void)
 				sock->getResponse()->setCode(504);
 			}
 			modifyEvent(sock, 1);
-			this->_pids.erase(it);
+			this->_pids.erase(it++);
 		}
-		it++;
+		else
+		{
+			write(1, "else\n", 5);
+			it++;
+		}
 	}
 }
 
@@ -154,35 +166,52 @@ The problem is, it only works (at least for me) when we're printing stuff (EPOLL
 void	Cluster::runCluster()
 {
 	std::string errmsg;
-	std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it;
-	int	status;
 	initSignals();
 	
 	while (signaled)
 	{ 
-		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 200); 
-
+		_nfds = epoll_wait(_epFd, _events, MAX_EVENTS, 400); 
 		if (_nfds == -1) {
 			if (errno == EINTR)
 				continue;
 			throw std::runtime_error("Error: epoll wait failed: " + errmsg.assign(strerror(errno)));
 		}
-		std::cout << "\033[32;1mWAITING\033[0m\n";
-		std::cout << "\033[32;1mnfds: " << _nfds << "\033[0m\n";
+		std::cout << "\033[32;1mWAITING\033[0m" << std::endl;
+		//std::cout << "\033[32;1mnfds: " << _nfds << "\033[0m\n";
 		for (int n = 0; n < _nfds; ++n)
 		{
-			//std::cout << "All sockets:\n" << _sockets;
 			Socket *cur = static_cast<Socket *>(_events[n].data.ptr);
-			//std::cout << "current socket is:  " << cur << "\n" << *cur;
+			write(1, "for loop\n", 9);
 
 			/****** ADDED BY NURIA ********/
+			/*if (_events[n].events & EPOLLHUP)
+				std::cout << "EPOLLHUP" << std::endl;
+			else if (_events[n].events & EPOLLRDHUP)
+				std::cout << "EPOLLRDHUP" << std::endl;
+			else if (_events[n].events & EPOLLIN)
+				std::cout << "EPOLLIN" << std::endl;
+			else if (_events[n].events & EPOLLOUT)
+				std::cout << "EPOLLOUT" << std::endl;
+			else if (_events[n].events & EPOLLERR)
+				std::cout << "EPOLLERR" << std::endl;*/
 			if (_events[n].events & EPOLLHUP)
 			{
+				/*std::map<pid_t, std::pair<std::pair<std::time_t, int>, Socket *> >::iterator it = this->_pids.begin();
+				int	status;
 				write(2, "epollhup\n", 9);
-				it = findPidFromSocket(cur);
+			
+				while (it != this->_pids.end())
+				{
+					std::cout << "it fd: " << it->second.second->getSockFd() << " cur fd: " << cur->getSockFd() << std::endl;
+					if (it->second.second->getSockFd() == cur->getSockFd())
+						break ;
+					it++;
+				}
+				//it = findPidFromSocket(cur);
+				if (it == this->_pids.end())
+					std::cout << "Not working\n";
 				if (it != this->_pids.end())
 				{
-					write(2, "found\n", 6);
 					if (kill(it->first, SIGKILL))
 						cur->getResponse()->setCode(500);
 					else
@@ -190,43 +219,34 @@ void	Cluster::runCluster()
 						waitpid(it->first, &status, 0); //wait until the child is actually dead
 						cur->getResponse()->setCode(504);
 					}
-					modifyEvent(cur, 1);
 					this->_pids.erase(it);
-				}
+				}*/
+				//modifyEvent(cur, 1);
+				//eraseSocket(cur, false);
+				write(1, "epollhup\n", 9);
+				exit(1);
 			}
 			/*****************************/
 			else if (_events[n].events & EPOLLIN)
+			//else if (_events[n].events & EPOLLIN)
 			{
-				write(2, "epollin\n", 8);
-				//std::cerr << "\033[1;31mCluster: EPOLLIN\033[0m" << std::endl;
+				write(1, "epollIN\n", 8);
 				if (cur->getMaster())
-				{
-					write(2, "create\n", 7);
-					//EPOLLIN
 					acceptConnection(cur);
-				}
 				else
-				{
-					write(2, "else\n", 5);
-					//EPOLLIN, if all read - change to EPOLLOUT 
 					readConnection(cur);
-				}
 			}
 			else if (_events[n].events & EPOLLOUT)
-			{
-				write(2, "epollout\n", 9);
-			// send in chunks and change to epollin when finished. New request? OR close? 
 				sendConnection(cur);
-			}
-			else //ADD timeout
+			else
 				throw std::runtime_error("Error: epoll event error ");
 		}
 		if (this->_pids.size() != 0)
+		{
+			write(1, "checkChilds\n", 12);
 			this->_checkChilds();
-		//checkTimeout();
-//		usleep(1000);
+		}
 	}
-//	std::cout << "----- END OF LOOP -----" << std::endl;
 }
 
 
@@ -317,7 +337,6 @@ void	Cluster::sendConnection(Socket *sock)
 	std::cout << "\033[34;1mBYTES " << bytes << "\033[0m\n";
 
 	sock->getResponseLine().erase(0, bytes);
-//	sock->setLastActivity(time(NULL));
 	if (sock->getResponseLine().empty() && !sock->getRequest()->getConnectionKeepAlive()) 
 		return (eraseSocket(sock, false));
 	else if (sock->getResponseLine().empty())
@@ -328,11 +347,8 @@ void	Cluster::sendConnection(Socket *sock)
 
 
 		cleanSocket(sock);
-	//	exit (0);
 		modifyEvent(sock, 0);
-	//	exit (0);
 	}
-//	exit (0);
 }
 
 // if flag 0 - to in, 1 - to out
@@ -450,13 +466,8 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 
 std::ostream	&operator<<(std::ostream &out, const Response &val)
 {
-    //	out << "Port:  " << val.getServer() << "\n";
-	  //out << "Response:  " << val.getResponse() << "\n";
-    out << "Code:  " << val.getCode() << "\n";
-    // out << "Socket fd:  " << val.getSockFd() << "\n";
-    // out << "Last activity:  " << val.getLastActivity() << "\n";
-    // out << "Master:  " << val.getMaster() << "\n\n";
- //   out << "Error pages:  \n" << val.getResponseLine() << "\n";
+	std::string	resp = val.getResponse();
 
+    out << "Status Line: " << resp.substr(0, resp.find("\r\n")) << std::endl;
 	return (out);
 }
