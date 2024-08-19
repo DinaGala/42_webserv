@@ -15,21 +15,15 @@
 
 # include "Utils.hpp"
 
-//# define INDEX 0
-//# define UPLOAD 1
-
-
 class ServerConfig;
 class LocationConfig;
 
-// before setting unique vars check if they are empty or repeated
 class Parse
 {
     public: 
 
     /* MAIN PARSING ENGINE: PARSING COMPLEX DIRECTIVES ______________________*/
         static std::vector<ServerConfig>	configParse(const char *name);
-        static std::vector<ServerConfig>    configParse();
         template <typename T>
         static void complexParse(T &serv, std::string &block);       
         template <typename T>
@@ -70,7 +64,6 @@ class Parse
         static void     servNameParse(ServerConfig &serv, std::vector<std::string> &line);
         static void     bodySizeParse(ServerConfig &serv, std::vector<std::string> &line);
 
-//        static void  uriParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  indexParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  returnParse(LocationConfig &loc, std::vector<std::string> &line);
         static void  uploadDirParse(LocationConfig &loc, std::vector<std::string> &line);
@@ -87,10 +80,8 @@ std::ostream	&operator<<(std::ostream &out, const std::vector<std::string> &val)
 std::ostream	&operator<<(std::ostream &out, std::map<std::string, std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<int, std::string> &val);
 std::ostream	&operator<<(std::ostream &out, std::map<int, std::pair<std::string, std::string> > &val);
-//std::ostream	&operator<<(std::ostream &out, const bool val);
 std::ostream	&operator<<(std::ostream &out, const ServerConfig &val);
 std::ostream	&operator<<(std::ostream &out, const LocationConfig &val);
 std::ostream	&operator<<(std::ostream &out, const std::vector<ServerConfig> &val);
-
 
 #endif

@@ -3,7 +3,6 @@
 Socket::Socket(Server &server, int port): _server(server), _port(port), _master(true)
 {
 	_ipAddress = server.getIpAdress();
-//	_lastActivity = time(NULL); // TOFIX
 	initMaster();
 	setNonBlocking();
 }
@@ -12,10 +11,8 @@ Socket::Socket(Server &server, Socket *sock): _server(server), _master(false)
 {
 	_ipAddress = server.getIpAdress();
 	_port = sock->getPort();
-//	std::cout << "client socket port:  " << _port << "\n";
 	_req.push_back(Request(server, this->_port));
 	_resp.push_back(Response());
-//	_lastActivity = time(NULL);
 	initClient(sock->getSockFd());
 	setNonBlocking();
 }
@@ -32,7 +29,6 @@ Socket& Socket::operator=(const Socket& src)
 	_ipAddress = src._ipAddress;
 	_fd = src._fd;
 	_master = src._master;
-//	_nClients = src._nClients;
 	_req = src._req;
 	_resp = src._resp;
 	_response = src._response;
@@ -44,7 +40,6 @@ Socket::Socket(const Socket& src): _server(src._server)
 	*this = src;
 }
 
-
 void	Socket::setNonBlocking()
 {
 	// Get current socket flags
@@ -52,7 +47,7 @@ void	Socket::setNonBlocking()
 	if (flags == -1) 
 		throw std::runtime_error("Error: fcntl get flags failed for " + _ipAddress + ":" + ft_itoa(_port));
 	
-	// Set non-blocking flag
+	// Add non-blocking flag
 	if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		throw std::runtime_error("Error: fcntl set non blocking failed for " + _ipAddress + ":" + ft_itoa(_port));
 }
@@ -75,12 +70,11 @@ void	Socket::initMaster()
 {
 	struct addrinfo hints, *servinfo, *p;
 	std::string errmsg;
- //   int _fd;
 
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; //SURE???
+    hints.ai_flags = AI_PASSIVE;
 
     if (getaddrinfo(_ipAddress.c_str(), ft_itoa(_port).c_str(), &hints, &servinfo) != 0)
         throw std::runtime_error("Error: getaddrinfo failed: " + errmsg.assign(gai_strerror(errno)));
@@ -108,20 +102,12 @@ void	Socket::initMaster()
     freeaddrinfo(servinfo);
 	std::cout << "\033[33;1mMaster socket is binded to: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
     
-	if (listen(_fd, MAX_CON) == -1) // we set our maximum?
+	if (listen(_fd, MAX_CON) == -1)
 	{
         close(_fd);
         throw std::runtime_error("Error: listen failed for " + _ipAddress + ":" + ft_itoa(_port));
     }
 	std::cout << "\033[33;1mMaster socket is listening from: "  + _ipAddress + ":" << _port << "\033[0m" << std::endl;
-
-	// NOT SURE ABOUT IT
-	// int opt = 1;
-	// if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) 
-	// {
-	// 	close(_fd);
-    //     throw std::runtime_error("Error: setsockopt failed for " + _ipAddress + ":" + ft_itoa(_port));
-	// }
 }
 
 /*ACCEPT
@@ -166,7 +152,6 @@ void	Socket::cleanRequestResponse(){
 	_resp.push_back(Response());
 }
 
-
 //SETTERS
 void	Socket::setIpAddress(const std::string & ipAddress){
 	this->_ipAddress = ipAddress;
@@ -180,13 +165,8 @@ void	Socket::setResponse(std::string response){
 	this->_response = response;
 }
 
-// void	Socket::setLastActivity(time_t now)
-// {
-// 	_lastActivity = now;
-// }
-
-
 //GETTERS
+
 int	Socket::getSockFd() const {
 	return(_fd);
 }
@@ -218,7 +198,3 @@ Response* Socket::getResponse() {
 std::string& Socket::getResponseLine() {
 	return (_response);
 }
-
-// time_t Socket::getLastActivity() const {
-// 	return (_lastActivity);
-// }

@@ -27,16 +27,12 @@ void  Parse::errorParse(T &obj, std::vector<std::string> &line)
 			continue ;
 		obj.setErrorPage(errorCheck(*it), root);
 	}
-		
-	// std::cout << "Error Parse Template ----------------------------" << "\n";
-	// std::cout << "Line: " << line << "\n";
 }
 
 int		Parse::errorCheck(std::string er)
 {
 	try
 	{
-//		std::cout << er << "\n";
 		int res = ft_atopi(er);
 		if (res < 300 || res > 599)
 			throw std::invalid_argument("");
@@ -54,8 +50,6 @@ void  Parse::rootParse(T &obj, std::vector<std::string> &line)
 	if (line.size() != 2)
 		throw std::invalid_argument("Configuration file error: invalid parameter \"root\": enter only one parameter");
 	obj.setRoot(line[1]);
-//    std::cout << "Root Parse Template ------------------------------------" << "\n";
-//    std::cout << "Line: " << line << "\n";
 }
 
 template <typename T>
@@ -64,7 +58,6 @@ void  Parse::allowMethodsParse(T &obj, std::vector<std::string> &line)
 	if (line.size() < 2)
 		throw std::invalid_argument("Configuration file error: invalid number of parameters \"allow_methods\": enter at least one parameter");
 	std::map<std::string, bool> temp = obj.getVars();
-//	std::cout << "ALLOW METHODS, LINE: " << line << std::endl;
 	if (temp["allow_methods"])
 		throw std::invalid_argument("Configuratiosn file error: \"allow_methods\" directive is duplicate ");
 	for (std::vector<std::string>::iterator it = line.begin(); it != line.end(); it++)
@@ -236,11 +229,6 @@ void  Parse::bodySizeParse(ServerConfig &serv, std::vector<std::string> &line)
 	}
 }
 
-// void  Parse::uriParse(LocationConfig &loc, std::vector<std::string> &line)
-// {
-// 	(void)loc;
-// 	(void)line;   
-// }
 void  Parse::indexParse(LocationConfig &loc, std::vector<std::string> &line)
 {
 	if (line.size() != 2)

@@ -232,8 +232,8 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 void	Request::parseBodyByContentLength() { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-	if (contentLength > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	//if (contentLength > _maxBodySize) TODO: CHECKK!!!!
+		//sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
@@ -370,7 +370,7 @@ void	Request::manageAcceptedContent()
 
 void Request::managePath() 
 {
-	checkQuery(); //TODO: pending to add to the body ?? NURIA
+	checkQuery();
 	urlDecode();
 	checkLocation();
 	updateInfoLocation();
@@ -483,23 +483,23 @@ void Request::updatePath()
 	}
 }
 
-void	Request::setCgi()
+void    Request::setCgi()
 {
-	struct stat path_stat;
-	if (stat(_path.c_str(), &path_stat) == 0) {
-		if (S_ISREG(path_stat.st_mode) && access(_path.c_str(), X_OK) == 0) {
-			this->_cgi = true;
-		}
-		else {
-		std::string::size_type	found = _path.find_last_of(".");
-			if (found != std::string::npos) {
-				std::string ext = _path.substr(found);
-				if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
-					this->_cgi = true;
-			}
-		}
-	}
-	setCookies();
+    struct stat path_stat;
+    if (stat(_path.c_str(), &path_stat) == 0) {
+        if (S_ISREG(path_stat.st_mode) && access(_path.c_str(), X_OK) == 0) {
+            this->_cgi = true;
+        }
+        else {
+        	std::string::size_type  found = _path.find_last_of(".");
+            if (found != std::string::npos) {
+                std::string ext = _path.substr(found);
+                if (_cgiConf.find(ext) != _cgiConf.end()) //if extension is available
+                    this->_cgi = true;
+            }
+        }
+    }
+    setCookies();
 }
 
 void Request::setCookies() 
@@ -513,9 +513,8 @@ void Request::setCookies()
 }
 
 void Request::checkAllowMethod(){
-	std::vector<std::string> allowedMethodsVect = _server.getAllowedMethods();
-	std::vector<std::string>::iterator it = std::find(allowedMethodsVect.begin(), allowedMethodsVect.end(), _requestLine.front()); 
-	if (it == allowedMethodsVect.end())
+	std::vector<std::string>::iterator it = std::find(_allowedMethods.begin(), _allowedMethods.end(), _method); 
+	if (it == _allowedMethods.end())
 		sendBadRequestError("Request parsing error: method not allowed", 405);
 }
 
