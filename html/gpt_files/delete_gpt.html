@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Upload image</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f8f9fa;
+				color: #343a40;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+			}
+			h1 {
+				color: #a52a80;
+				margin-bottom: 0.5em;
+			}
+			.submit{
+				display: inline-block;
+				padding: 0.5em 1em;
+				text-decoration: none;
+				color: #fff;
+				background-color: #a52a80;
+				border-radius: 0.25em;
+				transition: background-color 0.3s;
+				border: none;
+				font-size: 1em;
+			}
+			.submit:hover {
+				background-color: #a52a80;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="content">
+			<h1 id="wisdom_menu">Delete some of your wisdom</h1>
+			<form method="POST" action="/delete-file" enctype="multipart/form-data">
+				<label for="upload">Select the file to delete:</label>
+				<input type="file" id="upload" name="upload" required>
+				<input type="hidden" name="_method" value="DELETE">
+				<input class="submit" type="submit" value="Delete">
+			</form>
+		</div>
+	</body>
+</html>

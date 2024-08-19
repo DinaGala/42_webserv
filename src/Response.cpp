@@ -494,6 +494,9 @@ if this one is also not accepted, the error will be returned without content.
 void	Response::sendError(int code)
 {
 	int error = 0;
+	std::cout << "CODE " << code << std::endl;
+	std::cout << "error FIND " << this->_errorPages.size() << std::endl;
+	
 	if (code != 505 && this->_errorPages.find(code) == this->_errorPages.end())
 		code = 500;
 	this->_code = code;
