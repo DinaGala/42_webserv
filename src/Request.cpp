@@ -97,7 +97,6 @@ void	Request::initParams()
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
-	
 	_buffer += std::string(buffer.begin(), buffer.begin() + bytesRead);
 	try {
 		if (_status == INITIAL_STATUS){
@@ -200,7 +199,6 @@ void	Request::parseBodyByChunked(){
 			sendBadRequestError("Request parsing error: invalid Transfre encoding", 400);
 		manageLineChunk(posEndSIze, sizeChunk);
 	} while (1);
-
 	if (sizeChunk == 0) {
 		_status = BODY_PARSED;
 		_headers.find("Transfer-Encoding")->second = "";
@@ -237,8 +235,8 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 void	Request::parseBodyByContentLength() { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
-	//if (contentLength > _maxBodySize) TODO: CHECKK!!!!
-		//sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+	if (contentLength > _maxBodySize)
+		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
 	size_t i = 0;
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
@@ -260,7 +258,7 @@ void	Request::manageMultipartForm(){
 		updateMultipartBody();
 		saveFileName();
 	}
-} 
+}
 
 void	Request::getBoundary() 
 {
@@ -297,10 +295,20 @@ void	Request::updateMultipartBody()
 	size_t finishBody = _body.find(_boundary, startBody);
 	if (finishBody == std::string::npos)
 		sendBadRequestError("Request parsing error: invalid Content-Type parameter4 ", 400);
+	saveInfoMethod(finishBody);
 	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
+
 }
 
+void	Request::saveInfoMethod(size_t finishBody)
+{
+	size_t foundInit = _body.find("\"_method\"", finishBody + _boundary.size()) + 9;
+	size_t foundEnd = _body.find("--" + _boundary, finishBody + _boundary.size());
+	if (foundInit == std::string::npos || foundEnd == std::string::npos)
+		return;
+	_method = trim(_body.substr(foundInit, foundEnd - foundInit));
+} 
 
 //Content-Disposition: form-data; name="file"; filename="example.txt"
 void	Request::saveFileName() 
@@ -384,7 +392,8 @@ void Request::managePath()
 	setCookies();
 }
 
-void	Request::checkQuery() {
+void	Request::checkQuery() 
+{
 	std::string url = _requestLine[1];
 	std::string::size_type	posQuery;
 	posQuery = url.find("?");

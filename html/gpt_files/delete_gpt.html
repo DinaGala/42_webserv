@@ -39,7 +39,7 @@
 	<body>
 		<div class="content">
 			<h1 id="wisdom_menu">Delete some of your wisdom</h1>
-			<form method="POST" action="/delete-file" enctype="multipart/form-data">
+			<form id="deleteForm" method="POST" action="/delete_file" enctype="multipart/form-data">
 				<label for="upload">Select the file to delete:</label>
 				<input type="file" id="upload" name="upload" required>
 				<input type="hidden" name="_method" value="DELETE">
@@ -47,4 +47,11 @@
 			</form>
 		</div>
 	</body>
+	<script>
+		document.getElementById('upload').addEventListener('change', function() {
+			const fileName = this.files[0].name;
+			const form = document.getElementById('deleteForm');
+			form.action = '/delete/album/' + encodeURIComponent(fileName);
+		});
+	</script>
 </html>

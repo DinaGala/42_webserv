@@ -153,7 +153,6 @@ void	Cgi::_childProcess(int *req)
 {
 	char	**args;
 	char	**env;
-
 	if (this->_args.size() == 0)
 		exit(40);
 	args = this->_vecToMat(this->_args);
