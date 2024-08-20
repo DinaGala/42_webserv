@@ -42,8 +42,6 @@ Server::~Server()
 
 void	Server::initParamsServer(ServerConfig &sconfig) 
 {
-//	std::map<int, std::pair<std::string, std::string> > err 
-	
 	_ipAddress = sconfig.getIp();
 	_host = sconfig.getHost();
 	_ports = sconfig.getPort();
@@ -76,18 +74,18 @@ const std::vector<int>& Server::getPort() const
 	return (_ports);
 }
 
-const std::string& Server::getRoot() const{
-
+const std::string& Server::getRoot() const
+{
 	return (_root);
 }
 
 const std::vector<std::string>& Server::getAllowedMethods() const
 {
-
 	return (_allowedMethods);
 }
 
-size_t Server::getMaxBodySize() const {
+size_t Server::getMaxBodySize() const
+{
 	return (_maxBodySize);
 }
 
@@ -122,17 +120,6 @@ const std::vector<LocationConfig> Server::getLocationConfig() const
 }
 
 // _____________  SETTERS _____________ 
-
-//TODO
-/*<<<<<<< HEAD
-void Server::setErrorPages(const std::map<int, std::string>&  errorPages) 
-=======
-void Server::setErrorPages(const std::map<int, std::pair<std::string, std::string> > &  errorPages) 
->>>>>>> http
-{
-	_errorPages = errorPages;
-}
-*/
 void Server::setAutoIndex(bool autoindex) 
 {
 	_autoIndex = autoindex;
