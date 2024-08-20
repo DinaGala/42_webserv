@@ -356,7 +356,6 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Request line:  " << val.getRequestLine() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
-	out << "Status:  " << val.getStatus() << "\n";
 	out << "\n\n";
 	return (out);
 }

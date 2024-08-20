@@ -260,7 +260,7 @@ void    Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		this->_body = WORK_DONE("File created!");
+		this->_body = WORK_DONE("File created!", this->_req->getIndex());
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
@@ -268,7 +268,7 @@ void    Response::_handlePost()
 	{
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_body = WORK_DONE("Form submmitted!");
+		this->_body = WORK_DONE("Form submmitted!", this->_req->getIndex());
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
