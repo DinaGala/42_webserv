@@ -86,7 +86,7 @@ void	Request::initParams()
 	_fileName = "";
 	_cookiesEnv.clear();
 	_script = "";
-	_pathInfo = "/";
+	_pathInfo = "";
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
@@ -514,6 +514,8 @@ void	Request::setCgi()
 	while (1)
 	{
 		_script = _path.substr(0, found);
+		if (access(_script.c_str(), F_OK))
+			return ;
 		if (stat(_script.c_str(), &path_stat))
 			sendBadRequestError("", 500);
 		if (S_ISDIR(path_stat.st_mode))
