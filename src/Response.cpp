@@ -68,12 +68,19 @@ void	Response::_parseCgiResponse(void)
 		found = this->_response.find("\r\n\r\n");
 	if (found == std::string::npos)// if not \r\n\r\n => cgi's response is full body
 	{
+		if (this->_isAccepted("text/plain") == false)
+			return (void)this->sendError(403);
 		this->_body = this->_response;
-		this->_response = "";
+		this->_response = this->putStatusLine(200);
+		this->putGeneralHeaders();
+		this->_response += "Content-Type: text/plain\r\n";
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+		this->_response += this->_body;
 		return ;
 	}
 	this->_body = this->_response.substr(found + 2, this->_response.size());
-	this->_response = this->_response.substr(0, found) + "\r\n";
+	this->_response = this->_response.substr(0, found) + "\r\n\r\n";
+	this->_response += this->_body;
 }
 
 //writes and returns the server's response
@@ -169,6 +176,7 @@ void	Response::_handleGet()
 	{
 		this->_readCgi();
 		this->_parseCgiResponse();
+		return ;
 	}
 	else //if not cgi
 	{
@@ -251,6 +259,7 @@ bool	Response::_createFile(void)
 
 void    Response::_handlePost()
 {
+	//std::cout << "hello post" << std::endl;
 	if (this->_req->getFileName() != "")//if filename
 	{
 		if (this->_req->getAllowUpload() == false)//no upload permissions
