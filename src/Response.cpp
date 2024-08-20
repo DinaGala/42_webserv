@@ -259,7 +259,6 @@ bool	Response::_createFile(void)
 
 void    Response::_handlePost()
 {
-	//std::cout << "hello post" << std::endl;
 	if (this->_req->getFileName() != "")//if filename
 	{
 		if (this->_req->getAllowUpload() == false)//no upload permissions
