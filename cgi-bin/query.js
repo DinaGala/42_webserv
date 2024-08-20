@@ -43,25 +43,23 @@ let htmlResponse = `
         <tr>
             <th>Parameter</th>
             <th>Value</th>
-        </tr>
-`;
+        </tr>`;
 
 for (const [key, value] of Object.entries(queryParams)) {
-    htmlResponse += `
-        <tr>
+    htmlResponse += `<tr>
             <td>${key}</td>
             <td>${value}</td>
-        </tr>
-    `;
+        </tr>`;
 }
 
 htmlResponse += `
     </table>
 </body>
-</html>
-`;
+</html>`;
 
 // Output the HTTP headers followed by the HTML response
-console.log(`Content-Type: text/html\n`);
+console.log(`HTTP/1.1 200 OK\r`);
+console.log(`Content-Type: text/html\r`);
+console.log(`Content-Length: ` + htmlResponse.length + `\r\n\r`);
 console.log(htmlResponse);
 

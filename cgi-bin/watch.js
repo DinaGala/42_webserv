@@ -29,15 +29,13 @@ function generateHtml() {
 
 // Main function to handle CGI output
 function main() {
-  // Output the HTTP headers
-  console.log("Content-Type: text/html");
-  console.log(); // Blank line to indicate the end of headers
-
   // Generate the HTML content
   const htmlContent = generateHtml();
-
-  // Output the HTML content
+  console.log(`HTTP/1.1 200 OK\r`);
+  console.log(`Content-Type: text/html\r`);
+  console.log(`Content-Length: ` + htmlContent.length + `\r\n\r`);
   console.log(htmlContent);
+
 }
 
 // Execute the main function
