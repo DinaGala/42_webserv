@@ -1,6 +1,0 @@
-quesadilla=grgsr&username=gsrgsr
-quesadilla=testing+new+header&username=testing+newheader
-quesadilla=aafefeafa&username=aefaefaef
-quesadilla=fridy&username=taco
-quesadilla=ff&username=fesf
-

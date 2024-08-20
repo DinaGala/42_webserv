@@ -17,7 +17,6 @@ int main(int ac, char **av){
 	}
 	/********* TMP **************/
 	int fd = open("Makefile", O_RDONLY);
-	std::cout << "\033[1;32mIf this fd is not 3, we're leaking fd: " << fd << std::endl;
 	close(fd);
 	/*************************/
 	return (0);

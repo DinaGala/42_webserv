@@ -113,8 +113,7 @@ void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead)
 			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		}
 	} catch (const std::exception & e){
-		std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl;
-		std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
+		std::cout << "\033[31;1mERROR IN REQUEST PARSING\033[0m" << std::endl;
 		_status = FINISH_PARSED;
 	}
 }
@@ -511,11 +510,15 @@ void	Request::setCgi()
 	_script = _path.substr(0, found);
 	if (_script == "." || _path == "")
 		found = _path.find("/", found + 1);
+
 	while (1)
 	{
 		_script = _path.substr(0, found);
-		if (stat(_script.c_str(), &path_stat))
+		if (access(_script.c_str(), F_OK))
+			return;
+		if (stat(_script.c_str(), &path_stat)) {
 			sendBadRequestError("", 500);
+		}
 		if (S_ISDIR(path_stat.st_mode))
 		{
 			if (found == std::string::npos)
