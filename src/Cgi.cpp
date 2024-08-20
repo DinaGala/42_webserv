@@ -109,44 +109,6 @@ std::vector<std::string>	Cgi::_findArgs(const std::string &path, const std::map<
 	return (args);
 }
 
-//requisits: 	pathInfo inicialitzat a "/"
-//				queryString inicialitzat a ""
-/*int	parseUrl(std::string url, const std::string &root, const std::map<std::string, std::string> &config)
-{
-	std::string	script;
-	std::string::size_type	fext;	//found extension
-	std::string::size_type	found = url.find("/");
-
-	if (found == std::string::npos)
-	{
-		this->_env["SCRIPT_NAME"] = url;
-		return ;
-	}
-	script = url.substr(0, found);
-	if (script == "." || url == "")
-		found = url.find(found + 1);
-	while (found != std::string::npos)// localhost:8080/cgi-bin/delete.py/file_to_delete
-	{
-		script = url.substr(0, found);
-		found = url.find(found + 1);
-		int	dir = isDir(script);
-		if (dir == -1)
-			return (500);
-		if (dir)
-			continue ;
-		fext = script.find(".");
-		if (access(script.c_str(), X_OK) == 0
-			|| (fext != std::string::npos && config(script.substr(fext - 1) != config.end())))
-		{
-			this->_env["SCRIPT_NAME"] = script;
-			if (found != std::string::npos)
-				this->_env["PATH_INFO"] = _root + url.substr(found + 1);
-			this->_cgi = true;
-			return ;
-		}
-	}
-}*/
-
 /////////////////////////////// EXECUTION //////////////////////////////////////
 
 void	Cgi::_childProcess(int *req)

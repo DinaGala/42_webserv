@@ -226,7 +226,7 @@ void	Cluster::readConnection(Socket *sock)
 		if (bytesRead < 0 && sock->getRequest()->getStatus() != FINISH_PARSED)
 			return (eraseSocket(sock, true));
 		sock->getRequest()->parseRequest(buffer, bytesRead);
-		std::cout << "\033[1;36mREQUEST: \n" << *(sock->getRequest()) << "\033[0m";
+		std::cout << "\033[1;36mREQUEST: \n" << *(sock->getRequest()) << "\033[0m" << std::endl;
 		if (sock->getRequest()->getStatus() == FINISH_PARSED)
 		{
 			/****** ADDED BY NURIA ********/
@@ -263,7 +263,7 @@ void	Cluster::sendConnection(Socket *sock)
 	//std::cerr << "\033[34;1mSEND CONNECTION" << "\033[0m\n";
 	if (sock->getResponse()->getDone() == false)
 		sock->setResponse(sock->getResponse()->makeResponse(sock->getRequest()));
-	std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m";
+	std::cout << "\033[35;1mRESPONSE: \n" << *(sock->getResponse()) << "\033[0m" << std::endl;
 	if (sock->getResponseLine().size() < BUFFER_SIZE)
 		bytes = send(sock->getSockFd(), sock->getResponseLine().c_str(), sock->getResponseLine().size(), MSG_DONTWAIT); // a flag??
 	else
@@ -358,7 +358,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
 	out << "Status:  " << val.getStatus() << "\n";
-	out << "\n\n";
+	out << std::endl;
 	return (out);
 }
 
