@@ -8,7 +8,7 @@ Cluster::~Cluster()
 	std::string errmsg;
 	for (std::list<Socket>::iterator it = _sockets.begin(); it != _sockets.end(); it++) 
 	{
-		if (epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
+		if (_epFd != -1 && epoll_ctl(_epFd, EPOLL_CTL_DEL, it->getSockFd(), NULL) == -1)
 			throw std::runtime_error("Error: epoll delete failed: " + errmsg.assign(strerror(errno)));
 		close(it->getSockFd());
 	}
@@ -26,6 +26,7 @@ void	Cluster::setUpCluster(int ac, char **av){
 	
 	_sconf = Parse::configParse(filename.c_str());
 	std::cout << _sconf;
+	_epFd = -1;
 	createServers();
 	createSockets();
 	createEpoll();
