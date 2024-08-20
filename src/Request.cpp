@@ -388,8 +388,6 @@ void Request::managePath()
 	checkLocation();
 	updateInfoLocation();
 	updatePath();
-	setCgi();
-	setCookies();
 }
 
 void	Request::checkQuery() 
@@ -494,6 +492,8 @@ void Request::updatePath()
 		if (_root[_root.size() - 1] == '/' && _path != "" && _path[0] == '/')
 			_root.erase(_root.size() - 1, 1);
 		_path = _root + _path;
+		setCgi();
+		setCookies();
 	}
 }
 
