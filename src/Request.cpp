@@ -111,7 +111,7 @@ void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead)
 			std::cout << "\033[32;1mFINISH REQUEST PARSING\033[0m" << std::endl;
 		}
 	} catch (const std::exception & e){
-		std::cout << "\033[31;1mERROR IN REQUEST PARSING\033[0m" << std::endl;
+		std::cout << "\033[31;1m" << e.what() << "\033[0m" << std::endl;
 		_status = FINISH_PARSED;
 	}
 }
@@ -154,6 +154,7 @@ void	Request::parseHeaders()
 			_buffer.erase(0, line.size() + 2);
 		}
 	}
+	checkConnectionKeepAlive();
 }
 
 void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map)
@@ -164,6 +165,12 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1));
 	map.insert(std::make_pair(name, value));
+}
+
+void	Request::checkConnectionKeepAlive() 
+{
+	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close")
+		_connectionKeepAlive = false;	
 }
 
 // _____________  PARSING BODY  _____________ 
@@ -329,7 +336,7 @@ void	Request::saveFileName()
 void Request::requestValidations()
 {
 	checkHost(); 	
-	checkConnectionKeepAlive();
+	//checkConnectionKeepAlive();
 	manageAcceptedContent();
 	managePath();
 	checkProtocolHttp();
@@ -356,12 +363,6 @@ void	Request::checkHost()
 	std::vector<std::string>::iterator it = std::find(_serverNames.begin(), _serverNames.end(), hostReq);
 	if (it == _serverNames.end())
 		sendBadRequestError("Request parsing error: invalid Host", 400);
-}
-
-void	Request::checkConnectionKeepAlive() 
-{
-	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close")
-		_connectionKeepAlive = false;
 }
 
 void	Request::manageAcceptedContent() 
