@@ -47,6 +47,8 @@ class Request {
 		std::map<std::string, std::string>	_multipartHeaders;
 		std::string							_fileName;
 		std::vector<std::string> 			_cookiesEnv;
+		std::string							_script;
+		std::string							_pathInfo;
 
 	public:
 		Request(Server& server, int port);
@@ -130,6 +132,8 @@ class Request {
 		const std::map<std::string, std::string>&		getMultipartHeaders() const;
 		const std::string& 								getFileName() const;
 		const std::vector<std::string>&					getCookiesEnv() const;
+		const std::string&								getScript() const;
+		const std::string&								getPathInfo() const;
 
 		void 		setErrorPages(const std::map<int, std::pair<std::string, std::string> >&  errorPages);
 		void 		setIndex(const std::string& index);
