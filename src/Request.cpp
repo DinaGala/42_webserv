@@ -90,10 +90,8 @@ void	Request::initParams()
 }
 
 /*	REQUEST LINE: method | URI | and protocolversion
-	HEADERS: A series of key-value pairs, each on its own line.
-	BLANK LINE: A line with no content, indicating the end of the headers.
-	BODY: Optional, depending on the type of request (e.g., present in POST requests).
-*/
+	HEADERS: A series of key-value pairs, each on its own line. (end with BLANK LINE) 
+	BODY: Optional, depending on the type of request (e.g., present in POST requests).*/
 // _____________  PARSING REQUEST  _____________ 
 void	Request::parseRequest(std::vector<unsigned char> buffer, int bytesRead) 
 {
@@ -142,7 +140,8 @@ void Request::createRequestLineVector(std::string requestLineStr)
 }
 
 // _____________  PARSING HEADERS   _____________ 
-void	Request::parseHeaders() {
+void	Request::parseHeaders()
+{
 	while (_buffer.find(CRLF) != std::string::npos){
 		std::string line = _buffer.substr(0, _buffer.find(CRLF));
 		if (line.size() == 0) {
@@ -157,7 +156,8 @@ void	Request::parseHeaders() {
 	}
 }
 
-void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map){
+void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map)
+{
 	size_t posColon = line.find(':');
 	if (posColon == std::string::npos) 
 		sendBadRequestError("Request parsing error: invalid headers", 400);
@@ -167,7 +167,8 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 }
 
 // _____________  PARSING BODY  _____________ 
-void	Request::parseBody(){
+void	Request::parseBody()
+{
 	if (_headers.find("Transfer-Encoding") == _headers.end() && _headers.find("Content-Length") == _headers.end()) {
 		_status = FINISH_PARSED;
 		return ;
@@ -185,8 +186,8 @@ void	Request::parseBody(){
 	}
 }
 
-//Chunked Transfer Encoding
-void	Request::parseBodyByChunked(){
+void	Request::parseBodyByChunked()
+{
 	int	sizeChunk = 0;
 	do {
 		size_t	posEndSIze = _buffer.find(CRLF);
@@ -206,14 +207,16 @@ void	Request::parseBodyByChunked(){
 	}
 }
 
-int	Request::findSizeChunk(size_t posEndSIze) {
+int	Request::findSizeChunk(size_t posEndSIze)
+{
 	if (posEndSIze == std::string::npos) //chunk is not completed
 		return (-1);
 	std::string line = _buffer.substr(0, posEndSIze);
 	return (convertStrToHex(line));
 }
 
-uint64_t	Request::convertStrToHex(std::string line){
+uint64_t	Request::convertStrToHex(std::string line)
+{
 	size_t endSizeChunk = line.find(' ');
 	if (endSizeChunk != std::string::npos)
 		line = line.substr(0, endSizeChunk);
@@ -223,7 +226,8 @@ uint64_t	Request::convertStrToHex(std::string line){
 	return (result);
 }
 
-void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
+void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk)
+{
 	std::string line = _buffer.substr(posEndSIze + 2, sizeChunk);
 	if (line.length() + _body.length() > _maxBodySize)
 		sendBadRequestError("Request parsing error: Body is too large", 400);
@@ -231,7 +235,8 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk) {
 	_buffer.erase(0, posEndSIze + sizeChunk + 4);
 }
 
-void	Request::parseBodyByContentLength() { 
+void	Request::parseBodyByContentLength()
+{ 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
 	if (contentLength > _maxBodySize)
@@ -249,7 +254,8 @@ void	Request::parseBodyByContentLength() {
 }
 
 // _____________  MULTIPART FORM BODY   _____________ 
-void	Request::manageMultipartForm(){
+void	Request::manageMultipartForm()
+{
 	std::map<std::string, std::string>::iterator it =  _headers.find("Content-Type");
 	if (it != _headers.end() && it->second.find("multipart/form-data") != std::string::npos) {
 		getBoundary();
@@ -297,16 +303,14 @@ void	Request::updateMultipartBody()
 	saveInfoMethod(finishBody);
 	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
-
 }
 
 void	Request::saveInfoMethod(size_t finishBody)
 {
 	size_t foundInit = _body.find("\"_method\"", finishBody + _boundary.size()) + 9;
 	size_t foundEnd = _body.find("--" + _boundary, finishBody + _boundary.size());
-	if (foundInit == std::string::npos || foundEnd == std::string::npos)
-		return;
-	_method = trim(_body.substr(foundInit, foundEnd - foundInit));
+	if (foundInit != std::string::npos && foundEnd != std::string::npos)
+		_method = trim(_body.substr(foundInit, foundEnd - foundInit));
 } 
 
 //Content-Disposition: form-data; name="file"; filename="example.txt"
@@ -546,26 +550,29 @@ void	Request::setCgi()
 
 void Request::setCookies() 
 {
-	if (_headers.find("Cookie") == _headers.end())
-		return; 
-	std::string headerCookies = _headers.find("Cookie")->second;
-	std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
-	for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
-		trim(*it);
+	if (_headers.find("Cookie") != _headers.end()) {
+		std::string headerCookies = _headers.find("Cookie")->second;
+		std::vector<std::string> vectCookiesEnv = ft_split(headerCookies, ";");
+		for (std::vector<std::string>::iterator it = vectCookiesEnv.begin(); it != vectCookiesEnv.end(); it++)
+			trim(*it);
+	}
 }
 
-void Request::checkAllowMethod(){
+void Request::checkAllowMethod()
+{
 	std::vector<std::string>::iterator it = std::find(_allowedMethods.begin(), _allowedMethods.end(), _method); 
 	if (it == _allowedMethods.end())
 		sendBadRequestError("Request parsing error: method not allowed", 405);
 }
 
-void Request::checkProtocolHttp(){
+void Request::checkProtocolHttp()
+{
 	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
 		sendBadRequestError("Request parsing error: invalid http version", 400);
 }
 
-void Request::updateIndex(){
+void Request::updateIndex()
+{
 	if (_index != "" ) {
 		if (_path[_path.size() - 1] != '/')
 			_index = '/' + _index;
@@ -573,7 +580,8 @@ void Request::updateIndex(){
 	}
 }
 
-void Request::updateUploadDir(){
+void Request::updateUploadDir()
+{
 	if (_uploadDir != "" ) {
 		std::string::size_type	found = _path.find_last_of("/");
 		if (found == std::string::npos)
@@ -585,7 +593,8 @@ void Request::updateUploadDir(){
 }
 
 // _____________  SEND BAD REQUEST ERROR  _____________ 
-void	Request::sendBadRequestError(std::string errMssg, int code) {
+void	Request::sendBadRequestError(std::string errMssg, int code)
+{
 	_code = code;
 	throw std::runtime_error(errMssg);
 }
