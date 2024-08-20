@@ -23,6 +23,6 @@
 	".ctn a{\ndisplay: inline-block;\nborder: none;\nborder-radius: 0.25em;\n" \
 	"padding: 0.5em 1em;\ncolor: 330066;\n" \
 	"background-color: #9966CC\n}</style><body><div class=\"ctn\"><h1>") + str + \
-	std::string("</h1><a href=index.html>Go to Homepage</a></body></html>")
+	std::string("</h1><a href=html/index.html>Go to Homepage</a></body></html>")
 
 #endif
