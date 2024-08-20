@@ -100,12 +100,12 @@ std::string	&Response::makeResponse(const Request *req)
 		this->_response += "Location: " + this->_req->getPath() + "\r\n\r\n";
 		return (this->_response);
 	}
-	else if (this->_req->getCode() > 301)
+	else if (this->_req->getCode() > 301) 
 		return (this->sendError(this->_req->getCode()), this->_response);
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
-	if (method == "GET")
+	if (method == "GET") 
 		this->_handleGet();
 	else if (method == "POST")
 		this->_handlePost();
@@ -268,18 +268,20 @@ void    Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		this->_body = WORK_DONE("File created!");
+		this->_body = WORK_DONE("File created!", this->_req->getIndex());
+		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+		this->_response += this->_body;
+	}
+	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() && this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
+		//ADDED BY JULIA
+		this->_response = this->putStatusLine(200);
+		this->putGeneralHeaders();
+		this->_body = WORK_DONE("Form submmitted!", this->_req->getIndex());
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
 	else
-	{
-		this->_response = this->putStatusLine(200);
-		this->putGeneralHeaders();
-		this->_body = WORK_DONE("Form submmitted!");
-		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
-		this->_response += this->_body;
-	}
+		this->sendError(501);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

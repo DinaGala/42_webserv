@@ -14,7 +14,7 @@
 				"Content-Type: text/plain\r\nContent-Length: 47\r\n\r\n" \
 				"Severe Internal Error.\nPlease, try again later\n"
 
-# define WORK_DONE(str) \
+# define WORK_DONE(str, index) \
 	std::string("<html><head><title>As you wish</title><style>\n" \
 	"body{\ndisplay: flex;\njustify-content: center;\n" \
 	"align-items: center; height: 100vh;\n}\n" \
@@ -23,6 +23,6 @@
 	".ctn a{\ndisplay: inline-block;\nborder: none;\nborder-radius: 0.25em;\n" \
 	"padding: 0.5em 1em;\ncolor: 330066;\n" \
 	"background-color: #9966CC\n}</style><body><div class=\"ctn\"><h1>") + str + \
-	std::string("</h1><a href=html/default.html>Go to Homepage</a></body></html>")
+	std::string("</h1><a href=" + index + ">Go to Homepage</a></body></html>")
 
 #endif
