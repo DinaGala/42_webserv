@@ -180,6 +180,12 @@ void	Response::_handleGet()
 			this->sendError(403);
 		return ;
 	}
+	/*if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
+	{
+		this->_readCgi();
+		this->_parseCgiResponse();
+		return ;
+	}*/
 	//else //if not cgi
 	//{
 		int error = this->fileToBody(this->_req->getPath());
@@ -270,15 +276,15 @@ void    Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		this->_body = WORK_DONE("File created!", this->_req->getIndex());
+		this->_body = WORK_DONE("File created!", this->_req->getRequestLine().at(1));
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
-	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() && this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
-		//ADDED BY JULIA
+	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() 
+		&& this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_body = WORK_DONE("Form submmitted!", this->_req->getIndex());
+		this->_body = WORK_DONE("Form submmitted!", this->_req->getRequestLine().at(1));
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
