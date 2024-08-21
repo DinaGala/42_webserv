@@ -196,13 +196,8 @@ void	Request::manageAcceptedContent()
 		if (posSemicolon != std::string::npos) {
 			subtype = subtype.substr(0, posSemicolon);
 		}
-		std::cout << "Request: type: " << type << " subtype " << subtype << std::endl;
 		_acceptedContent.insert(std::make_pair(type, subtype));
 	}
-	std::cout << "Request: Accepted Types:" << std::endl;
-	for (std::multimap<std::string, std::string>::iterator it = _acceptedContent.begin();
-		it != _acceptedContent.end(); it++)
-		std::cout << "Req: 1 " << it->first << " 2 " << it->second << std::endl;
 }
 
 // _____________  PARSING BODY  _____________ 
