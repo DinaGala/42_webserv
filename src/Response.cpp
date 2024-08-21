@@ -108,7 +108,12 @@ std::string	&Response::makeResponse(const Request *req)
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
-	if (method == "GET") 
+	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
+	{
+		this->_readCgi();
+		this->_parseCgiResponse();
+	}
+	else if (method == "GET") 
 		this->_handleGet();
 	else if (method == "POST")
 		this->_handlePost();
@@ -175,18 +180,18 @@ void	Response::_handleGet()
 			this->sendError(403);
 		return ;
 	}
-	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
+	/*if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
 	{
 		this->_readCgi();
 		this->_parseCgiResponse();
 		return ;
-	}
-	else //if not cgi
-	{
+	}*/
+	//else //if not cgi
+	//{
 		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 			return (void)this->sendError(error);
-	}
+	//}
 	this->putGeneralHeaders();
 	if (!this->_body.empty())// if body
 	{
@@ -271,15 +276,15 @@ void    Response::_handlePost()
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
 		this->putPostHeaders(this->_req->getFileName());
-		this->_body = WORK_DONE("File created!", this->_req->getIndex());
+		this->_body = WORK_DONE("File created!", this->_req->getRequestLine().at(1));
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
-	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() && this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
-		//ADDED BY JULIA
+	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() 
+		&& this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
 		this->_response = this->putStatusLine(200);
 		this->putGeneralHeaders();
-		this->_body = WORK_DONE("Form submmitted!", this->_req->getIndex());
+		this->_body = WORK_DONE("Form submmitted!", this->_req->getRequestLine().at(1));
 		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 		this->_response += this->_body;
 	}
@@ -304,22 +309,12 @@ bool	Response::_isAccepted(std::string mime)
 	std::cerr << "mime: " << mime << std::endl;
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)//bad format
-	{
-		std::cerr << "isAccepted: found: " << found << std::endl;
 		return (false);
-	}
 	std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
-	std::cerr << "type: " << mp.begin()->first << "/" << mp.begin()->second << std::endl;
-	for (std::multimap<std::string, std::string>::iterator it = mp.begin();
-		it != mp.end(); it++)
-	{
-		std::cerr << "type: " << it->first << "/" << it->second << std::endl;
-	}
 	std::pair<std::multimap<std::string, std::string>::iterator,
 				std::multimap<std::string, std::string>::iterator> range;
 	std::multimap<std::string, std::string>::iterator	it;
 
-	std::cerr << "isAccepted: why not printing?!" << std::endl;
 	range = mp.equal_range("*");// Check for any type
 	for (it = range.first; it != range.second; it++)
 	{
