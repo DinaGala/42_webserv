@@ -177,18 +177,9 @@ void	Response::_handleGet()
 			this->sendError(403);
 		return ;
 	}
-	/*if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
-	{
-		this->_readCgi();
-		this->_parseCgiResponse();
-		return ;
-	}*/
-	//else //if not cgi
-	//{
-		int error = this->fileToBody(this->_req->getPath());
-		if (error)
-			return (void)this->sendError(error);
-	//}
+	int error = this->fileToBody(this->_req->getPath());
+	if (error)
+		return (void)this->sendError(error);
 	this->putGeneralHeaders();
 	if (!this->_body.empty())// if body
 	{
