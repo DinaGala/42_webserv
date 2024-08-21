@@ -101,10 +101,7 @@ std::string	&Response::makeResponse(const Request *req)
 		return (this->_response);
 	}
 	else if (this->_req->getCode() > 301) 
-	{
-		std::cerr << "Response: leaving with req error" << std::endl;
 		return (this->sendError(this->_req->getCode()), this->_response);
-	}
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
