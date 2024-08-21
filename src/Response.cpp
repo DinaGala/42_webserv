@@ -108,7 +108,12 @@ std::string	&Response::makeResponse(const Request *req)
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
-	if (method == "GET") 
+	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
+	{
+		this->_readCgi();
+		this->_parseCgiResponse();
+	}
+	else if (method == "GET") 
 		this->_handleGet();
 	else if (method == "POST")
 		this->_handlePost();
@@ -175,18 +180,12 @@ void	Response::_handleGet()
 			this->sendError(403);
 		return ;
 	}
-	if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
-	{
-		this->_readCgi();
-		this->_parseCgiResponse();
-		return ;
-	}
-	else //if not cgi
-	{
+	//else //if not cgi
+	//{
 		int error = this->fileToBody(this->_req->getPath());
 		if (error)
 			return (void)this->sendError(error);
-	}
+	//}
 	this->putGeneralHeaders();
 	if (!this->_body.empty())// if body
 	{
@@ -301,25 +300,14 @@ Second loop:
 */
 bool	Response::_isAccepted(std::string mime)
 {
-	std::cerr << "mime: " << mime << std::endl;
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)//bad format
-	{
-		std::cerr << "isAccepted: found: " << found << std::endl;
 		return (false);
-	}
 	std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
-	std::cerr << "type: " << mp.begin()->first << "/" << mp.begin()->second << std::endl;
-	for (std::multimap<std::string, std::string>::iterator it = mp.begin();
-		it != mp.end(); it++)
-	{
-		std::cerr << "type: " << it->first << "/" << it->second << std::endl;
-	}
 	std::pair<std::multimap<std::string, std::string>::iterator,
 				std::multimap<std::string, std::string>::iterator> range;
 	std::multimap<std::string, std::string>::iterator	it;
 
-	std::cerr << "isAccepted: why not printing?!" << std::endl;
 	range = mp.equal_range("*");// Check for any type
 	for (it = range.first; it != range.second; it++)
 	{
@@ -460,7 +448,10 @@ bool    Response::putPostHeaders(const std::string &file)
 		if (line.find(ext) != std::string::npos)
 			break ;
 	}
-	this->_response += "Location: " + this->_req->getUploadDir();
+	if (this->_req->getUploadDir() == "")
+		this->_response += "Location: " + this->_req->getRoot() + "\r\n";
+	else
+		this->_response += "Location: " + this->_req->getUploadDir() + "\r\n";
 	if (line == "" || mime.eof())
 	{
 		if (access(file.c_str(), X_OK)) // if not executable
@@ -519,7 +510,6 @@ void	Response::sendError(int code)
 	this->_code = code;
 	if (this->_isAccepted("text/html") == false)
 	{
-		std::cerr << "Response::sendError() html not accepted" << std::endl;
 		if (this->_isAccepted("text/plain") == false)
 		{
 			this->_response = this->putStatusLine(code);
@@ -538,12 +528,10 @@ void	Response::sendError(int code)
 		error = fileToBody(this->_errorPages.at(code).second);
 	if (code == 505 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
 	{
-		std::cerr << "Response::sendError() double error" << std::endl;
 		return (void)(this->_response = SEV_ERR, this->_code = 505);
 		this->_code = 505;
 		return ;
 	}
-	std::cerr << "Response::sendError() general case" << std::endl;
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
