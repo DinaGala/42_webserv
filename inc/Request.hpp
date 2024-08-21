@@ -62,6 +62,8 @@ class Request {
 		void		sendBadRequestError(std::string errMssg, int code);
 		void		parseRequestLine();
 		void		parseHeaders();
+		void		manageAcceptedContent();
+		void		checkConnectionKeepAlive();
 		void		parseBody();
 		void 		createRequestLineVector(std::string requestLineStr);
 		void		addHeaderToMap(std::string& line, std::map<std::string, std::string>& map);
@@ -84,8 +86,6 @@ class Request {
 		// _____________  VALIDATIONS  _____________ 
 		void 		requestValidations();
 		void		checkHost();
-		void		manageAcceptedContent();
-		void		checkConnectionKeepAlive();
 		void 		managePath();
 		void		checkQuery();
 		void		checkLocation();

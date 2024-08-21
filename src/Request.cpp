@@ -134,8 +134,10 @@ void Request::createRequestLineVector(std::string requestLineStr)
 	while (ss >> element) {
 		this->_requestLine.push_back(element);
 	}
-	if (_requestLine.size() != 3) 
+	if (_requestLine.size() != 3) {
+		manageAcceptedContent();
 		sendBadRequestError("Request parsing error: invalid request line", 400);
+	}
 	_method = _requestLine[0];
 }
 
@@ -155,13 +157,16 @@ void	Request::parseHeaders()
 		}
 	}
 	checkConnectionKeepAlive();
+	manageAcceptedContent();
 }
 
 void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::string>& map)
 {
 	size_t posColon = line.find(':');
-	if (posColon == std::string::npos) 
+	if (posColon == std::string::npos) {
+		manageAcceptedContent();
 		sendBadRequestError("Request parsing error: invalid headers", 400);
+	} 
 	std::string name = trim(line.substr(0, posColon));
 	std::string value = trim(line.substr(posColon + 1));
 	map.insert(std::make_pair(name, value));
@@ -170,7 +175,34 @@ void	Request::addHeaderToMap(std::string& line, std::map<std::string, std::strin
 void	Request::checkConnectionKeepAlive() 
 {
 	if (_headers.find("Connection") != _headers.end() && _headers.find("Connection")->second == "close")
-		_connectionKeepAlive = false;	
+		_connectionKeepAlive = false;
+}
+
+void	Request::manageAcceptedContent()
+{
+	if (_headers.find("Accept") == _headers.end()) {
+		_acceptedContent.insert(std::make_pair("*", "*"));
+		return ;
+	}
+	std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
+	for (unsigned int i=0; i < acceptVec.size(); i++) {
+		size_t posSlash = acceptVec[i].find('/');
+		if (posSlash == std::string::npos) 
+			sendBadRequestError("Request parsing error: invalid Accept header", 400);
+		std::string type = trim(acceptVec[i].substr(0, posSlash));
+		std::string subtype = trim(acceptVec[i].substr(posSlash + 1));
+		
+		size_t posSemicolon = subtype.find(';');
+		if (posSemicolon != std::string::npos) {
+			subtype = subtype.substr(0, posSemicolon);
+		}
+		std::cout << "Request: type: " << type << " subtype " << subtype << std::endl;
+		_acceptedContent.insert(std::make_pair(type, subtype));
+	}
+	std::cout << "Request: Accepted Types:" << std::endl;
+	for (std::multimap<std::string, std::string>::iterator it = _acceptedContent.begin();
+		it != _acceptedContent.end(); it++)
+		std::cout << "Req: 1 " << it->first << " 2 " << it->second << std::endl;
 }
 
 // _____________  PARSING BODY  _____________ 
@@ -335,9 +367,7 @@ void	Request::saveFileName()
 // _____________  VALIDTATE REQUEST  _____________ 
 void Request::requestValidations()
 {
-	checkHost(); 	
-	//checkConnectionKeepAlive();
-	manageAcceptedContent();
+	checkHost();
 	managePath();
 	checkProtocolHttp();
 	checkAllowMethod();
@@ -363,32 +393,6 @@ void	Request::checkHost()
 	std::vector<std::string>::iterator it = std::find(_serverNames.begin(), _serverNames.end(), hostReq);
 	if (it == _serverNames.end())
 		sendBadRequestError("Request parsing error: invalid Host", 400);
-}
-
-void	Request::manageAcceptedContent() 
-{
-	std::cout << "hello Req::manageAcceptedContent()!" << std::endl;
-	if (_headers.find("Accept") == _headers.end())
-		return ;
-	std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
-	for (unsigned int i=0; i < acceptVec.size(); i++) {
-		size_t posSlash = acceptVec[i].find('/');
-		if (posSlash == std::string::npos) 
-			sendBadRequestError("Request parsing error: invalid Accept header", 400);
-		std::string type = trim(acceptVec[i].substr(0, posSlash));
-		std::string subtype = trim(acceptVec[i].substr(posSlash + 1));
-		
-		size_t posSemicolon = subtype.find(';');
-		if (posSemicolon != std::string::npos) {
-			subtype = subtype.substr(0, posSemicolon);
-		}
-		std::cout << "Request: type: " << type << " subtype " << subtype << std::endl;
-		_acceptedContent.insert(std::make_pair(type, subtype));
-	}
-	std::cout << "Request: Accepted Types:" << std::endl;
-	for (std::multimap<std::string, std::string>::iterator it = _acceptedContent.begin();
-		it != _acceptedContent.end(); it++)
-		std::cout << "Req: 1 " << it->first << " 2 " << it->second << std::endl;
 }
 
 void Request::managePath() 
