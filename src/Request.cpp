@@ -230,7 +230,7 @@ void	Request::parseBodyByChunked()
 			break ;
 		size_t posEndLine = _buffer.find(CRLF, posEndSIze + 2 + sizeChunk);
 		if (posEndLine == std::string::npos || posEndLine != posEndSIze + 2 + sizeChunk) //there is not CRLF at the end of chunk
-			sendBadRequestError("Request parsing error: invalid Transfre encoding", 400);
+			sendBadRequestError("Request parsing error: Unprocessable Content.", 422);
 		manageLineChunk(posEndSIze, sizeChunk);
 	} while (1);
 	if (sizeChunk == 0) {
@@ -255,7 +255,7 @@ uint64_t	Request::convertStrToHex(std::string line)
 	if (endSizeChunk != std::string::npos)
 		line = line.substr(0, endSizeChunk);
 	if (line.empty() || !isStringOfDigits(line)) 
-		sendBadRequestError("Error Bad Request: Invalid shunked body", 400);
+		sendBadRequestError("Error Bad Request: Unprocessable Content.", 422);
 	uint64_t result = strToHex(line);
 	return (result);
 }
@@ -264,7 +264,7 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk)
 {
 	std::string line = _buffer.substr(posEndSIze + 2, sizeChunk);
 	if (line.length() + _body.length() > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body is too large", 400);
+		sendBadRequestError("Request parsing error: Content too large", 413);
 	_body = _body + line;
 	_buffer.erase(0, posEndSIze + sizeChunk + 4);
 }
@@ -272,9 +272,11 @@ void	Request::manageLineChunk(size_t posEndSIze, int sizeChunk)
 void	Request::parseBodyByContentLength()
 { 
 	std::map<std::string, std::string>::iterator	itLength = this->_headers.find("Content-Length");
+	if (itLength == this->_headers.end())
+		sendBadRequestError("Request parsing error: Length required", 411);
 	long unsigned int contentLength  = std::strtol((*itLength).second.c_str(), NULL, 10);
 	if (contentLength > _maxBodySize)
-		sendBadRequestError("Request parsing error: Body Length greater than Max body size", 400);
+		sendBadRequestError("Request parsing error: Content too large", 413);
 	size_t i = 0;
 	while (i < _buffer.length() && _body.length() < contentLength) {
 		_body.push_back(_buffer.at(i));
@@ -304,7 +306,7 @@ void	Request::getBoundary()
 	std::string content = _headers.find("Content-Type")->second;
 	size_t pos = content.find("boundary=");
 	if (pos == std::string::npos) 
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter 1", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter.", 400);
 	_boundary = content.substr(pos+9, content.length() - (pos+9));
 }
 
@@ -312,7 +314,7 @@ void	Request::saveMultipartHeaders()
 {
 	size_t pos = _body.find("--" + _boundary);
 	if (pos == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter 2 ", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter.", 400);
 	size_t startPos = _boundary.length() + pos + 4; //4 - \r\n + initial --
 	while (_body.find(CRLF, startPos) != std::string::npos){
 		std::string line = _body.substr(startPos, _body.find(CRLF, startPos) - startPos);
@@ -323,17 +325,17 @@ void	Request::saveMultipartHeaders()
 		startPos = _body.find(CRLF, startPos) + 2; 
 	}
 	if (_multipartHeaders.find("Content-Type") == _multipartHeaders.end() || _multipartHeaders.find("Content-Disposition") == _multipartHeaders.end())
-		sendBadRequestError("Request parsing error: invalid Multipart headers", 301);
+		sendBadRequestError("Request parsing error: invalid Multipart headers.", 301);
 }
 
 void	Request::updateMultipartBody() 
 {
 	size_t startBody = _body.find("\r\n\r\n") + 4;
 	if (startBody == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter 3 ", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter.", 400);
 	size_t finishBody = _body.find(_boundary, startBody);
 	if (finishBody == std::string::npos)
-		sendBadRequestError("Request parsing error: invalid Content-Type parameter4 ", 400);
+		sendBadRequestError("Request parsing error: invalid Content-Type parameter.", 400);
 	saveInfoMethod(finishBody);
 	_body.erase(finishBody - 3);
 	_body.erase(0, startBody);
@@ -373,7 +375,7 @@ void Request::requestValidations()
 void	Request::checkHost() 
 {
 	if (_headers.find("Host") == _headers.end())
-		sendBadRequestError("Request parsing error: invalid Host", 400);
+		sendBadRequestError("Request parsing error: invalid Host.", 400);
 	std::string hostReq = _headers.find("Host")->second;
 	int portReq = 8080;
 	size_t posColon = hostReq.find(":");
@@ -573,7 +575,7 @@ void Request::checkAllowMethod()
 void Request::checkProtocolHttp()
 {
 	if (strcmp(_requestLine[2].c_str(), "HTTP/1.1")) 
-		sendBadRequestError("Request parsing error: invalid http version", 400);
+		sendBadRequestError("Request parsing error: HTTP version not suported", 505);
 }
 
 void Request::updateIndex()
