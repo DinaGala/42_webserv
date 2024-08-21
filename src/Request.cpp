@@ -367,6 +367,7 @@ void	Request::checkHost()
 
 void	Request::manageAcceptedContent() 
 {
+	std::cout << "hello Req::manageAcceptedContent()!" << std::endl;
 	if (_headers.find("Accept") == _headers.end())
 		return ;
 	std::vector<std::string> acceptVec = ft_split(_headers.find("Accept")->second, ",");
@@ -381,8 +382,13 @@ void	Request::manageAcceptedContent()
 		if (posSemicolon != std::string::npos) {
 			subtype = subtype.substr(0, posSemicolon);
 		}
+		std::cout << "Request: type: " << type << " subtype " << subtype << std::endl;
 		_acceptedContent.insert(std::make_pair(type, subtype));
 	}
+	std::cout << "Request: Accepted Types:" << std::endl;
+	for (std::multimap<std::string, std::string>::iterator it = _acceptedContent.begin();
+		it != _acceptedContent.end(); it++)
+		std::cout << "Req: 1 " << it->first << " 2 " << it->second << std::endl;
 }
 
 void Request::managePath() 

@@ -101,7 +101,10 @@ std::string	&Response::makeResponse(const Request *req)
 		return (this->_response);
 	}
 	else if (this->_req->getCode() > 301) 
+	{
+		std::cerr << "Response: leaving with req error" << std::endl;
 		return (this->sendError(this->_req->getCode()), this->_response);
+	}
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
@@ -298,15 +301,25 @@ Second loop:
 */
 bool	Response::_isAccepted(std::string mime)
 {
+	std::cerr << "mime: " << mime << std::endl;
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)//bad format
+	{
+		std::cerr << "isAccepted: found: " << found << std::endl;
 		return (false);
+	}
 	std::multimap<std::string, std::string> mp = this->_req->getAcceptedContent();
-
+	std::cerr << "type: " << mp.begin()->first << "/" << mp.begin()->second << std::endl;
+	for (std::multimap<std::string, std::string>::iterator it = mp.begin();
+		it != mp.end(); it++)
+	{
+		std::cerr << "type: " << it->first << "/" << it->second << std::endl;
+	}
 	std::pair<std::multimap<std::string, std::string>::iterator,
 				std::multimap<std::string, std::string>::iterator> range;
 	std::multimap<std::string, std::string>::iterator	it;
 
+	std::cerr << "isAccepted: why not printing?!" << std::endl;
 	range = mp.equal_range("*");// Check for any type
 	for (it = range.first; it != range.second; it++)
 	{
@@ -506,11 +519,12 @@ void	Response::sendError(int code)
 	this->_code = code;
 	if (this->_isAccepted("text/html") == false)
 	{
+		std::cerr << "Response::sendError() html not accepted" << std::endl;
 		if (this->_isAccepted("text/plain") == false)
 		{
 			this->_response = this->putStatusLine(code);
 			this->putGeneralHeaders();
-			this->_response += "\r\n\r\n";
+			this->_response += "Content-Length: 0\r\n\r\n";
 			return ;
 		}
 		this->_response = this->putStatusLine(code);
@@ -524,10 +538,12 @@ void	Response::sendError(int code)
 		error = fileToBody(this->_errorPages.at(code).second);
 	if (code == 505 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
 	{
+		std::cerr << "Response::sendError() double error" << std::endl;
 		return (void)(this->_response = SEV_ERR, this->_code = 505);
 		this->_code = 505;
 		return ;
 	}
+	std::cerr << "Response::sendError() general case" << std::endl;
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
