@@ -17,7 +17,7 @@ F_SRC = src/
 F_OBJ = .obj/
 OBJ = $(addprefix $(F_OBJ), $(SRC:.cpp=.o))
 DEP = $(addprefix $(F_OBJ), $(SRC:.cpp=.d))
-CONF = autoindex
+CONF = default
 
 $(F_OBJ)%.o: $(F_SRC)%.cpp Makefile
 	$(CPP) $(FLAGS) -I ./inc/ -c $< -o $@
