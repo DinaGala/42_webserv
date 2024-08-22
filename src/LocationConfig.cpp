@@ -43,6 +43,7 @@ LocationConfig& LocationConfig::operator=(const LocationConfig& src)
 	_allowedMethods = src._allowedMethods;
 	_errorPages = src._errorPages;
 	_cgiConf = src._cgiConf;
+	_vars = src._vars;
 	return (*this);
 }
 

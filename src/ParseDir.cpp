@@ -82,9 +82,9 @@ void  Parse::autoIndexParse(T &obj, std::vector<std::string> &line)
 {
 	if (line.size() != 2)
 		throw std::invalid_argument("Configuration file error: invalid parameter \"autoindex\" ");
-	if (line[1] == "true")
+	if (line[1] == "true") 
 		obj.setAutoIndex(true);
-	else if (line[1] == "false")
+	else if (line[1] == "false") 
 		obj.setAutoIndex(false);
 	else
 		throw std::invalid_argument("Configuration file error: invalid parameter \"autoindex\": " + line[1]);

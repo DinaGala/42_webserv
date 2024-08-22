@@ -471,7 +471,7 @@ void	Request::updateInfoLocation()
 	_errorPages.insert(errorLoc.begin(), errorLoc.end());
 	if (location.getIndex() != "")
 		_index=  vecLocations[_posLocation].getIndex();
-	std::map<std::string, bool> vars = location.getVars(); 
+	std::map<std::string, bool> vars = location.getVars();
 	if (vars["autoindex"] == true)
 		_autoIndex = vecLocations[_posLocation].getAutoIndex();
 	_allowUpload = vecLocations[_posLocation].getAllowUpload();
