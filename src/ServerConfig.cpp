@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 17:48:36 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/31 11:23:15 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/21 21:57:38 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,12 @@ std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
 	error[406] = std::make_pair("Not Acceptable", "errors/406.html");
 	error[408] = std::make_pair("Request Timeout", "errors/408.html");
 	error[411] = std::make_pair("Length Required", "errors/411.html");
+	error[413] = std::make_pair("Content Too Large", "errors/413.html");
+	error[422] = std::make_pair("Unprocessable Content", "errors/422.html");
 	error[500] = std::make_pair("Internal Server Error", "errors/500.html");
 	error[501] = std::make_pair("Not Implemented", "errors/501.html");
 	error[504] = std::make_pair("Gateway Timeout", "errors/504.html");
+	error[505] = std::make_pair("HTTP Version Not Supported", "errors/505.html");
 	return (error);
 }
 
