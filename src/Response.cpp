@@ -155,7 +155,6 @@ void	Response::_handleGet()
 		return (void)this->sendError(500);
 	else if (is_dir)//if directory
 	{
-		std::cout << "Response: index " << this->_req->getIndex() << std::endl;
 		if (this->_req->getIndex() != "")//if index page
 		{
 			this->_response = this->putStatusLine(200);
@@ -476,9 +475,15 @@ bool    Response::putPostHeaders(const std::string &file)
 //puts file content in body string. If something's wrong, returns error code
 int	Response::fileToBody(const std::string &path)
 {
+	int is_dir = this->_isDir(path);
+
 	if (access(path.c_str(), F_OK))//if given error page doesn't exist
 		return (404);
 	else if (access(path.c_str(), R_OK))//if server doesn't have the right to read
+		return (403);
+	else if (is_dir == -1)
+		return (500);
+	else if (is_dir)
 		return (403);
 	std::ifstream	rdfile(path.c_str());
 	if (!rdfile.is_open())
