@@ -65,7 +65,7 @@ class ServerConfig
 		const bool	loc;
 
 	private:
-		static std::map<int, std::pair<std::string, std::string> >	_errorPages;
+		std::map<int, std::pair<std::string, std::string> >	_errorPages;
 		static std::map<int, std::pair<std::string, std::string> >	_initStatus();
 		std::vector<int> 					_port;
 		std::string 						_host;

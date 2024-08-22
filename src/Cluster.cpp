@@ -349,12 +349,12 @@ std::ostream	&operator<<(std::ostream &out, const std::list<Socket> &val)
 
 std::ostream	&operator<<(std::ostream &out, const Request &val)
 {
-    out << "Status:  " << val.getStatus() << "\n";
+    out << "Request line:  " << val.getRequestLine() << "\n";
+	out << "Status:  " << val.getStatus() << "\n";
     out << "Code:  " << val.getCode() << "\n";
     out << "Path:  " << val.getPath() << "\n";
 	out << "CGI:  " << val.getCgi() << "\n";
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
-	out << "Request line:  " << val.getRequestLine() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
 	out << std::endl;
