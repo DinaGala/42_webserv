@@ -87,7 +87,7 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::makeResponse(const Request *req)
 {
 	if (!req)
-		return (this->sendError(505), this->_response);
+		return (this->sendError(666), this->_response);
 	else
 	{
 		this->_req = req;
@@ -130,16 +130,15 @@ void	Response::_handleFavIcon()
 	std::ifstream	icon("./assets/favicon_general.png");
 	std::ostringstream	favicon;
 
+	if (!icon.is_open())
+		return (void)(this->sendError(500));
+	else if (this->_isAccepted("image/png") == false)
+		return (void)(this->sendError(406));
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
-	if (!icon.is_open() || this->_isAccepted("image/png") == false)
-		this->_body = "";
-	else
-	{
-		favicon << icon.rdbuf();
-		this->_body = favicon.str();
-		this->_response += "Content-Type: image/png\r\n";
-	}
+	favicon << icon.rdbuf();
+	this->_body = favicon.str();
+	this->_response += "Content-Type: image/png\r\n";
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 	this->_response += this->_body;
 }
@@ -151,9 +150,7 @@ void	Response::_handleGet()
 
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
-	std::string	path = this->_req->getPath();
 	is_dir = this->_isDir(this->_req->getPath());
-	is_dir = this->_isDir(path);
 	if (is_dir == -1)
 		return (void)this->sendError(500);
 	else if (is_dir)//if directory
@@ -171,8 +168,10 @@ void	Response::_handleGet()
 				return (void)(this->_response += this->_body);
 			}
 		}
-		if (this->_req->getAutoIndex() || code == 404)//if autoindex or index page not found
+		if (this->_req->getAutoIndex())//if autoindex or index page not found
 			this->_makeAutoIndex();
+		else if (code == 404)
+			this->sendError(404);
 		else
 			this->sendError(403);
 		return ;
@@ -491,7 +490,7 @@ int	Response::fileToBody(const std::string &path)
 
 /*makes error response.
 If the error code is not implemented or something happens
-generating the error page, a severe internal server error page is sent (505).
+generating the error page, a severe internal server error page is sent (666).
 If text/html is not accepted, the error will be returned as text/plain or,
 if this one is also not accepted, the error will be returned without content.
 */
@@ -499,7 +498,7 @@ void	Response::sendError(int code)
 {
 	int error = 0;
 	
-	if (code != 505 && this->_errorPages.find(code) == this->_errorPages.end())
+	if (code != 666 && this->_errorPages.find(code) == this->_errorPages.end())
 		code = 500;
 	this->_code = code;
 	if (this->_isAccepted("text/html") == false)
@@ -518,14 +517,10 @@ void	Response::sendError(int code)
 		this->_response += ft_itoa(code) + this->_errorPages.at(code).first;
 		return ;
 	}
-	if (code != 505)
+	if (code != 666)
 		error = fileToBody(this->_errorPages.at(code).second);
-	if (code == 505 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
-	{
-		return (void)(this->_response = SEV_ERR, this->_code = 505);
-		this->_code = 505;
-		return ;
-	}
+	if (code == 666 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
+		return (void)(this->_response = SEV_ERR, this->_code = 666);
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");
