@@ -140,8 +140,9 @@ int	Cgi::executeCgi(void)
 	fcntl(this->_cgi[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	fcntl(this->_cgi[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
-	write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
-	write(req[1], "\0", 1);
+	int wr = write(req[1], this->_reqbody.c_str(), this->_reqbody.size());
+	if (wr == -1 || (wr == 0 && this->_reqbody.size() != 0))
+		return (500);
 	this->_pid = fork();
 	if (this->_pid == -1)
 		return (500);
