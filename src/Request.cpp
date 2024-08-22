@@ -570,6 +570,8 @@ void Request::setCookies()
 void Request::checkAllowMethod()
 {
 	std::vector<std::string>::iterator it = std::find(_allowedMethods.begin(), _allowedMethods.end(), _method); 
+	if (_method != "GET" && _method != "POST" && _method != "DELETE")
+		sendBadRequestError("Request parsing error: method not implemented", 501);
 	if (it == _allowedMethods.end())
 		sendBadRequestError("Request parsing error: method not allowed", 405);
 }
