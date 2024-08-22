@@ -262,10 +262,15 @@ void    Response::_handlePost()
 			return (void)this->sendError(500);
 		this->_response = this->putStatusLine(201);
 		this->putGeneralHeaders();
-		this->putPostHeaders(this->_req->getFileName());
-		this->_body = WORK_DONE("File created!", this->_req->getRequestLine().at(1));
-		this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
-		this->_response += this->_body;
+		if (this->_isAccepted("text/html"))
+		{
+			this->_response += "Content-Type: text/html\r\n";
+			this->_body = WORK_DONE("File created!", this->_req->getRequestLine().at(1));
+			this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
+			this->_response += this->_body;
+		}
+		else
+			this->_response += "Content-Length: 0\r\n";
 	}
 	else if (this->_req->getHeaders().find("Content-Type") != this->_req->getHeaders().end() 
 		&& this->_req->getHeaders().find("Content-Type")->second.find("form-urlencoded") != std::string::npos) {
@@ -418,56 +423,6 @@ void	Response::putGeneralHeaders(void)
 		this->_response += "Keep-Alive: timeout=" + ft_itoa(TIMEOUT);
 		this->_response += ", max=" + ft_itoa(MAXCONNECT) + "\r\n";
 	}
-}
-
-//checks mime type + adds specific POST headers in the response
-bool    Response::putPostHeaders(const std::string &file)
-{
-	size_t found = file.find_last_of(".");
-	std::string ext;
-	if (found == std::string::npos)
-		ext = "";
-	else
-		ext = file.substr(found);
-	std::ifstream	mime("mime.types");
-	std::string		line("");
-	if (!mime.is_open())
-		return (sendError(500), 1);
-	while (1)
-	{
-		if (mime.eof())
-			break ;
-		getline(mime, line);
-		if (line.find(ext) != std::string::npos)
-			break ;
-	}
-	if (this->_req->getUploadDir() == "")
-		this->_response += "Location: " + this->_req->getRoot() + "\r\n";
-	else
-		this->_response += "Location: " + this->_req->getUploadDir() + "\r\n";
-	if (line == "" || mime.eof())
-	{
-		if (access(file.c_str(), X_OK)) // if not executable
-		{
-			if (this->_isAccepted("text/plain") == false)
-				return (this->sendError(406), 1);
-			else
-				this->_response += "Content-Type: text/plain\r\n";
-		}
-		else
-		{
-			if (this->_isAccepted("application/octet-stream") == false)
-				return (this->sendError(406), 1);
-			else
-				this->_response += "Content-Type: application/octet-stream\r\n";
-		}
-		return (0);
-	}
-	line = line.substr(line.find_first_not_of("\t \n\v\r", ext.size()));
-	if (this->_isAccepted(line) == false)
-		return (this->sendError(406), 1);
-	this->_response += "Content-Type: " + line + "\r\n";
-	return (0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
