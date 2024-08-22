@@ -1,5 +1,4 @@
-
-# include "Cluster.hpp"
+#include "Cluster.hpp"
 #include "Utils.hpp"
 
 int main(int ac, char **av){
@@ -15,10 +14,6 @@ int main(int ac, char **av){
 	catch (const std::exception & e){
 		std::cerr << e.what() << std::endl;
 	}
-	/********* TMP **************/
-	int fd = open("Makefile", O_RDONLY);
-	close(fd);
-	/*************************/
 	return (0);
 }
 

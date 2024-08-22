@@ -7,18 +7,14 @@
 # define MAXCONNECT 10
 #endif
 
-#include <map>
+# include <ctime>
 #include <set>
 #include <string>
-#include <ctime>
 #include <fstream>
-#include <iostream>
-#include <sstream>
-#include <unistd.h>
 #include <dirent.h>
 #include "Utils.hpp"
-#include "Cgi.hpp"
 #include "RespUtils.hpp"
+#include "Request.hpp"
 
 
 class Request;

@@ -9,7 +9,9 @@
 # define FINISH_PARSED 4
 # define CRLF "\r\n"
 
+# include <sys/stat.h>
 # include "Utils.hpp"
+# include "Server.hpp"
 
 class Server;
 

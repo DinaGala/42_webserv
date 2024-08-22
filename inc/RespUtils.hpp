@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef RESPUTILS_HPP
 # define RESPUTILS_HPP
 
@@ -10,7 +12,7 @@
 	std::string("<p><a href= \'") + href + std::string("\'>") + name \
 	+ std::string("</a></p>\n")
 
-# define SEV_ERR "HTTP/1.1 505 Severe Internal Server Error\r\n" \
+# define SEV_ERR "HTTP/1.1 666 Severe Internal Server Error\r\n" \
 				"Content-Type: text/plain\r\nContent-Length: 47\r\n\r\n" \
 				"Severe Internal Error.\nPlease, try again later\n"
 

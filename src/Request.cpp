@@ -582,6 +582,14 @@ void Request::checkProtocolHttp()
 
 void Request::updateIndex()
 {
+	/*struct stat	path_stat;
+
+	if (stat(_index.c_str(), &path_stat))
+		sendBadRequestError("", 500);
+	if (S_ISDIR(path_stat.st_mode))
+		_index = "";
+	if (_index != "") {
+		if (_path[_path.size() - 1] != '/')*/
 	if (_index != "" ) {
 		if (_path[_path.size() - 1] != '/' && _index.size() > 0 && _index[0] != '/')
 			_index = '/' + _index;

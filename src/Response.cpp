@@ -87,7 +87,7 @@ void	Response::_parseCgiResponse(void)
 std::string	&Response::makeResponse(const Request *req)
 {
 	if (!req)
-		return (this->sendError(505), this->_response);
+		return (this->sendError(666), this->_response);
 	else
 	{
 		this->_req = req;
@@ -101,10 +101,7 @@ std::string	&Response::makeResponse(const Request *req)
 		return (this->_response);
 	}
 	else if (this->_req->getCode() > 301) 
-	{
-		std::cerr << "Response: leaving with req error" << std::endl;
 		return (this->sendError(this->_req->getCode()), this->_response);
-	}
 	else if (this->_code > 301)
 		return (this->sendError(this->_code), this->_response);
 	std::string	method = this->_req->getMethod();
@@ -133,16 +130,15 @@ void	Response::_handleFavIcon()
 	std::ifstream	icon("./assets/favicon_general.png");
 	std::ostringstream	favicon;
 
+	if (!icon.is_open())
+		return (void)(this->sendError(500));
+	else if (this->_isAccepted("image/png") == false)
+		return (void)(this->sendError(406));
 	this->_response = this->putStatusLine(200);
 	this->putGeneralHeaders();
-	if (!icon.is_open() || this->_isAccepted("image/png") == false)
-		this->_body = "";
-	else
-	{
-		favicon << icon.rdbuf();
-		this->_body = favicon.str();
-		this->_response += "Content-Type: image/png\r\n";
-	}
+	favicon << icon.rdbuf();
+	this->_body = favicon.str();
+	this->_response += "Content-Type: image/png\r\n";
 	this->_response += "Content-Length: " + ft_itoa(this->_body.size()) + "\r\n\r\n";
 	this->_response += this->_body;
 }
@@ -154,13 +150,12 @@ void	Response::_handleGet()
 
 	if (this->_req->getPath() == "./favicon.ico")//if favicon
 		return (void)this->_handleFavIcon();
-	std::string	path = this->_req->getPath();
 	is_dir = this->_isDir(this->_req->getPath());
-	is_dir = this->_isDir(path);
 	if (is_dir == -1)
 		return (void)this->sendError(500);
 	else if (is_dir)//if directory
 	{
+		std::cout << "Response: index " << this->_req->getIndex() << std::endl;
 		if (this->_req->getIndex() != "")//if index page
 		{
 			this->_response = this->putStatusLine(200);
@@ -174,24 +169,17 @@ void	Response::_handleGet()
 				return (void)(this->_response += this->_body);
 			}
 		}
-		if (this->_req->getAutoIndex() || code == 404)//if autoindex or index page not found
+		if (this->_req->getAutoIndex())//if autoindex
 			this->_makeAutoIndex();
+		else if (code == 404) // if page not found
+			this->sendError(404);
 		else
 			this->sendError(403);
 		return ;
 	}
-	/*if (this->_req->getCgi() == true && this->_cgifd != -1) // if there's cgi
-	{
-		this->_readCgi();
-		this->_parseCgiResponse();
-		return ;
-	}*/
-	//else //if not cgi
-	//{
-		int error = this->fileToBody(this->_req->getPath());
-		if (error)
-			return (void)this->sendError(error);
-	//}
+	int error = this->fileToBody(this->_req->getPath());
+	if (error)
+		return (void)this->sendError(error);
 	this->putGeneralHeaders();
 	if (!this->_body.empty())// if body
 	{
@@ -306,7 +294,6 @@ Second loop:
 */
 bool	Response::_isAccepted(std::string mime)
 {
-	std::cerr << "mime: " << mime << std::endl;
 	std::string::size_type	found = mime.find("/");
 	if (found == std::string::npos)//bad format
 		return (false);
@@ -455,7 +442,10 @@ bool    Response::putPostHeaders(const std::string &file)
 		if (line.find(ext) != std::string::npos)
 			break ;
 	}
-	this->_response += "Location: " + this->_req->getUploadDir();
+	if (this->_req->getUploadDir() == "")
+		this->_response += "Location: " + this->_req->getRoot() + "\r\n";
+	else
+		this->_response += "Location: " + this->_req->getUploadDir() + "\r\n";
 	if (line == "" || mime.eof())
 	{
 		if (access(file.c_str(), X_OK)) // if not executable
@@ -501,7 +491,7 @@ int	Response::fileToBody(const std::string &path)
 
 /*makes error response.
 If the error code is not implemented or something happens
-generating the error page, a severe internal server error page is sent (505).
+generating the error page, a severe internal server error page is sent (666).
 If text/html is not accepted, the error will be returned as text/plain or,
 if this one is also not accepted, the error will be returned without content.
 */
@@ -509,12 +499,11 @@ void	Response::sendError(int code)
 {
 	int error = 0;
 	
-	if (code != 505 && this->_errorPages.find(code) == this->_errorPages.end())
+	if (code != 666 && this->_errorPages.find(code) == this->_errorPages.end())
 		code = 500;
 	this->_code = code;
 	if (this->_isAccepted("text/html") == false)
 	{
-		std::cerr << "Response::sendError() html not accepted" << std::endl;
 		if (this->_isAccepted("text/plain") == false)
 		{
 			this->_response = this->putStatusLine(code);
@@ -529,16 +518,10 @@ void	Response::sendError(int code)
 		this->_response += ft_itoa(code) + this->_errorPages.at(code).first;
 		return ;
 	}
-	if (code != 505)
+	if (code != 666)
 		error = fileToBody(this->_errorPages.at(code).second);
-	if (code == 505 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
-	{
-		std::cerr << "Response::sendError() double error" << std::endl;
-		return (void)(this->_response = SEV_ERR, this->_code = 505);
-		this->_code = 505;
-		return ;
-	}
-	std::cerr << "Response::sendError() general case" << std::endl;
+	if (code == 666 || (error && fileToBody(this->_errorPages.at(error).second)))//true if we have a double error
+		return (void)(this->_response = SEV_ERR, this->_code = 666);
 	std::string::size_type	head = this->_body.find("</head>");
 	if (head != std::string::npos)
 		this->_body.insert(head - 1, "<link rel=\"icon\" type=\"image/png\" href=\"/assets/favicon_error.png\">");

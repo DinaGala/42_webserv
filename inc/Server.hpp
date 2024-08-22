@@ -1,7 +1,12 @@
+#pragma once
+
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
 # include "Utils.hpp"
+# include "ServerConfig.hpp"
+
+class ServerConfig;
 
 class Server {
 	

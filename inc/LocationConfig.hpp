@@ -6,14 +6,19 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:04 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/07/31 11:15:21 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/22 12:07:26 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#pragma once
 
 #ifndef LOCATIONCONFIG_HPP
 # define LOCATIONCONFIG_HPP
 
 # include "Utils.hpp"
+# include "Parse.hpp"
+
+class Parse;
 
 class LocationConfig
 {
