@@ -1,7 +1,9 @@
+#pragma once
+
 #ifndef SIGNALS_HPP
 # define SIGNALS_HPP
 
-# include "Utils.hpp"
+# include <signal.h>
 
 extern volatile bool signaled;
 

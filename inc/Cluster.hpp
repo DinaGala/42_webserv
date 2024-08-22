@@ -1,11 +1,20 @@
+#pragma once
+
 #ifndef CLUSTER_HPP
 # define CLUSTER_HPP
 
+# include <ctime>
+# include <sys/wait.h>
 # include "Utils.hpp"
+# include "Signals.hpp"
+# include "Socket.hpp"
+# include "Cgi.hpp"
+# include "Parse.hpp"
 
 class ServerConfig;
 class Server;
 class Socket;
+class Cgi;
 
 class Cluster {
 	private:

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef RESPUTILS_HPP
 # define RESPUTILS_HPP
 

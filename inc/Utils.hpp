@@ -6,7 +6,7 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 20:13:44 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/19 14:21:31 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/22 12:04:26 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,48 +25,32 @@
 # define NUM "0123456789"
 # define TIMEOUT 5 // in seconds
 
-# include <string>
-# include <cstring>
-# include <fstream>
-# include <sstream>
-# include <iostream>
-# include <vector>
-# include <map>
-# include <list>
 # include <algorithm>
-# include <exception>
 # include <cctype>
-# include <functional>
 # include <climits>
+# include <cstring>
+# include <exception>
 # include <fcntl.h>
+# include <fstream>
+# include <functional>
+# include <iostream>
+# include <list>
+# include <map>
+# include <sstream>
+# include <stdlib.h>
 # include <sys/epoll.h>
 # include <unistd.h>
-# include <stdlib.h>
-# include <signal.h>
+# include <vector>
 
-# include <sys/socket.h> 
-# include <netinet/in.h> 
-# include <netinet/tcp.h>
+# include <arpa/inet.h>
+# include <cerrno>
+# include <cstdlib> 
 # include <netdb.h>
 # include <netinet/in.h>
-# include <cstdlib> 
-# include <unistd.h>
-# include <cerrno>
-# include <sys/types.h>
-# include <arpa/inet.h>
-# include <netinet/in.h>
-# include <sstream>
+# include <netinet/tcp.h>
 # include <stdexcept> 
-
-# include "Response.hpp"
-# include "Request.hpp"
-# include "LocationConfig.hpp"
-# include "ServerConfig.hpp"
-# include "Parse.hpp"
-# include "Server.hpp"
-# include "Socket.hpp"
-# include "Cluster.hpp"
-# include "Signals.hpp"
+# include <sys/socket.h> 
+# include <sys/types.h>
 
 std::string ltrim(const std::string& s);
 std::string rtrim(const std::string& s);

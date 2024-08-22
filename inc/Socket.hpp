@@ -1,8 +1,12 @@
+#pragma once
 
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
 # include "Utils.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
+# include "Server.hpp"
 
 class Request;
 class Response;

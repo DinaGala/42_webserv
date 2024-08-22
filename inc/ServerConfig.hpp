@@ -6,15 +6,21 @@
 /*   By: nzhuzhle <nzhuzhle@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 18:02:35 by nzhuzhle          #+#    #+#             */
-/*   Updated: 2024/08/19 15:21:08 by nuferron         ###   ########.fr       */
+/*   Updated: 2024/08/22 12:04:57 by nuferron         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#pragma once
 
 #ifndef SERVERCONFIG_HPP
 # define SERVERCONFIG_HPP
 
 # include "Utils.hpp"
+# include "Parse.hpp"
+# include "LocationConfig.hpp"
+# include "Server.hpp"
 
+class Server;
 class Parse;
 class LocationConfig;
 

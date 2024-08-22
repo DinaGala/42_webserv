@@ -1,9 +1,8 @@
+#pragma once
+
 #ifndef	CGI_HPP
 # define CGI_HPP
 
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <ctime>
 #include "Request.hpp"
 
 class	Request;
