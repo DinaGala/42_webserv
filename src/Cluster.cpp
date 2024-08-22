@@ -357,6 +357,7 @@ std::ostream	&operator<<(std::ostream &out, const Request &val)
 	out << "Autoindex:  " << val.getAutoIndex() << "\n";
 	out << "Allow methods:  " << val.getAllowedMethods() << "\n";
 	out << "Number Location:  " << val.getPosLocation() << "\n";
+	out << "Index:	" << val.getIndex() << "\n";
 	out << std::endl;
 	return (out);
 }
