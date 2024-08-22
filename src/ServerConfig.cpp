@@ -35,8 +35,6 @@ std::map<int, std::pair<std::string, std::string> > ServerConfig::_initStatus()
 	return (error);
 }
 
-std::map<int, std::pair<std::string, std::string> > ServerConfig::_errorPages = ServerConfig::_initStatus();
-
 // _____________  CONSTRUCTORS ______________________________________
 
 
@@ -57,7 +55,7 @@ ServerConfig::ServerConfig(): loc(true)
 	_allowedMethods.push_back("GET");
 	_allowedMethods.push_back("POST");
 	_allowedMethods.push_back("DELETE");
-
+	_errorPages = _initStatus();
 }
 
 ServerConfig::ServerConfig(std::string file): loc(true)
@@ -74,6 +72,7 @@ ServerConfig::ServerConfig(std::string file): loc(true)
 	_cgiConf[".js"] = "/usr/bin/node";
 	_cgiConf[".php"] = "/usr/bin/php";
 	_cgiConf[".py"] = "/usr/bin/python3";
+	_errorPages = _initStatus();
 	Parse::complexParse<ServerConfig>(*this, file);
 }
 
