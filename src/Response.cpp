@@ -155,6 +155,7 @@ void	Response::_handleGet()
 		return (void)this->sendError(500);
 	else if (is_dir)//if directory
 	{
+		std::cout << "Response: index " << this->_req->getIndex() << std::endl;
 		if (this->_req->getIndex() != "")//if index page
 		{
 			this->_response = this->putStatusLine(200);
@@ -168,9 +169,9 @@ void	Response::_handleGet()
 				return (void)(this->_response += this->_body);
 			}
 		}
-		if (this->_req->getAutoIndex())//if autoindex or index page not found
+		if (this->_req->getAutoIndex())//if autoindex
 			this->_makeAutoIndex();
-		else if (code == 404)
+		else if (code == 404) // if page not found
 			this->sendError(404);
 		else
 			this->sendError(403);
