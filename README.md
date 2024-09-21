@@ -1,4 +1,12 @@
-# Project Overview
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [How It Works](#how-it-works)
+4. [Installation](#installation)
+5. [Usage](#usage)
+
+
+## Project Overview
 
 Webserv is a lightweight HTTP server written in C++ as part of the 42 curriculum. It is designed to handle basic web serving functionalities like handling HTTP requests, serving static files, and executing CGI scripts. The goal of this project is to gain a deeper understanding of how web servers work by building one from scratch, focusing on key aspects such as:
 
@@ -7,7 +15,7 @@ Webserv is a lightweight HTTP server written in C++ as part of the 42 curriculum
 - Configurable virtual hosts
 - CGI support for dynamic content
 
-# Features
+## Features
 
 - HTTP/1.1 support for basic methods (`GET`, `POST`, `DELETE`)
 - Multiple virtual hosts with customizable configurations
@@ -17,7 +25,7 @@ Webserv is a lightweight HTTP server written in C++ as part of the 42 curriculum
 - Connection management using multiplexing techniques (epoll)
 - Configurable timeouts and limits for client requests
 
-# How It Works
+## How It Works
 
 Webserv listens on a specified port and waits for incoming HTTP requests. Based on the configuration file, it determines which virtual host and route to serve, and whether to return a static file or delegate the request to a CGI script.
 Key Components:
@@ -31,7 +39,7 @@ Key Components:
 **4. Multiplexing:** Manages multiple client connections efficiently.
 
 
-# Installation
+## Installation
 
 Clone the repository:
 
@@ -47,7 +55,7 @@ make
 ```
 Ensure you have Python or another scripting language for CGI, if you want to test dynamic content.
 
-# Usage
+## Usage
 
 Once compiled, you can start the web server by running:
 
