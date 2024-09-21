@@ -69,4 +69,4 @@ If you want execute it with the default configuration file, or:
 ./webserv <path/to/configuration/file>
 ```
 
-If you have something more specific in mind (for example, `./conf/gpt.conf`).
+If you have something more specific in mind (p.e., `./conf/gpt.conf`).
