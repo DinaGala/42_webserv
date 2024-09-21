@@ -11,7 +11,7 @@
 Webserv is a lightweight HTTP server written in C++ as part of the 42 curriculum. It is designed to handle basic web serving functionalities like handling HTTP requests, serving static files, and executing CGI scripts. The goal of this project is to gain a deeper understanding of how web servers work by building one from scratch, focusing on key aspects such as:
 
 - Handling multiple clients using multiplexing (select, poll, or epoll)
-- Supporting various HTTP methods like GET, POST, and DELETE
+- Supporting various HTTP methods like `GET`, `POST`, and `DELETE`
 - Configurable virtual hosts
 - CGI support for dynamic content
 
@@ -34,7 +34,7 @@ Key Components:
 
 **2. Response Handling:** Sends back appropriate responses, including headers, status codes, and content.
 
-**3. CGI Execution:** Executes external scripts (e.g., Python, PHP) and sends their output back to the client.
+**3. CGI Execution:** Executes external scripts (p.e., Python, PHP) and sends their output back to the client.
 
 **4. Multiplexing:** Manages multiple client connections efficiently.
 
