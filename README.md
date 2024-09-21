@@ -44,7 +44,7 @@ Key Components:
 Clone the repository:
 
 ```
-git clone https://github.com/DinaGala/42_webserv.git
+git clone https://github.com/DinaGala/42_webserv.git webserv
 cd webserv
 ```
 
